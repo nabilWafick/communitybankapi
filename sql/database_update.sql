@@ -402,3 +402,9 @@ WHERE
 
 --  ADD CONSTRAINT TO CUSTOMERS TABLE FOR COLLECTOR ON
 ALTER TABLE customers ADD CONSTRAINT fk_collector_id FOREIGN KEY (collector_id) REFERENCES collectors (id);
+
+/**
+- add views and permissions columns to agents tables
+- remove rules column
+- create users table 
+ **/
