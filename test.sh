@@ -2,13 +2,14 @@ nest g resource dashboard
 nest g resource products
 nest g resource types
 nest g resource collectors
-nest g resource customers_categories
+nest g resource categories
 nest g resource economical_activities
 nest g resource personal_status
 nest g resource localities
 nest g resource clients
 nest g resource agents
 nest g resource users
+nest g resource auth
 nest g resource customers_accounts
 nest g resource customers_cards
 nest g resource collections
@@ -21,4 +22,3 @@ nest g resource products_statistics
 nest g resource products_forecasts
 nest g resource transfers
 nest g resource stocks
-nest g resource auth
