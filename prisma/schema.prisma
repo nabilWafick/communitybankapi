@@ -32,22 +32,22 @@ model Agent {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Card {
-  id                                           BigInt       @id(map: "cartes_pkey1") @unique(map: "cartes_id_key") @default(autoincrement())
-  label                                        String       @unique(map: "cartes_libelle_key")
-  typeId                                       BigInt       @map("type_id")
-  satisfiedAt                                  DateTime?    @map("satisfied_at") @db.Timestamptz(6)
-  repaidAt                                     DateTime?    @map("repaid_at") @db.Timestamptz(6)
-  createdAt                                    DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt                                    DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  customerId                                   BigInt       @map("customer_id")
-  typesNumber                                  Int          @default(1) @map("types_number")
-  transferedAt                                 DateTime?    @map("transfered_at") @db.Timestamptz(6)
-  customers                                    Customer     @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_client_fkey")
-  types                                        Type         @relation(fields: [typeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_type_fkey")
-  settlements                                  Settlement[]
-  stocks                                       Stock[]
-  transfers_transfers_issuing_card_idTocards   Transfer[]   @relation("transfers_issuing_card_idTocards")
-  transfers_transfers_receiving_card_idTocards Transfer[]   @relation("transfers_receiving_card_idTocards")
+  id                      BigInt       @id(map: "cartes_pkey1") @unique(map: "cartes_id_key") @default(autoincrement())
+  label                   String       @unique(map: "cartes_libelle_key")
+  typeId                  BigInt       @map("type_id")
+  satisfiedAt             DateTime?    @map("satisfied_at") @db.Timestamptz(6)
+  repaidAt                DateTime?    @map("repaid_at") @db.Timestamptz(6)
+  createdAt               DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  customerId              BigInt       @map("customer_id")
+  typesNumber             Int          @default(1) @map("types_number")
+  transferedAt            DateTime?    @map("transfered_at") @db.Timestamptz(6)
+  customer                Customer     @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_client_fkey")
+  type                    Type         @relation(fields: [typeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_type_fkey")
+  settlements             Settlement[]
+  stocks                  Stock[]
+  transfersIssuingCards   Transfer[]   @relation("transfers_issuing_card_idTocards")
+  transfersReceivingCards Transfer[]   @relation("transfers_receiving_card_idTocards")
 
   @@map("cards")
 }
@@ -72,66 +72,54 @@ model Collection {
   collectedAt DateTime     @map("collected_at") @db.Timestamptz(6)
   createdAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  agents      Agent        @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "collectes_id_agent_fkey")
-  collectors  Collector    @relation(fields: [collectorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "collectes_id_charge_compte_fkey")
-  settlements Settlement[]
+  agent       Agent        @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "collectes_id_agent_fkey")
+  collector   Collector    @relation(fields: [collectorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "collectes_id_charge_compte_fkey")
+  settlement  Settlement[]
+
+  @@map("collections")
 }
 
 model Collector {
-  id                 BigInt            @id(map: "charges_comptes_pkey") @default(autoincrement())
-  name               String
-  firstnames         String
-  phoneNumber        String            @unique(map: "charges_compte_telephone_key") @map("phone_number") @db.VarChar
-  address            String            @db.VarChar
-  profile            String?
-  createdAt          DateTime          @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime          @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  collections        Collection[]
-  customers          Customer[]
-  customers_accounts CustomerAccount[]
+  id          BigInt       @id(map: "charges_comptes_pkey") @default(autoincrement())
+  name        String
+  firstnames  String
+  phoneNumber String       @unique(map: "charges_compte_telephone_key") @map("phone_number") @db.VarChar
+  address     String       @db.VarChar
+  profile     String?
+  createdAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  collections Collection[]
+  customers   Customer[]
+  //  customersAccounts CustomerAccount[]
 
   @@map("collectors")
 }
 
 model Customer {
-  id                    BigInt              @id(map: "clients_pkey") @default(autoincrement())
-  name                  String
-  firstnames            String
-  phoneNumber           String              @map("phone_number")
-  address               String
-  occupation            String?
-  nicNumber             BigInt?             @map("nic_number")
-  categoryId            BigInt?             @map("category_id")
-  economicalActivityId  BigInt?             @map("economical_activity_id")
-  personalStatusId      BigInt?             @map("personal_status_id")
-  localityId            BigInt?             @map("locality_id")
-  profile               String?
-  signature             String?
-  createdAt             DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  collectorId           BigInt?             @map("collector_id")
-  cards                 Card[]
-  economical_activities EconomicalActivity? @relation(fields: [economicalActivityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_activite_economique_fkey")
-  categories            Category?           @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_categorie_fkey")
-  localities            Locality?           @relation(fields: [localityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_localite_fkey")
-  personal_status       PersonalStatus?     @relation(fields: [personalStatusId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_statut_personnel_fkey")
-  collectors            Collector?          @relation(fields: [collectorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  customers_accounts    CustomerAccount?
+  id                   BigInt              @id(map: "clients_pkey") @default(autoincrement())
+  name                 String
+  firstnames           String
+  phoneNumber          String              @map("phone_number")
+  address              String
+  occupation           String?
+  nicNumber            BigInt?             @map("nic_number")
+  categoryId           BigInt?             @map("category_id")
+  economicalActivityId BigInt?             @map("economical_activity_id")
+  personalStatusId     BigInt?             @map("personal_status_id")
+  localityId           BigInt?             @map("locality_id")
+  profile              String?
+  signature            String?
+  createdAt            DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  collectorId          BigInt?             @map("collector_id")
+  cards                Card[]
+  economicalActivity   EconomicalActivity? @relation(fields: [economicalActivityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_activite_economique_fkey")
+  category             Category?           @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_categorie_fkey")
+  locality             Locality?           @relation(fields: [localityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_localite_fkey")
+  personalStatus       PersonalStatus?     @relation(fields: [personalStatusId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_statut_personnel_fkey")
+  collector            Collector?          @relation(fields: [collectorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("customers")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model CustomerAccount {
-  id          BigInt    @id(map: "comptes_clients_pkey") @default(autoincrement())
-  customerId  BigInt    @unique(map: "comptes_clients_id_client_key") @map("customer_id")
-  createdAt   DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  collectorId BigInt    @map("collector_id")
-  collectors  Collector @relation(fields: [collectorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comptes_clients_id_charge_compte_fkey")
-  customers   Customer  @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comptes_clients_id_client_fkey")
-
-  @@map("customers_accounts")
 }
 
 model Day {
@@ -168,7 +156,7 @@ model Modification {
   modification String
   createdAt    DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  agents       Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_modifications_id_agent_fkey")
+  agent        Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_modifications_id_agent_fkey")
 
   @@map("modifications")
 }
@@ -212,9 +200,9 @@ model Settlement {
   cardId       BigInt      @map("card_id")
   collectionId BigInt?     @map("collection_id")
   isValidated  Boolean     @map("is_validated")
-  agents       Agent       @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_agent_fkey")
-  cards        Card        @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_carte_fkey")
-  collections  Collection? @relation(fields: [collectionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_collecte_fkey")
+  agent        Agent       @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_agent_fkey")
+  card         Card        @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_carte_fkey")
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_collecte_fkey")
 
   @@map("settlements")
 }
@@ -232,26 +220,26 @@ model Stock {
   movementType    String?  @map("movement_type") @db.VarChar
   cardId          BigInt?  @map("card_id")
   agentId         BigInt   @map("agent_id")
-  agents          Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")
-  cards           Card?    @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_carte_fkey")
-  products        Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_produit_fkey")
+  agent           Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")
+  card            Card?    @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_carte_fkey")
+  product         Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_produit_fkey")
 
   @@map("stocks")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Transfer {
-  id                                       BigInt    @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
-  issuingCardId                            BigInt    @map("issuing_card_id")
-  receivingCardId                          BigInt    @map("receiving_card_id")
-  agentId                                  BigInt    @map("agent_id")
-  validated_at                             DateTime? @map("validated_at") @db.Timestamptz(6)
-  createdAt                                DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt                                DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  rejected_at                              DateTime? @map("rejected_at") @db.Timestamptz(6)
-  agents                                   Agent     @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_agent_fkey")
-  cards_transfers_issuing_card_idTocards   Card      @relation("transfers_issuing_card_idTocards", fields: [issuingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_emettrice_fkey")
-  cards_transfers_receiving_card_idTocards Card      @relation("transfers_receiving_card_idTocards", fields: [receivingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_receptrice_fkey")
+  id              BigInt    @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
+  issuingCardId   BigInt    @map("issuing_card_id")
+  receivingCardId BigInt    @map("receiving_card_id")
+  agentId         BigInt    @map("agent_id")
+  validatedAt     DateTime? @map("validated_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  rejected_at     DateTime? @map("rejected_at") @db.Timestamptz(6)
+  agent           Agent     @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_agent_fkey")
+  issuingCard     Card      @relation("transfers_issuing_card_idTocards", fields: [issuingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_emettrice_fkey")
+  receivingCard   Card      @relation("transfers_receiving_card_idTocards", fields: [receivingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_receptrice_fkey")
 
   @@map("transfers")
 }
@@ -280,7 +268,7 @@ model User {
   passwordResetedAt DateTime? @map("password_reseted_at") @db.Timestamptz(6)
   createdAt         DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  agents            Agent     @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  agent             Agent     @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("users")
 }

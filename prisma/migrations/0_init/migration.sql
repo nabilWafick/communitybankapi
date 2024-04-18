@@ -92,17 +92,6 @@ CREATE TABLE "customers" (
 );
 
 -- CreateTable
-CREATE TABLE "customers_accounts" (
-    "id" BIGSERIAL NOT NULL,
-    "customer_id" BIGINT NOT NULL,
-    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "collector_id" BIGINT NOT NULL,
-
-    CONSTRAINT "comptes_clients_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "days" (
     "id" BIGSERIAL NOT NULL,
     "day" TEXT NOT NULL,
@@ -115,8 +104,8 @@ CREATE TABLE "days" (
 CREATE TABLE "economical_activities" (
     "id" BIGSERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
-    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc+1'::text),
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc+1'::text),
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
 
     CONSTRAINT "activites_economiques_pkey" PRIMARY KEY ("id")
 );
@@ -164,11 +153,11 @@ CREATE TABLE "personal_status" (
 -- CreateTable
 CREATE TABLE "products" (
     "id" BIGSERIAL NOT NULL,
-    "nom" TEXT NOT NULL,
-    "prix_achat" DECIMAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "purchase_price" DECIMAL NOT NULL,
     "photo" TEXT,
-    "date_creation" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "date_modification" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
 
     CONSTRAINT "produits_pkey" PRIMARY KEY ("id")
 );
@@ -177,8 +166,8 @@ CREATE TABLE "products" (
 CREATE TABLE "settlements" (
     "id" BIGSERIAL NOT NULL,
     "number" INTEGER NOT NULL,
-    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "agent_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "card_id" BIGINT NOT NULL,
     "collection_id" BIGINT,
@@ -233,15 +222,15 @@ CREATE TABLE "types" (
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" SERIAL NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "agent_id" BIGINT NOT NULL,
     "password" TEXT NOT NULL,
     "access_token" TEXT NOT NULL,
     "security_questions" JSONB,
     "last_login_at" TIMESTAMPTZ(6),
     "password_reseted_at" TIMESTAMPTZ(6),
-    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'UTC-1'::text),
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'UTC-1'::text),
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -271,9 +260,6 @@ CREATE UNIQUE INDEX "collecte_id_key" ON "collections"("id");
 CREATE UNIQUE INDEX "charges_compte_telephone_key" ON "collectors"("phone_number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "comptes_clients_id_client_key" ON "customers_accounts"("customer_id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "jours_id_key" ON "days"("id");
 
 -- CreateIndex
@@ -301,7 +287,7 @@ CREATE UNIQUE INDEX "mois_numero_annee_key" ON "months"("number");
 CREATE UNIQUE INDEX "statuts_personnels_nom_key" ON "personal_status"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "produits_nom_key" ON "products"("nom");
+CREATE UNIQUE INDEX "produits_nom_key" ON "products"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "transferts_id_key" ON "transfers"("id");
@@ -335,12 +321,6 @@ ALTER TABLE "customers" ADD CONSTRAINT "clients_id_statut_personnel_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "customers" ADD CONSTRAINT "customers_collector_id_fkey" FOREIGN KEY ("collector_id") REFERENCES "collectors"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "customers_accounts" ADD CONSTRAINT "comptes_clients_id_charge_compte_fkey" FOREIGN KEY ("collector_id") REFERENCES "collectors"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "customers_accounts" ADD CONSTRAINT "comptes_clients_id_client_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "modifications" ADD CONSTRAINT "public_modifications_id_agent_fkey" FOREIGN KEY ("agent_id") REFERENCES "agents"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
