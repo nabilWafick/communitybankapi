@@ -404,6 +404,7 @@ WHERE
 ALTER TABLE customers ADD CONSTRAINT fk_collector_id FOREIGN KEY (collector_id) REFERENCES collectors (id);
 
 /**
+- update product table by changing nom to name, prix_achat to purchase_price, date_creation to created_at, date_modification to updatedAt
 - add views and permissions columns to agents tables
 - remove rules column
 - create users table 

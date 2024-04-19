@@ -18,8 +18,8 @@ model Agent {
   createdAt     DateTime       @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime       @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
   email         String         @unique
-  permissions   Json?
-  views         Json?
+  permissions   Json
+  views         Json
   collections   Collection[]
   modifications Modification[]
   settlements   Settlement[]
@@ -260,10 +260,10 @@ model Type {
 
 model User {
   id                BigInt    @id @default(autoincrement())
-  agentId           BigInt    @map("agent_id")
+  agentId           BigInt    @unique @map("agent_id")
   password          String
   accessToken       String    @map("access_token")
-  securityQuestions Json?     @map("security_questions")
+  securityQuestions Json      @map("security_questions")
   lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
   passwordResetedAt DateTime? @map("password_reseted_at") @db.Timestamptz(6)
   createdAt         DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)

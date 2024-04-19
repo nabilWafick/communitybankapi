@@ -9,8 +9,8 @@ CREATE TABLE "agents" (
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "email" TEXT NOT NULL,
-    "permissions" JSONB,
-    "views" JSONB,
+    "permissions" JSONB NOT NULL,
+    "views" JSONB NOT NULL,
 
     CONSTRAINT "agents_pkey" PRIMARY KEY ("id")
 );
@@ -226,7 +226,7 @@ CREATE TABLE "users" (
     "agent_id" BIGINT NOT NULL,
     "password" TEXT NOT NULL,
     "access_token" TEXT NOT NULL,
-    "security_questions" JSONB,
+    "security_questions" JSONB NOT NULL,
     "last_login_at" TIMESTAMPTZ(6),
     "password_reseted_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -294,6 +294,9 @@ CREATE UNIQUE INDEX "transferts_id_key" ON "transfers"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "types_nom_key" ON "types"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_agent_id_key" ON "users"("agent_id");
 
 -- AddForeignKey
 ALTER TABLE "cards" ADD CONSTRAINT "cartes_id_client_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
