@@ -9,8 +9,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto, LoginAuthDto } from './dto';
+import { Prisma } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -25,4 +28,7 @@ export class AuthController {
     console.log({ loginAuthDto });
     return loginAuthDto;
   }
+
+  @Get('')
+  get(@Body() get: Prisma.UserCreateInput) {}
 }
