@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "agents" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "firstnames" TEXT NOT NULL,
     "phone_number" VARCHAR,
@@ -17,14 +17,14 @@ CREATE TABLE "agents" (
 
 -- CreateTable
 CREATE TABLE "cards" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "label" TEXT NOT NULL,
-    "type_id" BIGINT NOT NULL,
+    "type_id" INTEGER NOT NULL,
     "satisfied_at" TIMESTAMPTZ(6),
     "repaid_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "customer_id" BIGINT NOT NULL,
+    "customer_id" INTEGER NOT NULL,
     "types_number" INTEGER NOT NULL DEFAULT 1,
     "transfered_at" TIMESTAMPTZ(6),
 
@@ -33,7 +33,7 @@ CREATE TABLE "cards" (
 
 -- CreateTable
 CREATE TABLE "categories" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -43,11 +43,11 @@ CREATE TABLE "categories" (
 
 -- CreateTable
 CREATE TABLE "collections" (
-    "id" BIGSERIAL NOT NULL,
-    "collector_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "collector_id" INTEGER NOT NULL,
     "amount" DECIMAL NOT NULL,
     "rest" DECIMAL NOT NULL,
-    "agent_id" BIGINT NOT NULL,
+    "agent_id" INTEGER NOT NULL,
     "collected_at" TIMESTAMPTZ(6) NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -57,7 +57,7 @@ CREATE TABLE "collections" (
 
 -- CreateTable
 CREATE TABLE "collectors" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "firstnames" TEXT NOT NULL,
     "phone_number" VARCHAR NOT NULL,
@@ -71,29 +71,29 @@ CREATE TABLE "collectors" (
 
 -- CreateTable
 CREATE TABLE "customers" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "firstnames" TEXT NOT NULL,
     "phone_number" TEXT NOT NULL,
     "address" TEXT NOT NULL,
     "occupation" TEXT,
-    "nic_number" BIGINT,
-    "category_id" BIGINT,
-    "economical_activity_id" BIGINT,
-    "personal_status_id" BIGINT,
-    "locality_id" BIGINT,
+    "nic_number" INTEGER,
+    "category_id" INTEGER,
+    "economical_activity_id" INTEGER,
+    "personal_status_id" INTEGER,
+    "locality_id" INTEGER,
     "profile" TEXT,
     "signature" TEXT,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "collector_id" BIGINT,
+    "collector_id" INTEGER,
 
     CONSTRAINT "clients_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "days" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "day" TEXT NOT NULL,
     "number" SMALLINT NOT NULL,
 
@@ -102,7 +102,7 @@ CREATE TABLE "days" (
 
 -- CreateTable
 CREATE TABLE "economical_activities" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -112,7 +112,7 @@ CREATE TABLE "economical_activities" (
 
 -- CreateTable
 CREATE TABLE "localities" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -122,8 +122,8 @@ CREATE TABLE "localities" (
 
 -- CreateTable
 CREATE TABLE "modifications" (
-    "id" BIGSERIAL NOT NULL,
-    "agent_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "agent_id" INTEGER NOT NULL,
     "modification" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -133,7 +133,7 @@ CREATE TABLE "modifications" (
 
 -- CreateTable
 CREATE TABLE "months" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "number" SMALLINT NOT NULL,
 
@@ -142,7 +142,7 @@ CREATE TABLE "months" (
 
 -- CreateTable
 CREATE TABLE "personal_status" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -152,7 +152,7 @@ CREATE TABLE "personal_status" (
 
 -- CreateTable
 CREATE TABLE "products" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "purchase_price" DECIMAL NOT NULL,
     "photo" TEXT,
@@ -164,13 +164,13 @@ CREATE TABLE "products" (
 
 -- CreateTable
 CREATE TABLE "settlements" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "number" INTEGER NOT NULL,
-    "agent_id" BIGINT NOT NULL,
+    "agent_id" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "card_id" BIGINT NOT NULL,
-    "collection_id" BIGINT,
+    "card_id" INTEGER NOT NULL,
+    "collection_id" INTEGER,
     "is_validated" BOOLEAN NOT NULL,
 
     CONSTRAINT "reglements_pkey" PRIMARY KEY ("id")
@@ -178,8 +178,8 @@ CREATE TABLE "settlements" (
 
 -- CreateTable
 CREATE TABLE "stocks" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "initial_quantity" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -187,18 +187,18 @@ CREATE TABLE "stocks" (
     "output_quantity" INTEGER,
     "stock_quantity" INTEGER NOT NULL,
     "movement_type" VARCHAR,
-    "card_id" BIGINT,
-    "agent_id" BIGINT NOT NULL,
+    "card_id" INTEGER,
+    "agent_id" INTEGER NOT NULL,
 
     CONSTRAINT "stock_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "transfers" (
-    "id" BIGSERIAL NOT NULL,
-    "issuing_card_id" BIGINT NOT NULL,
-    "receiving_card_id" BIGINT NOT NULL,
-    "agent_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "issuing_card_id" INTEGER NOT NULL,
+    "receiving_card_id" INTEGER NOT NULL,
+    "agent_id" INTEGER NOT NULL,
     "validated_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
@@ -209,21 +209,21 @@ CREATE TABLE "transfers" (
 
 -- CreateTable
 CREATE TABLE "types" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "stake" DECIMAL NOT NULL,
-    "products_ids" BIGINT[],
+    "products_ids" INTEGER[],
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "products_numbers" BIGINT[],
+    "products_numbers" INTEGER[],
 
     CONSTRAINT "types_pkey1" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" BIGSERIAL NOT NULL,
-    "agent_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "agent_id" INTEGER NOT NULL,
     "password" TEXT NOT NULL,
     "access_token" TEXT NOT NULL,
     "security_questions" JSONB NOT NULL,

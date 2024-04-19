@@ -4,7 +4,7 @@ import { JsonValue } from '@prisma/client/runtime/library';
 
 export class AgentEntity implements Agent {
   @ApiProperty()
-  id: bigint;
+  id: number;
 
   @ApiProperty()
   name: string;

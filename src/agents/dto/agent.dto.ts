@@ -1,5 +1,6 @@
 import { IsEmail, IsJSON, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { JsonValue } from '@prisma/client/runtime/library';
 
 export class AgentDto {
   @IsString()
@@ -29,10 +30,10 @@ export class AgentDto {
   @IsJSON()
   @IsNotEmpty()
   @ApiProperty()
-  permissions: JSON;
+  permissions: JsonValue;
 
   @IsJSON()
   @IsNotEmpty()
   @ApiProperty()
-  views: JSON;
+  views: JsonValue;
 }

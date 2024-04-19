@@ -9,7 +9,7 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Agent {
-  id            BigInt         @id @unique @default(autoincrement())
+  id            Int            @id @unique @default(autoincrement())
   name          String
   firstnames    String
   phoneNumber   String?        @unique(map: "agents_telephone_key") @map("phone_number") @db.VarChar
@@ -32,14 +32,14 @@ model Agent {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Card {
-  id                      BigInt       @id(map: "cartes_pkey1") @unique(map: "cartes_id_key") @default(autoincrement())
+  id                      Int          @id(map: "cartes_pkey1") @unique(map: "cartes_id_key") @default(autoincrement())
   label                   String       @unique(map: "cartes_libelle_key")
-  typeId                  BigInt       @map("type_id")
+  typeId                  Int          @map("type_id")
   satisfiedAt             DateTime?    @map("satisfied_at") @db.Timestamptz(6)
   repaidAt                DateTime?    @map("repaid_at") @db.Timestamptz(6)
   createdAt               DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  customerId              BigInt       @map("customer_id")
+  customerId              Int          @map("customer_id")
   typesNumber             Int          @default(1) @map("types_number")
   transferedAt            DateTime?    @map("transfered_at") @db.Timestamptz(6)
   customer                Customer     @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_client_fkey")
@@ -53,7 +53,7 @@ model Card {
 }
 
 model Category {
-  id        BigInt     @id(map: "categories_client_pkey") @default(autoincrement())
+  id        Int        @id(map: "categories_client_pkey") @default(autoincrement())
   name      String     @unique(map: "categories_clients_nom_key")
   createdAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -64,11 +64,11 @@ model Category {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Collection {
-  id          BigInt       @id(map: "collecte_pkey") @unique(map: "collecte_id_key") @default(autoincrement())
-  collectorId BigInt       @map("collector_id")
+  id          Int          @id(map: "collecte_pkey") @unique(map: "collecte_id_key") @default(autoincrement())
+  collectorId Int          @map("collector_id")
   amount      Decimal      @db.Decimal
   rest        Decimal      @db.Decimal
-  agentId     BigInt       @map("agent_id")
+  agentId     Int          @map("agent_id")
   collectedAt DateTime     @map("collected_at") @db.Timestamptz(6)
   createdAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -80,7 +80,7 @@ model Collection {
 }
 
 model Collector {
-  id          BigInt       @id(map: "charges_comptes_pkey") @default(autoincrement())
+  id          Int          @id(map: "charges_comptes_pkey") @default(autoincrement())
   name        String
   firstnames  String
   phoneNumber String       @unique(map: "charges_compte_telephone_key") @map("phone_number") @db.VarChar
@@ -96,22 +96,22 @@ model Collector {
 }
 
 model Customer {
-  id                   BigInt              @id(map: "clients_pkey") @default(autoincrement())
+  id                   Int                 @id(map: "clients_pkey") @default(autoincrement())
   name                 String
   firstnames           String
   phoneNumber          String              @map("phone_number")
   address              String
   occupation           String?
-  nicNumber            BigInt?             @map("nic_number")
-  categoryId           BigInt?             @map("category_id")
-  economicalActivityId BigInt?             @map("economical_activity_id")
-  personalStatusId     BigInt?             @map("personal_status_id")
-  localityId           BigInt?             @map("locality_id")
+  nicNumber            Int?                @map("nic_number")
+  categoryId           Int?                @map("category_id")
+  economicalActivityId Int?                @map("economical_activity_id")
+  personalStatusId     Int?                @map("personal_status_id")
+  localityId           Int?                @map("locality_id")
   profile              String?
   signature            String?
   createdAt            DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime            @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  collectorId          BigInt?             @map("collector_id")
+  collectorId          Int?                @map("collector_id")
   cards                Card[]
   economicalActivity   EconomicalActivity? @relation(fields: [economicalActivityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_activite_economique_fkey")
   category             Category?           @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clients_id_categorie_fkey")
@@ -123,7 +123,7 @@ model Customer {
 }
 
 model Day {
-  id     BigInt @id(map: "jours_pkey") @unique(map: "jours_id_key") @default(autoincrement())
+  id     Int    @id(map: "jours_pkey") @unique(map: "jours_id_key") @default(autoincrement())
   day    String
   number Int    @unique(map: "jours_numero_semaine_key") @db.SmallInt
 
@@ -131,7 +131,7 @@ model Day {
 }
 
 model EconomicalActivity {
-  id        BigInt     @id(map: "activites_economiques_pkey") @unique(map: "activites_economiques_id_key") @default(autoincrement())
+  id        Int        @id(map: "activites_economiques_pkey") @unique(map: "activites_economiques_id_key") @default(autoincrement())
   name      String     @unique(map: "activites_economiques_nom_key") @db.VarChar
   createdAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -141,7 +141,7 @@ model EconomicalActivity {
 }
 
 model Locality {
-  id        BigInt     @id(map: "loacalites_pkey") @unique(map: "localites_id_key") @default(autoincrement())
+  id        Int        @id(map: "loacalites_pkey") @unique(map: "localites_id_key") @default(autoincrement())
   name      String     @unique(map: "localites_nom_key") @db.VarChar
   createdAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -151,8 +151,8 @@ model Locality {
 }
 
 model Modification {
-  id           BigInt   @id @default(autoincrement())
-  agentId      BigInt   @map("agent_id")
+  id           Int      @id @default(autoincrement())
+  agentId      Int      @map("agent_id")
   modification String
   createdAt    DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -162,7 +162,7 @@ model Modification {
 }
 
 model Month {
-  id     BigInt @id(map: "mois_pkey") @unique(map: "mois_id_key") @default(autoincrement())
+  id     Int    @id(map: "mois_pkey") @unique(map: "mois_id_key") @default(autoincrement())
   name   String
   number Int    @unique(map: "mois_numero_annee_key") @db.SmallInt
 
@@ -170,7 +170,7 @@ model Month {
 }
 
 model PersonalStatus {
-  id        BigInt     @id(map: "statuts_personnels_pkey") @default(autoincrement())
+  id        Int        @id(map: "statuts_personnels_pkey") @default(autoincrement())
   name      String     @unique(map: "statuts_personnels_nom_key") @db.VarChar
   createdAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -180,7 +180,7 @@ model PersonalStatus {
 }
 
 model Product {
-  id            BigInt   @id(map: "produits_pkey") @default(autoincrement())
+  id            Int      @id(map: "produits_pkey") @default(autoincrement())
   name          String   @unique(map: "produits_nom_key")
   purchasePrice Decimal  @map("purchase_price") @db.Decimal
   photo         String?
@@ -192,13 +192,13 @@ model Product {
 }
 
 model Settlement {
-  id           BigInt      @id(map: "reglements_pkey") @default(autoincrement())
+  id           Int         @id(map: "reglements_pkey") @default(autoincrement())
   number       Int
-  agentId      BigInt      @map("agent_id")
+  agentId      Int         @map("agent_id")
   createdAt    DateTime    @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime    @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  cardId       BigInt      @map("card_id")
-  collectionId BigInt?     @map("collection_id")
+  cardId       Int         @map("card_id")
+  collectionId Int?        @map("collection_id")
   isValidated  Boolean     @map("is_validated")
   agent        Agent       @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_agent_fkey")
   card         Card        @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_carte_fkey")
@@ -209,8 +209,8 @@ model Settlement {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Stock {
-  id              BigInt   @id(map: "stock_pkey") @default(autoincrement())
-  product_id      BigInt   @map("product_id")
+  id              Int      @id(map: "stock_pkey") @default(autoincrement())
+  product_id      Int      @map("product_id")
   initialQuantity Int      @map("initial_quantity")
   createdAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -218,8 +218,8 @@ model Stock {
   outputQuantity  Int?     @map("output_quantity")
   stockQuantity   Int      @map("stock_quantity")
   movementType    String?  @map("movement_type") @db.VarChar
-  cardId          BigInt?  @map("card_id")
-  agentId         BigInt   @map("agent_id")
+  cardId          Int?     @map("card_id")
+  agentId         Int      @map("agent_id")
   agent           Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")
   card            Card?    @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_carte_fkey")
   product         Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_produit_fkey")
@@ -229,10 +229,10 @@ model Stock {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Transfer {
-  id              BigInt    @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
-  issuingCardId   BigInt    @map("issuing_card_id")
-  receivingCardId BigInt    @map("receiving_card_id")
-  agentId         BigInt    @map("agent_id")
+  id              Int       @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
+  issuingCardId   Int       @map("issuing_card_id")
+  receivingCardId Int       @map("receiving_card_id")
+  agentId         Int       @map("agent_id")
   validatedAt     DateTime? @map("validated_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -246,21 +246,21 @@ model Transfer {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Type {
-  id              BigInt   @id(map: "types_pkey1") @default(autoincrement())
+  id              Int      @id(map: "types_pkey1") @default(autoincrement())
   name            String   @unique(map: "types_nom_key")
   stake           Decimal  @db.Decimal
-  productsIds     BigInt[] @map("products_ids")
+  productsIds     Int[]    @map("products_ids")
   createdAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  productsNumbers BigInt[] @map("products_numbers")
+  productsNumbers Int[]    @map("products_numbers")
   cards           Card[]
 
   @@map("types")
 }
 
 model User {
-  id                BigInt    @id @default(autoincrement())
-  agentId           BigInt    @unique @map("agent_id")
+  id                Int       @id @default(autoincrement())
+  agentId           Int       @unique @map("agent_id")
   password          String
   accessToken       String    @map("access_token")
   securityQuestions Json      @map("security_questions")
