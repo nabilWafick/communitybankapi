@@ -24,16 +24,27 @@ export class AgentsController {
 
   @Post()
   @ApiCreatedResponse({ type: AgentEntity })
-  async create(@Body() agent: AgentDto): Promise<AgentEntity> {
+  async create(@Body() agentDto: AgentDto): Promise<AgentEntity> {
     try {
-      return await this.agentsService.create({ agent });
+      return await this.agentsService.create({ agentDto: agentDto });
     } catch (error) {
-      if (error.message === 'Unique constraint violation') {
+      if (error.message === 'Email already used') {
         throw new HttpException(
-          'Entity with this data already exists',
+          {
+            message: 'The email is owned by another agent',
+            error: 'Conflict',
+            statusCode: HttpStatus.CONFLICT,
+          },
           HttpStatus.CONFLICT,
         );
       }
+
+      /*if (error.message === 'Unique constraint violation') {
+        throw new HttpException(
+          'Agent with this data already exists',
+          HttpStatus.CONFLICT,
+        );
+      }*/
       /* if (error.message === 'Foreign key constraint violation') {
         throw new HttpException(
           'Invalid foreign key reference',
@@ -42,19 +53,31 @@ export class AgentsController {
       }*/
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
-          'Invalid request or data',
+          {
+            message: 'Invalid request or data',
+            error: 'Bad Request',
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
           HttpStatus.BAD_REQUEST,
         );
       }
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: 'An Error occurred on the server',
+            error: 'Internal Serveur Error',
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
       if (error.message === 'Prisma client initialization error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: 'An Error occurred on the server ',
+            error: 'Internal Serveur Error',
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -68,16 +91,20 @@ export class AgentsController {
   @Get()
   @ApiOkResponse({ type: AgentEntity, isArray: true })
   async findAll(
-    @Query('skip') skip?: number,
-    @Query('take') take?: number,
+    @Query('skip', ParseIntPipe) skip?: number | null,
+    @Query('take', ParseIntPipe) take?: number | null,
     @Query('cursor') cursor?: Prisma.AgentWhereUniqueInput,
     @Query('where') where?: Prisma.AgentWhereInput,
     @Query('orderBy') orderBy?: Prisma.AgentOrderByWithRelationInput,
   ): Promise<AgentEntity[]> {
     try {
-      const params = { skip, take, cursor, where, orderBy };
-
-      return await this.agentsService.findAll(params);
+      return await this.agentsService.findAll({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
     } catch (error) {
       if (error.message === 'Records not found') {
         throw new HttpException('No records found', HttpStatus.NOT_FOUND);
@@ -115,7 +142,14 @@ export class AgentsController {
     } catch (error) {
       if (error.message.includes('not found')) {
         throw new HttpException(
-          `Entity with ID ${id} not found`,
+          {
+            status: HttpStatus.NOT_FOUND,
+            message: `Agent not found`,
+            details: {
+              en: `Agent (ID: ${id}) is not in the database`,
+              fr: `L'agent (ID: ${id}) n'existe pas dans la base de données`,
+            },
+          },
           HttpStatus.NOT_FOUND,
         );
       }
@@ -169,7 +203,7 @@ export class AgentsController {
 
       if (error.message.includes('not found')) {
         throw new HttpException(
-          `Entity with ID ${id} not found`,
+          `Agent with ID ${id} not found`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -206,7 +240,7 @@ export class AgentsController {
     } catch (error) {
       if (error.message.includes('not found')) {
         throw new HttpException(
-          `Entity with ID ${id} not found`,
+          `Agent with ID ${id} not found`,
           HttpStatus.NOT_FOUND,
         );
       }

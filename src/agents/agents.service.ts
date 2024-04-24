@@ -8,20 +8,20 @@ import { AgentEntity } from './entities/agents.entity';
 export class AgentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ agent }: { agent: AgentDto }): Promise<AgentEntity> {
+  async create({ agentDto }: { agentDto: AgentDto }): Promise<AgentEntity> {
     try {
+      const agentWithEmail = this.prisma.agent.findUnique({
+        where: { email: agentDto.email },
+      });
+
+      if (agentWithEmail) {
+        throw new Error('Email already used');
+      }
+
       return await this.prisma.agent.create({
-        data: agent,
+        data: agentDto,
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new Error('Unique constraint violation');
-          /* if (error.code === 'P2003') {
-          throw new Error('Foreign key constraint violation');
-        }*/
-        }
-      }
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }
@@ -35,14 +35,19 @@ export class AgentsService {
     }
   }
 
-  async findAll(params: {
+  async findAll({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
     skip?: number;
     take?: number;
     cursor?: Prisma.AgentWhereUniqueInput;
     where?: Prisma.AgentWhereInput;
     orderBy?: Prisma.AgentOrderByWithRelationInput;
   }): Promise<AgentEntity[]> {
-    const { skip, take, cursor, where, orderBy } = params;
     try {
       return await this.prisma.agent.findMany({
         skip,

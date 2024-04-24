@@ -1,3 +1,4 @@
+import { JsonValue } from '@prisma/client/runtime/library';
 import {
   IsEmail,
   IsJSON,
@@ -18,5 +19,5 @@ export class RegisterAuthDto {
   @IsJSON()
   @IsNotEmpty()
   @MinLength(3)
-  securityQuestions: JSON;
+  securityQuestions: JsonValue;
 }

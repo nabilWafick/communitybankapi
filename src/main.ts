@@ -19,8 +19,8 @@ async function bootstrap() {
     }),
   );
   const config = new DocumentBuilder()
-    .setTitle('Median')
-    .setDescription('The Median API description')
+    .setTitle('Community Bank')
+    .setDescription('The Community Bank API description')
     .setVersion('0.1')
     .build();
 
