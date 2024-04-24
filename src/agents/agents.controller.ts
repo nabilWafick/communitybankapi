@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AgentsService } from './agents.service';
-import { AgentDto } from './dto/agent.dto';
+import { AgentDto } from './dto/agents.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AgentEntity } from './entities/agents.entity';
 import { Prisma } from '@prisma/client';
@@ -31,58 +31,176 @@ export class AgentsController {
       if (error.message === 'Email already used') {
         throw new HttpException(
           {
-            message: 'The email is owned by another agent',
-            error: 'Conflict',
+            message: {
+              en: 'The provided email is owned by another agent',
+              fr: "L'email fourni est celui d'un autre agent",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
           },
           HttpStatus.CONFLICT,
         );
       }
 
-      /*if (error.message === 'Unique constraint violation') {
+      if (error.message === 'Phone number already used') {
         throw new HttpException(
-          'Agent with this data already exists',
+          {
+            message: {
+              en: 'The provided phone number is owned by another agent',
+              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
           HttpStatus.CONFLICT,
         );
-      }*/
-      /* if (error.message === 'Foreign key constraint violation') {
-        throw new HttpException(
-          'Invalid foreign key reference',
-          HttpStatus.BAD_REQUEST,
-        );
-      }*/
+      }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {
-            message: 'Invalid request or data',
-            error: 'Bad Request',
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
             statusCode: HttpStatus.BAD_REQUEST,
           },
           HttpStatus.BAD_REQUEST,
         );
       }
+
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
           {
-            message: 'An Error occurred on the server',
-            error: 'Internal Serveur Error',
+            message: {
+              en: 'An Error occurred on the server. Error Related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
           },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       if (error.message === 'Prisma client initialization error') {
         throw new HttpException(
           {
-            message: 'An Error occurred on the server ',
-            error: 'Internal Serveur Error',
+            message: {
+              en: 'An Error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
           },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       throw new HttpException(
-        'Something went wrong',
+        {
+          message: {
+            en: `An Error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get(':id')
+  @ApiOkResponse({ type: AgentEntity })
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+    try {
+      return await this.agentsService.findOne({ id: +id });
+    } catch (error) {
+      if (error.message === `Agent with ID ${id} not found`) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The requested agent is not found',
+              fr: "L'agent demandé est introuvable",
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An Error occurred on the server. Error Related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An Error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An Error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -107,72 +225,79 @@ export class AgentsController {
       });
     } catch (error) {
       if (error.message === 'Records not found') {
-        throw new HttpException('No records found', HttpStatus.NOT_FOUND);
-      }
-      if (error.message === 'Invalid query or request') {
-        throw new HttpException(
-          'Invalid request or data',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (error.message === 'Internal Prisma client error') {
-        throw new HttpException(
-          'Internal server error',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      if (error.message === 'Prisma client initialization error') {
-        throw new HttpException(
-          'Internal server error',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      throw new HttpException(
-        'Something went wrong',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Get(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
-    try {
-      return await this.agentsService.findOne({ id: +id });
-    } catch (error) {
-      if (error.message.includes('not found')) {
         throw new HttpException(
           {
-            status: HttpStatus.NOT_FOUND,
-            message: `Agent not found`,
-            details: {
-              en: `Agent (ID: ${id}) is not in the database`,
-              fr: `L'agent (ID: ${id}) n'existe pas dans la base de données`,
+            message: {
+              en: 'Any records found',
+              fr: 'Aucune données trouvées',
             },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
           },
           HttpStatus.NOT_FOUND,
         );
       }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
-          'Invalid request or data',
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
           HttpStatus.BAD_REQUEST,
         );
       }
+
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error Related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       if (error.message === 'Prisma client initialization error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       throw new HttpException(
-        'Something went wrong',
+        {
+          message: {
+            en: `An Error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -185,48 +310,110 @@ export class AgentsController {
     @Body() agent: AgentDto,
   ): Promise<AgentEntity> {
     try {
-      return await this.agentsService.update({ id: +id, agent: agent });
+      return await this.agentsService.update({ id: +id, agentDto: agent });
     } catch (error) {
-      if (error.message === 'Unique constraint violation') {
+      if (error.message === `Agent with ID ${id} not found`) {
         throw new HttpException(
-          'Entity with this data already exists',
+          {
+            message: {
+              en: 'The requested agent is not found',
+              fr: "L'agent demandé est introuvable",
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Email already used') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The provided email is owned by another agent',
+              fr: "L'email fourni est celui d'un autre agent",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
           HttpStatus.CONFLICT,
         );
       }
 
-      /*if (error.message === 'Foreign key constraint violation') {
+      if (error.message === 'Phone number already used') {
         throw new HttpException(
-          'Invalid foreign key reference',
-          HttpStatus.BAD_REQUEST,
-        );
-      }*/
-
-      if (error.message.includes('not found')) {
-        throw new HttpException(
-          `Agent with ID ${id} not found`,
-          HttpStatus.NOT_FOUND,
+          {
+            message: {
+              en: 'The provided phone number is owned by another agent',
+              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
         );
       }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
-          'Invalid request or data',
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
           HttpStatus.BAD_REQUEST,
         );
       }
+
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error Related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       if (error.message === 'Prisma client initialization error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       throw new HttpException(
-        'Something went wrong',
+        {
+          message: {
+            en: `An Error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -238,32 +425,80 @@ export class AgentsController {
     try {
       return await this.agentsService.remove({ id: +id });
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message === `Agent with ID ${id} not found`) {
         throw new HttpException(
-          `Agent with ID ${id} not found`,
+          {
+            message: {
+              en: 'The requested agent is not found',
+              fr: "L'agent demandé est introuvable",
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
           HttpStatus.NOT_FOUND,
         );
       }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
-          'Invalid request or data',
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
           HttpStatus.BAD_REQUEST,
         );
       }
+
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error Related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       if (error.message === 'Prisma client initialization error') {
         throw new HttpException(
-          'Internal server error',
+          {
+            message: {
+              en: 'An Error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
       throw new HttpException(
-        'Something went wrong',
+        {
+          message: {
+            en: `An Error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -1,7 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  ValidationPipe,
+} from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { error } from 'console';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,7 +18,11 @@ async function bootstrap() {
           property: error.property,
           message: error.constraints[Object.keys(error.constraints)[0]],
         }));
-        return new BadRequestException(result);
+        return new BadRequestException({
+          message: result,
+          error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
       },
       stopAtFirstError: true,
     }),
