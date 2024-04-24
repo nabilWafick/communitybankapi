@@ -11,43 +11,29 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { AgentsService } from './agents.service';
-import { AgentDto } from './dto/agent.dto';
+import { LocalitiesService } from './localities.service';
+import { LocalityDto } from './dto/locality.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AgentEntity } from './entities/agent.entity';
+import { LocalityEntity } from './entities/locality.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('agents')
-@ApiTags('Agents')
-export class AgentsController {
-  constructor(private readonly agentsService: AgentsService) {}
+@Controller('localities')
+@ApiTags('Localities')
+export class LocalitiesController {
+  constructor(private readonly localitiesService: LocalitiesService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: AgentEntity })
-  async create(@Body() agentDto: AgentDto): Promise<AgentEntity> {
+  @ApiCreatedResponse({ type: LocalityEntity })
+  async create(@Body() localityDto: LocalityDto): Promise<LocalityEntity> {
     try {
-      return await this.agentsService.create({ agentDto: agentDto });
+      return await this.localitiesService.create({ localityDto: localityDto });
     } catch (error) {
-      if (error.message === 'Email already used') {
+      if (error.message === 'Name already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Phone number already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+              en: 'The provided name is owned by another locality',
+              fr: "Le nom fourni est celui d'une autre localité",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -122,17 +108,19 @@ export class AgentsController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: LocalityEntity })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<LocalityEntity> {
     try {
-      return await this.agentsService.findOne({ id: +id });
+      return await this.localitiesService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Locality with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested locality is not found',
+              fr: 'La localité demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -207,16 +195,16 @@ export class AgentsController {
   }
 
   @Get()
-  @ApiOkResponse({ type: AgentEntity, isArray: true })
+  @ApiOkResponse({ type: LocalityEntity, isArray: true })
   async findAll(
     @Query('skip', ParseIntPipe) skip?: number | null,
     @Query('take', ParseIntPipe) take?: number | null,
-    @Query('cursor') cursor?: Prisma.AgentWhereUniqueInput,
-    @Query('where') where?: Prisma.AgentWhereInput,
-    @Query('orderBy') orderBy?: Prisma.AgentOrderByWithRelationInput,
-  ): Promise<AgentEntity[]> {
+    @Query('cursor') cursor?: Prisma.LocalityWhereUniqueInput,
+    @Query('where') where?: Prisma.LocalityWhereInput,
+    @Query('orderBy') orderBy?: Prisma.LocalityOrderByWithRelationInput,
+  ): Promise<LocalityEntity[]> {
     try {
-      return await this.agentsService.findAll({
+      return await this.localitiesService.findAll({
         skip,
         take,
         cursor,
@@ -304,20 +292,23 @@ export class AgentsController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: AgentEntity })
+  @ApiOkResponse({ type: LocalityEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() agent: AgentDto,
-  ): Promise<AgentEntity> {
+    @Body() localityDto: LocalityDto,
+  ): Promise<LocalityEntity> {
     try {
-      return await this.agentsService.update({ id: +id, agentDto: agent });
+      return await this.localitiesService.update({
+        id: +id,
+        localityDto: localityDto,
+      });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Locality with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested locality is not found',
+              fr: 'La localité demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -326,26 +317,12 @@ export class AgentsController {
         );
       }
 
-      if (error.message === 'Email already used') {
+      if (error.message === 'Name already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Phone number already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+              en: 'The provided name is owned by another locality',
+              fr: "Le nom fourni est celui d'une autre localité",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -420,17 +397,17 @@ export class AgentsController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: LocalityEntity })
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<LocalityEntity> {
     try {
-      return await this.agentsService.remove({ id: +id });
+      return await this.localitiesService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Locality with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested locality is not found',
+              fr: 'La localité demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,

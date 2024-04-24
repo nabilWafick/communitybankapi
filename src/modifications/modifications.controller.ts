@@ -11,48 +11,40 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { AgentsService } from './agents.service';
-import { AgentDto } from './dto/agent.dto';
+import { ModificationsService } from './modifications.service';
+import { ModificationDto } from './dto/modification.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AgentEntity } from './entities/agent.entity';
+import { ModificationEntity } from './entities/modification.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('agents')
-@ApiTags('Agents')
-export class AgentsController {
-  constructor(private readonly agentsService: AgentsService) {}
+@Controller('modifications')
+@ApiTags('Modifications')
+export class ModificationsController {
+  constructor(private readonly modificationsService: ModificationsService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: AgentEntity })
-  async create(@Body() agentDto: AgentDto): Promise<AgentEntity> {
+  @ApiCreatedResponse({ type: ModificationEntity })
+  async create(
+    @Body() modificationDto: ModificationDto,
+  ): Promise<ModificationEntity> {
     try {
-      return await this.agentsService.create({ agentDto: agentDto });
+      return await this.modificationsService.create({
+        modificationDto: modificationDto,
+      });
     } catch (error) {
-      if (error.message === 'Email already used') {
+      if (
+        error.message === `Agent with ID ${modificationDto.agentId} not found`
+      ) {
         throw new HttpException(
           {
             message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
+              en: 'The specified agent is not found',
+              fr: "L'agent spécifié est introuvable",
             },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
           },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Phone number already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -122,17 +114,19 @@ export class AgentsController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: ModificationEntity })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ModificationEntity> {
     try {
-      return await this.agentsService.findOne({ id: +id });
+      return await this.modificationsService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Modification with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested modification is not found',
+              fr: "L'modification demandé est introuvable",
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -207,16 +201,16 @@ export class AgentsController {
   }
 
   @Get()
-  @ApiOkResponse({ type: AgentEntity, isArray: true })
+  @ApiOkResponse({ type: ModificationEntity, isArray: true })
   async findAll(
     @Query('skip', ParseIntPipe) skip?: number | null,
     @Query('take', ParseIntPipe) take?: number | null,
-    @Query('cursor') cursor?: Prisma.AgentWhereUniqueInput,
-    @Query('where') where?: Prisma.AgentWhereInput,
-    @Query('orderBy') orderBy?: Prisma.AgentOrderByWithRelationInput,
-  ): Promise<AgentEntity[]> {
+    @Query('cursor') cursor?: Prisma.ModificationWhereUniqueInput,
+    @Query('where') where?: Prisma.ModificationWhereInput,
+    @Query('orderBy') orderBy?: Prisma.ModificationOrderByWithRelationInput,
+  ): Promise<ModificationEntity[]> {
     try {
-      return await this.agentsService.findAll({
+      return await this.modificationsService.findAll({
         skip,
         take,
         cursor,
@@ -304,20 +298,23 @@ export class AgentsController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: AgentEntity })
+  @ApiOkResponse({ type: ModificationEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() agent: AgentDto,
-  ): Promise<AgentEntity> {
+    @Body() modificationDto: ModificationDto,
+  ): Promise<ModificationEntity> {
     try {
-      return await this.agentsService.update({ id: +id, agentDto: agent });
+      return await this.modificationsService.update({
+        id: +id,
+        modificationDto: modificationDto,
+      });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Modification with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested modification is not found',
+              fr: "L'modification demandé est introuvable",
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -326,31 +323,19 @@ export class AgentsController {
         );
       }
 
-      if (error.message === 'Email already used') {
+      if (
+        error.message === `Agent with ID ${modificationDto.agentId} not found`
+      ) {
         throw new HttpException(
           {
             message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
+              en: 'The specified agent is not found',
+              fr: "L'agent spécifié est introuvable",
             },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
           },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Phone number already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -420,17 +405,19 @@ export class AgentsController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: ModificationEntity })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ModificationEntity> {
     try {
-      return await this.agentsService.remove({ id: +id });
+      return await this.modificationsService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Modification with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested modification is not found',
+              fr: "L'modification demandé est introuvable",
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,

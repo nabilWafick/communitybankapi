@@ -1,38 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { AgentDto } from './dto/agent.dto';
-import { Prisma, PrismaClient, Agent } from '@prisma/client';
+import { CollectorDto } from './dto/collector.dto';
+import { Prisma, PrismaClient, Collector } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AgentEntity } from './entities/agent.entity';
+import { CollectorEntity } from './entities/collector.entity';
 
 @Injectable()
-export class AgentsService {
+export class CollectorsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ agentDto }: { agentDto: AgentDto }): Promise<AgentEntity> {
+  async create({
+    collectorDto,
+  }: {
+    collectorDto: CollectorDto;
+  }): Promise<CollectorEntity> {
     try {
-      // find any agent with the provided email
-      const agentWithEmail = await this.prisma.agent.findUnique({
-        where: { email: agentDto.email },
+      // find any collector with the provided phone number
+      const collectorWithPhoneNumber = await this.prisma.collector.findUnique({
+        where: { phoneNumber: collectorDto.phoneNumber },
       });
 
-      // throw an error if an agent is found
-      if (agentWithEmail) {
-        throw new Error('Email already used');
-      }
-
-      // find any agent with the provided phone number
-      const agentWithPhoneNumber = await this.prisma.agent.findUnique({
-        where: { phoneNumber: agentDto.phoneNumber },
-      });
-
-      // throw an error if an agent is found
-      if (agentWithPhoneNumber) {
+      // throw an error if an collector is found
+      if (collectorWithPhoneNumber) {
         throw new Error('Phone number already used');
       }
 
-      // create a new agent
-      return this.prisma.agent.create({
-        data: agentDto,
+      // create a new collector
+      return this.prisma.collector.create({
+        data: collectorDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -57,13 +51,13 @@ export class AgentsService {
   }: {
     skip?: number;
     take?: number;
-    cursor?: Prisma.AgentWhereUniqueInput;
-    where?: Prisma.AgentWhereInput;
-    orderBy?: Prisma.AgentOrderByWithRelationInput;
-  }): Promise<AgentEntity[]> {
+    cursor?: Prisma.CollectorWhereUniqueInput;
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }): Promise<CollectorEntity[]> {
     try {
-      // fetch all agents with the specified parameters
-      return await this.prisma.agent.findMany({
+      // fetch all collectors with the specified parameters
+      return await this.prisma.collector.findMany({
         skip,
         take,
         cursor,
@@ -89,20 +83,20 @@ export class AgentsService {
     }
   }
 
-  async findOne({ id }: { id: number }): Promise<AgentEntity> {
+  async findOne({ id }: { id: number }): Promise<CollectorEntity> {
     try {
-      // fetch agent with the provided ID
-      const agent = await this.prisma.agent.findUnique({
+      // fetch collector with the provided ID
+      const collector = await this.prisma.collector.findUnique({
         where: { id },
       });
 
-      // throw an error if any agent is found
-      if (!agent) {
-        throw new Error(`Agent with ID ${id} not found`);
+      // throw an error if any collector is found
+      if (!collector) {
+        throw new Error(`Collector with ID ${id} not found`);
       }
 
-      // return the requested agent
-      return agent;
+      // return the requested collector
+      return collector;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -119,46 +113,36 @@ export class AgentsService {
 
   async update({
     id,
-    agentDto,
+    collectorDto,
   }: {
     id: number;
-    agentDto: AgentDto;
-  }): Promise<AgentEntity> {
+    collectorDto: CollectorDto;
+  }): Promise<CollectorEntity> {
     try {
-      // fetch agent with the provided ID
-      const agentWithID = await this.prisma.agent.findUnique({
+      // fetch collector with the provided ID
+      const collectorWithID = await this.prisma.collector.findUnique({
         where: { id },
       });
 
-      // throw an error if any agent is found
-      if (!agentWithID) {
-        throw new Error(`Agent with ID ${id} not found`);
+      // throw an error if any collector is found
+      if (!collectorWithID) {
+        throw new Error(`Collector with ID ${id} not found`);
       }
 
-      // find any agent with the provided email
-      const agentWithEmail = await this.prisma.agent.findUnique({
-        where: { email: agentDto.email },
+      // find any collector with the provided phone number
+      const collectorWithPhoneNumber = await this.prisma.collector.findUnique({
+        where: { phoneNumber: collectorDto.phoneNumber },
       });
 
-      // throw an error if an agent is found and it is not the requested agent
-      if (agentWithEmail && agentWithEmail.id != id) {
-        throw new Error('Email already used');
-      }
-
-      // find any agent with the provided phone number
-      const agentWithPhoneNumber = await this.prisma.agent.findUnique({
-        where: { phoneNumber: agentDto.phoneNumber },
-      });
-
-      // throw an error if an agent is found and it is not the requested agent
-      if (agentWithPhoneNumber && agentWithPhoneNumber.id != id) {
+      // throw an error if an collector is found and it is not the requested collector
+      if (collectorWithPhoneNumber && collectorWithPhoneNumber.id != id) {
         throw new Error('Phone number already used');
       }
 
-      // update the agent data
-      return await this.prisma.agent.update({
+      // update the collector data
+      return await this.prisma.collector.update({
         where: { id },
-        data: agentDto,
+        data: collectorDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -174,23 +158,23 @@ export class AgentsService {
     }
   }
 
-  async remove({ id }: { id: number }): Promise<AgentEntity> {
+  async remove({ id }: { id: number }): Promise<CollectorEntity> {
     try {
-      // fetch agent with the provided ID
-      const agentWithID = await this.prisma.agent.findUnique({
+      // fetch collector with the provided ID
+      const collectorWithID = await this.prisma.collector.findUnique({
         where: { id },
       });
 
-      // throw an error if any agent is found
-      if (!agentWithID) {
-        throw new Error(`Agent with ID ${id} not found`);
+      // throw an error if any collector is found
+      if (!collectorWithID) {
+        throw new Error(`Collector with ID ${id} not found`);
       }
 
-      // remove the specified agent
-      const agent = await this.prisma.agent.delete({ where: { id } });
+      // remove the specified collector
+      const collector = await this.prisma.collector.delete({ where: { id } });
 
-      // return removed agent
-      return agent;
+      // return removed collector
+      return collector;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

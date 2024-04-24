@@ -11,43 +11,31 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { AgentsService } from './agents.service';
-import { AgentDto } from './dto/agent.dto';
+import { CollectorsService } from './collectors.service';
+import { CollectorDto } from './dto/collector.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AgentEntity } from './entities/agent.entity';
+import { CollectorEntity } from './entities/collector.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('agents')
-@ApiTags('Agents')
-export class AgentsController {
-  constructor(private readonly agentsService: AgentsService) {}
+@Controller('collectors')
+@ApiTags('Collectors')
+export class CollectorsController {
+  constructor(private readonly collectorsService: CollectorsService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: AgentEntity })
-  async create(@Body() agentDto: AgentDto): Promise<AgentEntity> {
+  @ApiCreatedResponse({ type: CollectorEntity })
+  async create(@Body() collectorDto: CollectorDto): Promise<CollectorEntity> {
     try {
-      return await this.agentsService.create({ agentDto: agentDto });
+      return await this.collectorsService.create({
+        collectorDto: collectorDto,
+      });
     } catch (error) {
-      if (error.message === 'Email already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
       if (error.message === 'Phone number already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+              en: 'The provided phone number is owned by another collector',
+              fr: "Le numéro de téléphone fourni est celui d'un autre collecteur",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -122,17 +110,19 @@ export class AgentsController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: CollectorEntity })
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<CollectorEntity> {
     try {
-      return await this.agentsService.findOne({ id: +id });
+      return await this.collectorsService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Collector with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested collector is not found',
+              fr: 'Le collecteur demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -207,16 +197,16 @@ export class AgentsController {
   }
 
   @Get()
-  @ApiOkResponse({ type: AgentEntity, isArray: true })
+  @ApiOkResponse({ type: CollectorEntity, isArray: true })
   async findAll(
     @Query('skip', ParseIntPipe) skip?: number | null,
     @Query('take', ParseIntPipe) take?: number | null,
-    @Query('cursor') cursor?: Prisma.AgentWhereUniqueInput,
-    @Query('where') where?: Prisma.AgentWhereInput,
-    @Query('orderBy') orderBy?: Prisma.AgentOrderByWithRelationInput,
-  ): Promise<AgentEntity[]> {
+    @Query('cursor') cursor?: Prisma.CollectorWhereUniqueInput,
+    @Query('where') where?: Prisma.CollectorWhereInput,
+    @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
+  ): Promise<CollectorEntity[]> {
     try {
-      return await this.agentsService.findAll({
+      return await this.collectorsService.findAll({
         skip,
         take,
         cursor,
@@ -304,20 +294,23 @@ export class AgentsController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: AgentEntity })
+  @ApiOkResponse({ type: CollectorEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() agent: AgentDto,
-  ): Promise<AgentEntity> {
+    @Body() collector: CollectorDto,
+  ): Promise<CollectorEntity> {
     try {
-      return await this.agentsService.update({ id: +id, agentDto: agent });
+      return await this.collectorsService.update({
+        id: +id,
+        collectorDto: collector,
+      });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Collector with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested collector is not found',
+              fr: 'Le collecteur demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -326,26 +319,12 @@ export class AgentsController {
         );
       }
 
-      if (error.message === 'Email already used') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided email is owned by another agent',
-              fr: "L'email fourni est celui d'un autre agent",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
       if (error.message === 'Phone number already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided phone number is owned by another agent',
-              fr: "Le numéro de téléphone fourni est celui d'un autre agent",
+              en: 'The provided phone number is owned by another collector',
+              fr: "Le numéro de téléphone fourni est celui d'un autre collecteur",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -420,17 +399,19 @@ export class AgentsController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: AgentEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
+  @ApiOkResponse({ type: CollectorEntity })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<CollectorEntity> {
     try {
-      return await this.agentsService.remove({ id: +id });
+      return await this.collectorsService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `Agent with ID ${id} not found`) {
+      if (error.message === `Collector with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested agent is not found',
-              fr: "L'agent demandé est introuvable",
+              en: 'The requested collector is not found',
+              fr: 'Le collecteur demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
