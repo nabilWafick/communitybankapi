@@ -11,29 +11,31 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { CategoryDto } from './dto/category.dto';
+import { ProductsService } from './products.service';
+import { ProductDto } from './dto/product.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { CategoryEntity } from './entities/category.entity';
+import { ProductEntity } from './entities/product.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('Categories')
-@ApiTags('Categories')
-export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+@Controller('products')
+@ApiTags('Products')
+export class ProductsController {
+  constructor(private readonly productService: ProductsService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: CategoryEntity })
-  async create(@Body() categoryDto: CategoryDto): Promise<CategoryEntity> {
+  @ApiCreatedResponse({ type: ProductEntity })
+  async create(@Body() productDto: ProductDto): Promise<ProductEntity> {
     try {
-      return await this.categoriesService.create({ categoryDto: categoryDto });
+      return await this.productService.create({
+        productDto: productDto,
+      });
     } catch (error) {
       if (error.message === 'Name already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another Category',
-              fr: "Le nom fourni est celui d'une autre categorie",
+              en: 'The provided name is owned by another product',
+              fr: "Le nom fourni est celui d'un autre produit",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -108,19 +110,17 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: CategoryEntity })
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<CategoryEntity> {
+  @ApiOkResponse({ type: ProductEntity })
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
     try {
-      return await this.categoriesService.findOne({ id: +id });
+      return await this.productService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `Product with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested product is not found',
+              fr: 'Le produit demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -195,16 +195,16 @@ export class CategoriesController {
   }
 
   @Get()
-  @ApiOkResponse({ type: CategoryEntity, isArray: true })
+  @ApiOkResponse({ type: ProductEntity, isArray: true })
   async findAll(
     @Query('skip', ParseIntPipe) skip?: number | null,
     @Query('take', ParseIntPipe) take?: number | null,
-    @Query('cursor') cursor?: Prisma.CategoryWhereUniqueInput,
-    @Query('where') where?: Prisma.CategoryWhereInput,
-    @Query('orderBy') orderBy?: Prisma.CategoryOrderByWithRelationInput,
-  ): Promise<CategoryEntity[]> {
+    @Query('cursor') cursor?: Prisma.ProductWhereUniqueInput,
+    @Query('where') where?: Prisma.ProductWhereInput,
+    @Query('orderBy') orderBy?: Prisma.ProductOrderByWithRelationInput,
+  ): Promise<ProductEntity[]> {
     try {
-      return await this.categoriesService.findAll({
+      return await this.productService.findAll({
         skip,
         take,
         cursor,
@@ -292,23 +292,23 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: CategoryEntity })
+  @ApiOkResponse({ type: ProductEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() categoryDto: CategoryDto,
-  ): Promise<CategoryEntity> {
+    @Body() productDto: ProductDto,
+  ): Promise<ProductEntity> {
     try {
-      return await this.categoriesService.update({
+      return await this.productService.update({
         id: +id,
-        categoryDto: categoryDto,
+        productDto: productDto,
       });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `Product with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested product is not found',
+              fr: 'Le produit demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -321,8 +321,8 @@ export class CategoriesController {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another Category',
-              fr: "Le nom fourni est celui d'une autre categorie",
+              en: 'The provided name is owned by another product',
+              fr: "Le nom fourni est celui d'un autre produit",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -397,17 +397,17 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: CategoryEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<CategoryEntity> {
+  @ApiOkResponse({ type: ProductEntity })
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
     try {
-      return await this.categoriesService.remove({ id: +id });
+      return await this.productService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `Product with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested product is not found',
+              fr: 'Le produit demandé est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,

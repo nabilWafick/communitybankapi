@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { AgentDto } from './dto/agent.dto';
+import { CreateAgentDto, UpdateAgentDto } from './dto';
 import { Prisma, PrismaClient, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgentEntity } from './entities/agent.entity';
+import { isDateString } from 'class-validator';
 
 @Injectable()
 export class AgentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ agentDto }: { agentDto: AgentDto }): Promise<AgentEntity> {
+  async create({
+    createAgentDto,
+  }: {
+    createAgentDto: CreateAgentDto;
+  }): Promise<AgentEntity> {
     try {
       // find any agent with the provided email
       const agentWithEmail = await this.prisma.agent.findUnique({
-        where: { email: agentDto.email },
+        where: { email: createAgentDto.email },
       });
 
       // throw an error if an agent is found
@@ -22,7 +27,7 @@ export class AgentsService {
 
       // find any agent with the provided phone number
       const agentWithPhoneNumber = await this.prisma.agent.findUnique({
-        where: { phoneNumber: agentDto.phoneNumber },
+        where: { phoneNumber: createAgentDto.phoneNumber },
       });
 
       // throw an error if an agent is found
@@ -32,7 +37,7 @@ export class AgentsService {
 
       // create a new agent
       return this.prisma.agent.create({
-        data: agentDto,
+        data: createAgentDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -119,10 +124,10 @@ export class AgentsService {
 
   async update({
     id,
-    agentDto,
+    updateAgentDto,
   }: {
     id: number;
-    agentDto: AgentDto;
+    updateAgentDto: UpdateAgentDto;
   }): Promise<AgentEntity> {
     try {
       // fetch agent with the provided ID
@@ -137,7 +142,7 @@ export class AgentsService {
 
       // find any agent with the provided email
       const agentWithEmail = await this.prisma.agent.findUnique({
-        where: { email: agentDto.email },
+        where: { email: updateAgentDto.email },
       });
 
       // throw an error if an agent is found and it is not the requested agent
@@ -147,7 +152,7 @@ export class AgentsService {
 
       // find any agent with the provided phone number
       const agentWithPhoneNumber = await this.prisma.agent.findUnique({
-        where: { phoneNumber: agentDto.phoneNumber },
+        where: { phoneNumber: updateAgentDto.phoneNumber },
       });
 
       // throw an error if an agent is found and it is not the requested agent
@@ -155,10 +160,15 @@ export class AgentsService {
         throw new Error('Phone number already used');
       }
 
+      // check if the creation date is valid
+      if (updateAgentDto.createdAt && !isDateString(updateAgentDto.createdAt)) {
+        throw Error(`Invalid creation date`);
+      }
+
       // update the agent data
       return await this.prisma.agent.update({
         where: { id },
-        data: agentDto,
+        data: { ...updateAgentDto, updatedAt: Date.now().toLocaleString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

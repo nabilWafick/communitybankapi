@@ -1,35 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { CategoryDto } from './dto/category.dto';
-import { Prisma, PrismaClient, Category } from '@prisma/client';
+import { ProductDto } from './dto/product.dto';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CategoryEntity } from './entities/category.entity';
+import { ProductEntity } from './entities/product.entity';
 
 @Injectable()
-export class CategoriesService {
+export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    categoryDto,
+    productDto,
   }: {
-    categoryDto: CategoryDto;
-  }): Promise<CategoryEntity> {
+    productDto: ProductDto;
+  }): Promise<ProductEntity> {
     try {
-      // find all Categories with a name similar to the name provided
-      const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+      // find all products with a name similar to the name provided
+      const productWithName = await this.prisma.product.findMany({
+        where: {
+          name: { contains: productDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
-      for (const category of categoriesWithName) {
-        // throw an error if a Category have the same name as the name provided
-        if (category.name.toLowerCase() === categoryDto.name.toLowerCase()) {
+      for (const product of productWithName) {
+        // throw an error if a product have the same name as the name provided
+        if (product.name.toLowerCase() === productDto.name.toLowerCase()) {
           throw new Error('Name already used');
         }
       }
 
-      // create a new Category
-      return this.prisma.category.create({
-        data: categoryDto,
+      // create a new product
+      return this.prisma.product.create({
+        data: productDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -54,13 +56,13 @@ export class CategoriesService {
   }: {
     skip?: number;
     take?: number;
-    cursor?: Prisma.CategoryWhereUniqueInput;
-    where?: Prisma.CategoryWhereInput;
-    orderBy?: Prisma.CategoryOrderByWithRelationInput;
-  }): Promise<CategoryEntity[]> {
+    cursor?: Prisma.ProductWhereUniqueInput;
+    where?: Prisma.ProductWhereInput;
+    orderBy?: Prisma.ProductOrderByWithRelationInput;
+  }): Promise<ProductEntity[]> {
     try {
-      // fetch all Categorys with the specified parameters
-      return await this.prisma.category.findMany({
+      // fetch all products with the specified parameters
+      return await this.prisma.product.findMany({
         skip,
         take,
         cursor,
@@ -86,20 +88,20 @@ export class CategoriesService {
     }
   }
 
-  async findOne({ id }: { id: number }): Promise<CategoryEntity> {
+  async findOne({ id }: { id: number }): Promise<ProductEntity> {
     try {
-      // fetch Category with the provided ID
-      const category = await this.prisma.category.findUnique({
+      // fetch product with the provided ID
+      const product = await this.prisma.product.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!category) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any product is found
+      if (!product) {
+        throw new Error(`Product with ID ${id} not found`);
       }
 
-      // return the requested Category
-      return category;
+      // return the requested product
+      return product;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -116,42 +118,44 @@ export class CategoriesService {
 
   async update({
     id,
-    categoryDto,
+    productDto,
   }: {
     id: number;
-    categoryDto: CategoryDto;
-  }): Promise<CategoryEntity> {
+    productDto: ProductDto;
+  }): Promise<ProductEntity> {
     try {
-      // fetch Category with the provided ID
-      const categoryWithID = await this.prisma.category.findUnique({
+      // fetch product with the provided ID
+      const productWithID = await this.prisma.product.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!categoryWithID) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any product is found
+      if (!productWithID) {
+        throw new Error(`Product with ID ${id} not found`);
       }
 
-      // find all Categories with a name to the name provided
-      const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+      // find all product with a name to the name provided
+      const productWithName = await this.prisma.product.findMany({
+        where: {
+          name: { contains: productDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
-      for (const category of categoriesWithName) {
-        // throw an error if a Category have the same name as the name provided
+      for (const product of productWithName) {
+        // throw an error if a product have the same name as the name provided
         if (
-          category.name.toLowerCase() === CategoryDto.name.toLowerCase() &&
-          category.id != id
+          product.name.toLowerCase() === productDto.name.toLowerCase() &&
+          product.id != id
         ) {
           throw new Error('Name already used');
         }
       }
 
-      // update the Category data
-      return await this.prisma.category.update({
+      // update the product data
+      return await this.prisma.product.update({
         where: { id },
-        data: CategoryDto,
+        data: productDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -167,23 +171,25 @@ export class CategoriesService {
     }
   }
 
-  async remove({ id }: { id: number }): Promise<CategoryEntity> {
+  async remove({ id }: { id: number }): Promise<ProductEntity> {
     try {
-      // fetch Category with the provided ID
-      const categoryWithID = await this.prisma.category.findUnique({
+      // fetch product with the provided ID
+      const productWithID = await this.prisma.product.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!categoryWithID) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any product is found
+      if (!productWithID) {
+        throw new Error(`Product with ID ${id} not found`);
       }
 
-      // remove the specified Category
-      const category = await this.prisma.category.delete({ where: { id } });
+      // remove the specified product
+      const product = await this.prisma.product.delete({
+        where: { id },
+      });
 
-      // return removed Category
-      return category;
+      // return removed product
+      return product;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

@@ -7,6 +7,12 @@ import { ModificationsModule } from './modifications/modifications.module';
 import { CollectorsModule } from './collectors/collectors.module';
 import { LocalitiesModule } from './localities/localities.module';
 import { CategoriesModule } from './categories/categories.module';
+import { EconomicalActivitiesModule } from './economical_activities/economical_activities.module';
+import { PersonalStatusModule } from './personal_status/personal_status.module';
+import { ProductsModule } from './products/products.module';
+import { TypesModule } from './types/types.module';
+import { CardsModule } from './cards/cards.module';
+import { SettlementsModule } from './settlements/settlements.module';
 
 @Module({
   imports: [
@@ -20,6 +26,12 @@ import { CategoriesModule } from './categories/categories.module';
     CollectorsModule,
     LocalitiesModule,
     CategoriesModule,
+    EconomicalActivitiesModule,
+    PersonalStatusModule,
+    ProductsModule,
+    TypesModule,
+    CardsModule,
+    SettlementsModule,
   ],
 })
 export class AppModule {}

@@ -39,7 +39,7 @@ export class ModificationsController {
           {
             message: {
               en: 'The specified agent is not found',
-              fr: "L'agent spécifié est introuvable",
+              fr: 'La agent spécifié est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -66,7 +66,7 @@ export class ModificationsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -126,7 +126,7 @@ export class ModificationsController {
           {
             message: {
               en: 'The requested modification is not found',
-              fr: "L'modification demandé est introuvable",
+              fr: 'La modification demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -153,7 +153,7 @@ export class ModificationsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -250,7 +250,7 @@ export class ModificationsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -314,7 +314,7 @@ export class ModificationsController {
           {
             message: {
               en: 'The requested modification is not found',
-              fr: "L'modification demandé est introuvable",
+              fr: 'La modification demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -330,7 +330,7 @@ export class ModificationsController {
           {
             message: {
               en: 'The specified agent is not found',
-              fr: "L'agent spécifié est introuvable",
+              fr: 'La agent spécifié est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -357,7 +357,7 @@ export class ModificationsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -417,7 +417,7 @@ export class ModificationsController {
           {
             message: {
               en: 'The requested modification is not found',
-              fr: "L'modification demandé est introuvable",
+              fr: 'La modification demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -444,7 +444,7 @@ export class ModificationsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {

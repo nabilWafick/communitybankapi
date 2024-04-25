@@ -60,7 +60,7 @@ export class LocalitiesController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -147,7 +147,7 @@ export class LocalitiesController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -244,7 +244,7 @@ export class LocalitiesController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -349,7 +349,7 @@ export class LocalitiesController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -434,7 +434,7 @@ export class LocalitiesController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {

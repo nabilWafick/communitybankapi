@@ -3,7 +3,6 @@ import { Category } from '@prisma/client';
 
 export class CategoryEntity implements Category {
   @ApiProperty()
-  @ApiProperty()
   id: number;
 
   @ApiProperty()

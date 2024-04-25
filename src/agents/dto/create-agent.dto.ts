@@ -10,7 +10,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { JsonValue } from '@prisma/client/runtime/library';
 
-export class AgentDto {
+export class CreateAgentDto {
   @IsString({ message: 'Name must be a text' })
   @IsNotEmpty({ message: 'Name must not be empty' })
   @MinLength(3, { message: 'Name must contain at least 3 characters' })

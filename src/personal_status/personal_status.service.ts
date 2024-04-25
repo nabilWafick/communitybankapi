@@ -1,35 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { CategoryDto } from './dto/category.dto';
-import { Prisma, PrismaClient, Category } from '@prisma/client';
+import { PersonalStatusDto } from './dto/personal_status.dto';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CategoryEntity } from './entities/category.entity';
+import { PersonalStatusEntity } from './entities/personal_status.entity';
 
 @Injectable()
-export class CategoriesService {
+export class PersonalStatusService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    categoryDto,
+    personalStatusDto,
   }: {
-    categoryDto: CategoryDto;
-  }): Promise<CategoryEntity> {
+    personalStatusDto: PersonalStatusDto;
+  }): Promise<PersonalStatusEntity> {
     try {
-      // find all Categories with a name similar to the name provided
-      const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+      // find all personalStatus with a name similar to the name provided
+      const personalStatusWithName = await this.prisma.personalStatus.findMany({
+        where: {
+          name: { contains: personalStatusDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
-      for (const category of categoriesWithName) {
-        // throw an error if a Category have the same name as the name provided
-        if (category.name.toLowerCase() === categoryDto.name.toLowerCase()) {
+      for (const personalStatus of personalStatusWithName) {
+        // throw an error if a personalStatus have the same name as the name provided
+        if (
+          personalStatus.name.toLowerCase() ===
+          personalStatusDto.name.toLowerCase()
+        ) {
           throw new Error('Name already used');
         }
       }
 
-      // create a new Category
-      return this.prisma.category.create({
-        data: categoryDto,
+      // create a new personalStatus
+      return this.prisma.personalStatus.create({
+        data: personalStatusDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -54,13 +59,13 @@ export class CategoriesService {
   }: {
     skip?: number;
     take?: number;
-    cursor?: Prisma.CategoryWhereUniqueInput;
-    where?: Prisma.CategoryWhereInput;
-    orderBy?: Prisma.CategoryOrderByWithRelationInput;
-  }): Promise<CategoryEntity[]> {
+    cursor?: Prisma.PersonalStatusWhereUniqueInput;
+    where?: Prisma.PersonalStatusWhereInput;
+    orderBy?: Prisma.PersonalStatusOrderByWithRelationInput;
+  }): Promise<PersonalStatusEntity[]> {
     try {
-      // fetch all Categorys with the specified parameters
-      return await this.prisma.category.findMany({
+      // fetch all personalStatuss with the specified parameters
+      return await this.prisma.personalStatus.findMany({
         skip,
         take,
         cursor,
@@ -86,20 +91,20 @@ export class CategoriesService {
     }
   }
 
-  async findOne({ id }: { id: number }): Promise<CategoryEntity> {
+  async findOne({ id }: { id: number }): Promise<PersonalStatusEntity> {
     try {
-      // fetch Category with the provided ID
-      const category = await this.prisma.category.findUnique({
+      // fetch personalStatus with the provided ID
+      const personalStatus = await this.prisma.personalStatus.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!category) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any personalStatus is found
+      if (!personalStatus) {
+        throw new Error(`personalStatus with ID ${id} not found`);
       }
 
-      // return the requested Category
-      return category;
+      // return the requested personalStatus
+      return personalStatus;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -116,42 +121,45 @@ export class CategoriesService {
 
   async update({
     id,
-    categoryDto,
+    personalStatusDto,
   }: {
     id: number;
-    categoryDto: CategoryDto;
-  }): Promise<CategoryEntity> {
+    personalStatusDto: PersonalStatusDto;
+  }): Promise<PersonalStatusEntity> {
     try {
-      // fetch Category with the provided ID
-      const categoryWithID = await this.prisma.category.findUnique({
+      // fetch personalStatus with the provided ID
+      const personalStatusWithID = await this.prisma.personalStatus.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!categoryWithID) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any personalStatus is found
+      if (!personalStatusWithID) {
+        throw new Error(`personalStatus with ID ${id} not found`);
       }
 
-      // find all Categories with a name to the name provided
-      const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+      // find all personalStatus with a name to the name provided
+      const personalStatusWithName = await this.prisma.personalStatus.findMany({
+        where: {
+          name: { contains: personalStatusDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
-      for (const category of categoriesWithName) {
-        // throw an error if a Category have the same name as the name provided
+      for (const personalStatus of personalStatusWithName) {
+        // throw an error if a personalStatus have the same name as the name provided
         if (
-          category.name.toLowerCase() === CategoryDto.name.toLowerCase() &&
-          category.id != id
+          personalStatus.name.toLowerCase() ===
+            personalStatusDto.name.toLowerCase() &&
+          personalStatus.id != id
         ) {
           throw new Error('Name already used');
         }
       }
 
-      // update the Category data
-      return await this.prisma.category.update({
+      // update the personalStatus data
+      return await this.prisma.personalStatus.update({
         where: { id },
-        data: CategoryDto,
+        data: personalStatusDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -167,23 +175,25 @@ export class CategoriesService {
     }
   }
 
-  async remove({ id }: { id: number }): Promise<CategoryEntity> {
+  async remove({ id }: { id: number }): Promise<PersonalStatusEntity> {
     try {
-      // fetch Category with the provided ID
-      const categoryWithID = await this.prisma.category.findUnique({
+      // fetch personalStatus with the provided ID
+      const personalStatusWithID = await this.prisma.personalStatus.findUnique({
         where: { id },
       });
 
-      // throw an error if any Category is found
-      if (!categoryWithID) {
-        throw new Error(`Category with ID ${id} not found`);
+      // throw an error if any personalStatus is found
+      if (!personalStatusWithID) {
+        throw new Error(`personalStatus with ID ${id} not found`);
       }
 
-      // remove the specified Category
-      const category = await this.prisma.category.delete({ where: { id } });
+      // remove the specified personalStatus
+      const personalStatus = await this.prisma.personalStatus.delete({
+        where: { id },
+      });
 
-      // return removed Category
-      return category;
+      // return removed personalStatus
+      return personalStatus;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

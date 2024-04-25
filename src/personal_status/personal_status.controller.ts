@@ -11,29 +11,33 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { CategoryDto } from './dto/category.dto';
+import { PersonalStatusService } from './personal_status.service';
+import { PersonalStatusDto } from './dto/personal_status.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { CategoryEntity } from './entities/category.entity';
+import { PersonalStatusEntity } from './entities/personal_status.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('Categories')
-@ApiTags('Categories')
-export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+@Controller('personal-status')
+@ApiTags('Personal Status')
+export class PersonalStatusController {
+  constructor(private readonly personalStatusService: PersonalStatusService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: CategoryEntity })
-  async create(@Body() categoryDto: CategoryDto): Promise<CategoryEntity> {
+  @ApiCreatedResponse({ type: PersonalStatusEntity })
+  async create(
+    @Body() personalStatusDto: PersonalStatusDto,
+  ): Promise<PersonalStatusEntity> {
     try {
-      return await this.categoriesService.create({ categoryDto: categoryDto });
+      return await this.personalStatusService.create({
+        personalStatusDto: personalStatusDto,
+      });
     } catch (error) {
       if (error.message === 'Name already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another Category',
-              fr: "Le nom fourni est celui d'une autre categorie",
+              en: 'The provided name is owned by another personalStatus',
+              fr: "Le nom fourni est celui d'un autre statut personnel",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -108,19 +112,19 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: CategoryEntity })
+  @ApiOkResponse({ type: PersonalStatusEntity })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<CategoryEntity> {
+  ): Promise<PersonalStatusEntity> {
     try {
-      return await this.categoriesService.findOne({ id: +id });
+      return await this.personalStatusService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `personalStatus with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested personalStatus is not found',
+              fr: 'La statut personnel demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -195,16 +199,16 @@ export class CategoriesController {
   }
 
   @Get()
-  @ApiOkResponse({ type: CategoryEntity, isArray: true })
+  @ApiOkResponse({ type: PersonalStatusEntity, isArray: true })
   async findAll(
     @Query('skip', ParseIntPipe) skip?: number | null,
     @Query('take', ParseIntPipe) take?: number | null,
-    @Query('cursor') cursor?: Prisma.CategoryWhereUniqueInput,
-    @Query('where') where?: Prisma.CategoryWhereInput,
-    @Query('orderBy') orderBy?: Prisma.CategoryOrderByWithRelationInput,
-  ): Promise<CategoryEntity[]> {
+    @Query('cursor') cursor?: Prisma.PersonalStatusWhereUniqueInput,
+    @Query('where') where?: Prisma.PersonalStatusWhereInput,
+    @Query('orderBy') orderBy?: Prisma.PersonalStatusOrderByWithRelationInput,
+  ): Promise<PersonalStatusEntity[]> {
     try {
-      return await this.categoriesService.findAll({
+      return await this.personalStatusService.findAll({
         skip,
         take,
         cursor,
@@ -292,23 +296,23 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: CategoryEntity })
+  @ApiOkResponse({ type: PersonalStatusEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() categoryDto: CategoryDto,
-  ): Promise<CategoryEntity> {
+    @Body() personalStatusDto: PersonalStatusDto,
+  ): Promise<PersonalStatusEntity> {
     try {
-      return await this.categoriesService.update({
+      return await this.personalStatusService.update({
         id: +id,
-        categoryDto: categoryDto,
+        personalStatusDto: personalStatusDto,
       });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `personalStatus with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested personalStatus is not found',
+              fr: 'La statut personnel demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -321,8 +325,8 @@ export class CategoriesController {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another Category',
-              fr: "Le nom fourni est celui d'une autre categorie",
+              en: 'The provided name is owned by another personalStatus',
+              fr: "Le nom fourni est celui d'un autre statut personnel",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -397,17 +401,19 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: CategoryEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<CategoryEntity> {
+  @ApiOkResponse({ type: PersonalStatusEntity })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<PersonalStatusEntity> {
     try {
-      return await this.categoriesService.remove({ id: +id });
+      return await this.personalStatusService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `Category with ID ${id} not found`) {
+      if (error.message === `personalStatus with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
-              en: 'The requested Category is not found',
-              fr: 'La categorie demandée est introuvable',
+              en: 'The requested personalStatus is not found',
+              fr: 'La statut personnel demandée est introuvable',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,

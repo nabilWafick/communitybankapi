@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Collector } from '@prisma/client';
+import { Product } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
-export class CollectorEntity implements Collector {
+export class ProductEntity implements Product {
   @ApiProperty()
   id: number;
 
@@ -9,15 +10,10 @@ export class CollectorEntity implements Collector {
   name: string;
 
   @ApiProperty()
-  firstnames: string;
-
-  @ApiProperty() phoneNumber: string;
-
-  @ApiProperty()
-  address: string;
+  purchasePrice: Decimal;
 
   @ApiProperty({ nullable: true })
-  profile: string;
+  photo: string | null;
 
   @ApiProperty()
   createdAt: Date;

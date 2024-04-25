@@ -12,13 +12,13 @@ export class AgentEntity implements Agent {
   @ApiProperty()
   firstnames: string;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ nullable: true })
   phoneNumber: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ nullable: true })
   address: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ nullable: true })
   profile: string | null;
 
   @ApiProperty()

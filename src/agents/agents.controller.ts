@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AgentsService } from './agents.service';
-import { AgentDto } from './dto/agent.dto';
+import { CreateAgentDto, UpdateAgentDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AgentEntity } from './entities/agent.entity';
 import { Prisma } from '@prisma/client';
@@ -24,9 +24,11 @@ export class AgentsController {
 
   @Post()
   @ApiCreatedResponse({ type: AgentEntity })
-  async create(@Body() agentDto: AgentDto): Promise<AgentEntity> {
+  async create(@Body() createAgentDto: CreateAgentDto): Promise<AgentEntity> {
     try {
-      return await this.agentsService.create({ agentDto: agentDto });
+      return await this.agentsService.create({
+        createAgentDto: createAgentDto,
+      });
     } catch (error) {
       if (error.message === 'Email already used') {
         throw new HttpException(
@@ -74,7 +76,7 @@ export class AgentsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -159,7 +161,7 @@ export class AgentsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -256,7 +258,7 @@ export class AgentsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -307,10 +309,13 @@ export class AgentsController {
   @ApiOkResponse({ type: AgentEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() agent: AgentDto,
+    @Body() updateAgentDto: UpdateAgentDto,
   ): Promise<AgentEntity> {
     try {
-      return await this.agentsService.update({ id: +id, agentDto: agent });
+      return await this.agentsService.update({
+        id: +id,
+        updateAgentDto: updateAgentDto,
+      });
     } catch (error) {
       if (error.message === `Agent with ID ${id} not found`) {
         throw new HttpException(
@@ -372,7 +377,7 @@ export class AgentsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
@@ -457,7 +462,7 @@ export class AgentsController {
         throw new HttpException(
           {
             message: {
-              en: 'An error occurred on the server. Error Related to a service',
+              en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {

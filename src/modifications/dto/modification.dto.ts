@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPhoneNumber,
+  IsPositive,
   IsString,
   Matches,
   MinLength,
@@ -12,6 +13,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ModificationDto {
   @IsNumber({}, { message: 'Agent ID must be a number' })
+  @IsPositive({ message: 'Agent ID must be positive' })
   @ApiProperty()
   agentId: number;
 

@@ -14,7 +14,7 @@ export class LocalitiesService {
     localityDto: LocalityDto;
   }): Promise<LocalityEntity> {
     try {
-      // find all localities with a name to the name provided
+      // find all localities with a name similar to the name provided
       const localitiesWithName = await this.prisma.locality.findMany({
         where: { name: { contains: localityDto.name, mode: 'insensitive' } },
       });
