@@ -30,12 +30,12 @@ export class CardsController {
         createCardDto: createCardDto,
       });
     } catch (error) {
-      if (error.message === 'Name already used') {
+      if (error.message === 'Label already used') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another card',
-              fr: "Le nom fourni est celui d'une autre carte",
+              en: 'The provided label is owned by another card',
+              fr: "Le libellé fourni est celui d'une autre carte",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -345,12 +345,54 @@ export class CardsController {
         );
       }
 
-      if (error.message === 'Name already used') {
+      if (error.message === 'Card already repaid') {
         throw new HttpException(
           {
             message: {
-              en: 'The provided name is owned by another card',
-              fr: "Le nom fourni est celui d'une autre carte",
+              en: 'The card have been already repaid',
+              fr: 'La carte a déjà été remboursée',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Card already satisfied') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The card have been already satisfied',
+              fr: 'La carte a déjà été satisfaite',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Card already transfered') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The card have been already transfered',
+              fr: 'La carte a déjà été transférée',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Label already used') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The provided label is owned by another card',
+              fr: "Le libellé fourni est celui d'une autre carte",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -401,34 +443,6 @@ export class CardsController {
         );
       }
 
-      if (error.message === 'Type not found') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The specified type is not found',
-              fr: 'Le type spécifié est introuvable',
-            },
-            error: { en: 'Not Found', fr: 'Introuvable' },
-            statusCode: HttpStatus.NOT_FOUND,
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      if (error.message === 'Customer not found') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The specified customer is not found',
-              fr: 'Le client spécifié est introuvable',
-            },
-            error: { en: 'Not Found', fr: 'Introuvable' },
-            statusCode: HttpStatus.NOT_FOUND,
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
       if (error.message === 'Invalid refund date') {
         throw new HttpException(
           {
@@ -468,6 +482,48 @@ export class CardsController {
             statusCode: HttpStatus.BAD_REQUEST,
           },
           HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Type not found') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The specified type is not found',
+              fr: 'Le type spécifié est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Card contains already settlement') {
+        throw new HttpException(
+          {
+            message: {
+              en: "The card type can't be update. It contains a least one settlement",
+              fr: 'Le type de la carte ne peut être modifiée. Elle contient au moins un règlement',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Customer not found') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The specified customer is not found',
+              fr: 'Le client spécifié est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
         );
       }
 

@@ -148,11 +148,25 @@ export class CardsService {
       // fetch card with the provided ID
       const cardWithID = await this.prisma.card.findUnique({
         where: { id },
+        include: {
+          settlements: true,
+        },
       });
 
       // throw an error if any card is found
       if (!cardWithID) {
         throw new Error(`Card with ID ${id} not found`);
+      }
+
+      // check if the card is usable
+      if (cardWithID.repaidAt) {
+        throw Error('Card already repaid');
+      }
+      if (cardWithID.satisfiedAt) {
+        throw Error('Card already satisfied');
+      }
+      if (cardWithID.transferedAt) {
+        throw Error('Card already transfered');
       }
 
       // find all card with a label to the label provided
@@ -181,6 +195,16 @@ export class CardsService {
       // throw an error if not
       if (!type) {
         throw Error(`Type not found`);
+      }
+
+      // check if the type would be update
+      if (updateCardDto.typeId) {
+        if (cardWithID.typeId != updateCardDto.typeId) {
+          // check if a settlement have be done in customer card
+          if (cardWithID.settlements.length > 0) {
+            throw 'Card contains already settlement';
+          }
+        }
       }
 
       // check if the provided customer ID exist
