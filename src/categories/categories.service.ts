@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CategoryDto } from './dto/category.dto';
+import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { Prisma, PrismaClient, Category } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CategoryEntity } from './entities/category.entity';
@@ -9,27 +9,31 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    categoryDto,
+    createCategoryDto,
   }: {
-    categoryDto: CategoryDto;
+    createCategoryDto: CreateCategoryDto;
   }): Promise<CategoryEntity> {
     try {
       // find all Categories with a name similar to the name provided
       const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+        where: {
+          name: { contains: createCategoryDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
       for (const category of categoriesWithName) {
         // throw an error if a Category have the same name as the name provided
-        if (category.name.toLowerCase() === categoryDto.name.toLowerCase()) {
+        if (
+          category.name.toLowerCase() === createCategoryDto.name.toLowerCase()
+        ) {
           throw new Error('Name already used');
         }
       }
 
       // create a new Category
       return this.prisma.category.create({
-        data: categoryDto,
+        data: createCategoryDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -116,10 +120,10 @@ export class CategoriesService {
 
   async update({
     id,
-    categoryDto,
+    updateCategoryDto,
   }: {
     id: number;
-    categoryDto: CategoryDto;
+    updateCategoryDto: UpdateCategoryDto;
   }): Promise<CategoryEntity> {
     try {
       // fetch Category with the provided ID
@@ -134,14 +138,17 @@ export class CategoriesService {
 
       // find all Categories with a name to the name provided
       const categoriesWithName = await this.prisma.category.findMany({
-        where: { name: { contains: categoryDto.name, mode: 'insensitive' } },
+        where: {
+          name: { contains: updateCategoryDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
       for (const category of categoriesWithName) {
         // throw an error if a Category have the same name as the name provided
         if (
-          category.name.toLowerCase() === CategoryDto.name.toLowerCase() &&
+          category.name.toLowerCase() ===
+            updateCategoryDto.name.toLowerCase() &&
           category.id != id
         ) {
           throw new Error('Name already used');
@@ -151,7 +158,7 @@ export class CategoriesService {
       // update the Category data
       return await this.prisma.category.update({
         where: { id },
-        data: CategoryDto,
+        data: updateCategoryDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

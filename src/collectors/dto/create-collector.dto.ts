@@ -8,7 +8,7 @@ import {
   Matches,
 } from 'class-validator';
 
-export class CollectorDto {
+export class CreateCollectorDto {
   @IsString({ message: 'Name must be a text' })
   @IsNotEmpty({ message: 'Name must not be empty' })
   @MinLength(3, { message: 'Name must contain at least 3 characters' })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TypeDto } from './dto/type.dto';
+import { CreateTypeDto, UpdateTypeDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TypeEntity } from './entities/type.entity';
@@ -8,29 +8,33 @@ import { TypeEntity } from './entities/type.entity';
 export class TypesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ typeDto }: { typeDto: TypeDto }): Promise<TypeEntity> {
+  async create({
+    createTypeDto,
+  }: {
+    createTypeDto: CreateTypeDto;
+  }): Promise<TypeEntity> {
     try {
       // find all types  with a name similar to the name provided
       const typeWithName = await this.prisma.type.findMany({
         where: {
-          name: { contains: typeDto.name, mode: 'insensitive' },
+          name: { contains: createTypeDto.name, mode: 'insensitive' },
         },
       });
 
       // loop the result
       for (const type of typeWithName) {
         // throw an error if a type have the same name as the name provided
-        if (type.name.toLowerCase() === typeDto.name.toLowerCase()) {
+        if (type.name.toLowerCase() === createTypeDto.name.toLowerCase()) {
           throw new Error('Name already used');
         }
       }
 
       // check if products ids are not repeated and related products exist
-      for (const productId of typeDto.productsIds) {
+      for (const productId of createTypeDto.productsIds) {
         let repetiton = 0;
 
-        for (let i = 0; i < typeDto.productsIds.length; i++) {
-          if (productId == typeDto.productsIds[i]) {
+        for (let i = 0; i < createTypeDto.productsIds.length; i++) {
+          if (productId === createTypeDto.productsIds[i]) {
             ++repetiton;
           }
         }
@@ -50,7 +54,7 @@ export class TypesService {
 
       // create a new type
       return this.prisma.type.create({
-        data: typeDto,
+        data: createTypeDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -137,10 +141,10 @@ export class TypesService {
 
   async update({
     id,
-    typeDto,
+    updateTypeDto,
   }: {
     id: number;
-    typeDto: TypeDto;
+    updateTypeDto: UpdateTypeDto;
   }): Promise<TypeEntity> {
     try {
       // fetch type with the provided ID
@@ -156,7 +160,7 @@ export class TypesService {
       // find all type with a name to the name provided
       const typeWithName = await this.prisma.type.findMany({
         where: {
-          name: { contains: typeDto.name, mode: 'insensitive' },
+          name: { contains: updateTypeDto.name, mode: 'insensitive' },
         },
       });
 
@@ -164,7 +168,7 @@ export class TypesService {
       for (const type of typeWithName) {
         // throw an error if a type have the same name as the name provided
         if (
-          type.name.toLowerCase() === typeDto.name.toLowerCase() &&
+          type.name.toLowerCase() === updateTypeDto.name.toLowerCase() &&
           type.id != id
         ) {
           throw new Error('Name already used');
@@ -172,11 +176,11 @@ export class TypesService {
       }
 
       // check if products ids are not repeated and related products exist
-      for (const productId of typeDto.productsIds) {
+      for (const productId of updateTypeDto.productsIds) {
         let repetiton = 0;
 
-        for (let i = 0; i < typeDto.productsIds.length; i++) {
-          if (productId == typeDto.productsIds[i]) {
+        for (let i = 0; i < updateTypeDto.productsIds.length; i++) {
+          if (productId === updateTypeDto.productsIds[i]) {
             ++repetiton;
           }
         }
@@ -197,7 +201,7 @@ export class TypesService {
       // update the type data
       return await this.prisma.type.update({
         where: { id },
-        data: typeDto,
+        data: updateTypeDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

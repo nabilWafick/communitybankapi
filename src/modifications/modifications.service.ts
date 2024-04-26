@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ModificationDto } from './dto/modification.dto';
+import { CreateModificationDto, UpdateModificationDto } from './dto';
 import { Prisma, PrismaClient, Modification } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ModificationEntity } from './entities/modification.entity';
@@ -9,24 +9,26 @@ export class ModificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    modificationDto,
+    createModificationDto,
   }: {
-    modificationDto: ModificationDto;
+    createModificationDto: CreateModificationDto;
   }): Promise<ModificationEntity> {
     try {
       // check if there is an agent identified by the specified ID
       const agent = await this.prisma.agent.findUnique({
-        where: { id: modificationDto.agentId },
+        where: { id: createModificationDto.agentId },
       });
 
       // throw an error if there is no agent
       if (!agent) {
-        throw new Error(`Agent with ID ${modificationDto.agentId} not found`);
+        throw new Error(
+          `Agent with ID ${createModificationDto.agentId} not found`,
+        );
       }
 
       // create a new modification
       return this.prisma.modification.create({
-        data: modificationDto,
+        data: createModificationDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -113,10 +115,10 @@ export class ModificationsService {
 
   async update({
     id,
-    modificationDto,
+    updateModificationDto,
   }: {
     id: number;
-    modificationDto: ModificationDto;
+    updateModificationDto: UpdateModificationDto;
   }): Promise<ModificationEntity> {
     try {
       // fetch modification with the provided ID
@@ -131,18 +133,20 @@ export class ModificationsService {
 
       // check if there is an agent identified by the specified ID
       const agent = await this.prisma.agent.findUnique({
-        where: { id: modificationDto.agentId },
+        where: { id: updateModificationDto.agentId },
       });
 
       // throw an error if there is no agent
       if (!agent) {
-        throw new Error(`Agent with ID ${modificationDto.agentId} not found`);
+        throw new Error(
+          `Agent with ID ${updateModificationDto.agentId} not found`,
+        );
       }
 
       // update the modification data
       return await this.prisma.modification.update({
         where: { id },
-        data: modificationDto,
+        data: updateModificationDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

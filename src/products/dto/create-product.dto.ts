@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ProductDto {
+export class CreateProductDto {
   @IsString({ message: 'Name must be a text' })
   @IsNotEmpty({ message: 'Name must not be empty' })
   @MinLength(3, { message: 'Name must contain at least 3 characters' })

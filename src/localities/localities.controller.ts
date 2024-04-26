@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { LocalitiesService } from './localities.service';
-import { LocalityDto } from './dto/locality.dto';
+import { LocalityDto } from './dto/create-locality.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LocalityEntity } from './entities/locality.entity';
 import { Prisma } from '@prisma/client';

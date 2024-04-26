@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CardDto } from './dto/card.dto';
+import { CreateCardDto, UpdateCardDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CardEntity } from './entities/card.entity';
@@ -9,26 +9,30 @@ import { isDateString } from 'class-validator';
 export class CardsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ cardDto }: { cardDto: CardDto }): Promise<CardEntity> {
+  async create({
+    createCardDto,
+  }: {
+    createCardDto: CreateCardDto;
+  }): Promise<CardEntity> {
     try {
       // find all cards  with a label similar to the label provided
       const cardWithLabel = await this.prisma.card.findMany({
         where: {
-          label: { contains: cardDto.label, mode: 'insensitive' },
+          label: { contains: createCardDto.label, mode: 'insensitive' },
         },
       });
 
       // loop the result
       for (const card of cardWithLabel) {
         // throw an error if a card have the same label as the label provided
-        if (card.label.toLowerCase() === cardDto.label.toLowerCase()) {
+        if (card.label.toLowerCase() === createCardDto.label.toLowerCase()) {
           throw new Error('Label already used');
         }
       }
 
       // check if the provided type ID exist
       const type = await this.prisma.type.findUnique({
-        where: { id: cardDto.typeId },
+        where: { id: createCardDto.typeId },
       });
 
       // throw an error if not
@@ -38,7 +42,7 @@ export class CardsService {
 
       // check if the provided customer ID exist
       const customer = await this.prisma.customer.findUnique({
-        where: { id: cardDto.customerId },
+        where: { id: createCardDto.customerId },
       });
 
       // throw an error if not
@@ -46,14 +50,9 @@ export class CardsService {
         throw Error(`Customer not found`);
       }
 
-      // makes null repaid, satisfied and transfered dates if provided
-      cardDto.repaidAt = null;
-      cardDto.satisfiedAt = null;
-      cardDto.transferedAt = null;
-
       // create a new card
       return this.prisma.card.create({
-        data: cardDto,
+        data: createCardDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -140,10 +139,10 @@ export class CardsService {
 
   async update({
     id,
-    cardDto,
+    updateCardDto,
   }: {
     id: number;
-    cardDto: CardDto;
+    updateCardDto: UpdateCardDto;
   }): Promise<CardEntity> {
     try {
       // fetch card with the provided ID
@@ -159,7 +158,7 @@ export class CardsService {
       // find all card with a label to the label provided
       const cardWithLabel = await this.prisma.card.findMany({
         where: {
-          label: { contains: cardDto.label, mode: 'insensitive' },
+          label: { contains: updateCardDto.label, mode: 'insensitive' },
         },
       });
 
@@ -167,7 +166,7 @@ export class CardsService {
       for (const card of cardWithLabel) {
         // throw an error if a card have the same label as the label provided
         if (
-          card.label.toLowerCase() === cardDto.label.toLowerCase() &&
+          card.label.toLowerCase() === updateCardDto.label.toLowerCase() &&
           card.id != id
         ) {
           throw new Error('Label already used');
@@ -176,7 +175,7 @@ export class CardsService {
 
       // check if the provided type ID exist
       const type = await this.prisma.type.findUnique({
-        where: { id: cardDto.typeId },
+        where: { id: updateCardDto.typeId },
       });
 
       // throw an error if not
@@ -186,7 +185,7 @@ export class CardsService {
 
       // check if the provided customer ID exist
       const customer = await this.prisma.customer.findUnique({
-        where: { id: cardDto.customerId },
+        where: { id: updateCardDto.customerId },
       });
 
       // throw an error if not
@@ -194,23 +193,42 @@ export class CardsService {
         throw Error(`Customer not found`);
       }
 
+      // check it two card end dates are provided at the same time
+      if (updateCardDto.repaidAt && updateCardDto.satisfiedAt) {
+        throw Error('Refund and Satisfaction dates provided');
+      }
+
+      if (updateCardDto.repaidAt && updateCardDto.transferedAt) {
+        throw Error('Refund and Transfer dates provided');
+      }
+
+      if (updateCardDto.satisfiedAt && updateCardDto.transferedAt) {
+        throw Error('Satisfaction and Transfer dates provided');
+      }
+
       // check if repaid, satisfied and transfered dates if provided are valid
-      if (cardDto.repaidAt && !isDateString(cardDto.repaidAt)) {
+      if (updateCardDto.repaidAt && !isDateString(updateCardDto.repaidAt)) {
         throw Error(`Invalid refund date`);
       }
 
-      if (cardDto.satisfiedAt && !isDateString(cardDto.satisfiedAt)) {
+      if (
+        updateCardDto.satisfiedAt &&
+        !isDateString(updateCardDto.satisfiedAt)
+      ) {
         throw Error(`Invalid satisfaction date`);
       }
 
-      if (cardDto.transferedAt && !isDateString(cardDto.transferedAt)) {
+      if (
+        updateCardDto.transferedAt &&
+        !isDateString(updateCardDto.transferedAt)
+      ) {
         throw Error(`Invalid transfer date`);
       }
 
       // update the card data
       return await this.prisma.card.update({
         where: { id },
-        data: cardDto,
+        data: updateCardDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

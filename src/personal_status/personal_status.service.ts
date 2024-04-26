@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PersonalStatusDto } from './dto/personal_status.dto';
+import { CreatePersonalStatusDto, UpdatePersonalStatusDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PersonalStatusEntity } from './entities/personal_status.entity';
@@ -9,15 +9,15 @@ export class PersonalStatusService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    personalStatusDto,
+    createPersonalStatusDto,
   }: {
-    personalStatusDto: PersonalStatusDto;
+    createPersonalStatusDto: CreatePersonalStatusDto;
   }): Promise<PersonalStatusEntity> {
     try {
       // find all personalStatus with a name similar to the name provided
       const personalStatusWithName = await this.prisma.personalStatus.findMany({
         where: {
-          name: { contains: personalStatusDto.name, mode: 'insensitive' },
+          name: { contains: createPersonalStatusDto.name, mode: 'insensitive' },
         },
       });
 
@@ -26,7 +26,7 @@ export class PersonalStatusService {
         // throw an error if a personalStatus have the same name as the name provided
         if (
           personalStatus.name.toLowerCase() ===
-          personalStatusDto.name.toLowerCase()
+          createPersonalStatusDto.name.toLowerCase()
         ) {
           throw new Error('Name already used');
         }
@@ -34,7 +34,7 @@ export class PersonalStatusService {
 
       // create a new personalStatus
       return this.prisma.personalStatus.create({
-        data: personalStatusDto,
+        data: createPersonalStatusDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -100,7 +100,7 @@ export class PersonalStatusService {
 
       // throw an error if any personalStatus is found
       if (!personalStatus) {
-        throw new Error(`personalStatus with ID ${id} not found`);
+        throw new Error(`Personal Status with ID ${id} not found`);
       }
 
       // return the requested personalStatus
@@ -121,10 +121,10 @@ export class PersonalStatusService {
 
   async update({
     id,
-    personalStatusDto,
+    updatePersonalStatusDto,
   }: {
     id: number;
-    personalStatusDto: PersonalStatusDto;
+    updatePersonalStatusDto: UpdatePersonalStatusDto;
   }): Promise<PersonalStatusEntity> {
     try {
       // fetch personalStatus with the provided ID
@@ -134,13 +134,13 @@ export class PersonalStatusService {
 
       // throw an error if any personalStatus is found
       if (!personalStatusWithID) {
-        throw new Error(`personalStatus with ID ${id} not found`);
+        throw new Error(`Personal Status with ID ${id} not found`);
       }
 
       // find all personalStatus with a name to the name provided
       const personalStatusWithName = await this.prisma.personalStatus.findMany({
         where: {
-          name: { contains: personalStatusDto.name, mode: 'insensitive' },
+          name: { contains: updatePersonalStatusDto.name, mode: 'insensitive' },
         },
       });
 
@@ -149,7 +149,7 @@ export class PersonalStatusService {
         // throw an error if a personalStatus have the same name as the name provided
         if (
           personalStatus.name.toLowerCase() ===
-            personalStatusDto.name.toLowerCase() &&
+            updatePersonalStatusDto.name.toLowerCase() &&
           personalStatus.id != id
         ) {
           throw new Error('Name already used');
@@ -159,7 +159,7 @@ export class PersonalStatusService {
       // update the personalStatus data
       return await this.prisma.personalStatus.update({
         where: { id },
-        data: personalStatusDto,
+        data: updatePersonalStatusDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -184,7 +184,7 @@ export class PersonalStatusService {
 
       // throw an error if any personalStatus is found
       if (!personalStatusWithID) {
-        throw new Error(`personalStatus with ID ${id} not found`);
+        throw new Error(`Personal Status with ID ${id} not found`);
       }
 
       // remove the specified personalStatus

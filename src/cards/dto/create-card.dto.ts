@@ -2,14 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmpty,
   IsInt,
-  IsNumber,
   IsPositive,
   IsString,
   MinLength,
 } from 'class-validator';
-import { IsNull } from 'typeorm';
 
-export class CardDto {
+export class CreateCardDto {
   @IsString({ message: 'Label must be text' })
   @IsEmpty({ message: 'Label must not be empty' })
   @MinLength(5, { message: 'Label must contain a least 5 characters' })
@@ -28,15 +26,6 @@ export class CardDto {
 
   @IsInt({ message: 'Type number must be an integer' })
   @IsPositive({ message: 'Type number must be positive' })
-  @ApiProperty()
+  @ApiProperty({ default: 1 })
   typesNumber: number;
-
-  @ApiProperty({ required: false, nullable: true })
-  repaidAt?: string | null;
-
-  @ApiProperty({ required: false, nullable: true })
-  satisfiedAt?: string | null;
-
-  @ApiProperty({ required: false, nullable: true })
-  transferedAt?: string | null;
 }

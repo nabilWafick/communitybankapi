@@ -12,7 +12,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { EconomicalActivitiesService } from './economical_activities.service';
-import { EconomicalActivityDto } from './dto/economical_activity.dto';
+import {
+  CreateEconomicalActivityDto,
+  UpdateEconomicalActivityDto,
+} from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { EconomicalActivityEntity } from './entities/economical_activity.entity';
 import { Prisma } from '@prisma/client';
@@ -27,11 +30,11 @@ export class EconomicalActivitiesController {
   @Post()
   @ApiCreatedResponse({ type: EconomicalActivityEntity })
   async create(
-    @Body() economicalActivityDto: EconomicalActivityDto,
+    @Body() createEconomicalActivityDto: CreateEconomicalActivityDto,
   ): Promise<EconomicalActivityEntity> {
     try {
       return await this.economicalActivitiesService.create({
-        economicalActivityDto: economicalActivityDto,
+        createEconomicalActivityDto: createEconomicalActivityDto,
       });
     } catch (error) {
       if (error.message === 'Name already used') {
@@ -302,12 +305,12 @@ export class EconomicalActivitiesController {
   @ApiOkResponse({ type: EconomicalActivityEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() economicalActivityDto: EconomicalActivityDto,
+    @Body() updateEconomicalActivityDto: UpdateEconomicalActivityDto,
   ): Promise<EconomicalActivityEntity> {
     try {
       return await this.economicalActivitiesService.update({
         id: +id,
-        economicalActivityDto: economicalActivityDto,
+        updateEconomicalActivityDto: updateEconomicalActivityDto,
       });
     } catch (error) {
       if (error.message === `EconomicalActivity with ID ${id} not found`) {

@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
-import { CategoryDto } from './dto/category.dto';
+import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CategoryEntity } from './entities/category.entity';
 import { Prisma } from '@prisma/client';
@@ -24,9 +24,13 @@ export class CategoriesController {
 
   @Post()
   @ApiCreatedResponse({ type: CategoryEntity })
-  async create(@Body() categoryDto: CategoryDto): Promise<CategoryEntity> {
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryEntity> {
     try {
-      return await this.categoriesService.create({ categoryDto: categoryDto });
+      return await this.categoriesService.create({
+        createCategoryDto: createCategoryDto,
+      });
     } catch (error) {
       if (error.message === 'Name already used') {
         throw new HttpException(
@@ -295,12 +299,12 @@ export class CategoriesController {
   @ApiOkResponse({ type: CategoryEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() categoryDto: CategoryDto,
+    @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryEntity> {
     try {
       return await this.categoriesService.update({
         id: +id,
-        categoryDto: categoryDto,
+        updateCategoryDto: updateCategoryDto,
       });
     } catch (error) {
       if (error.message === `Category with ID ${id} not found`) {

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { EconomicalActivityDto } from './dto/economical_activity.dto';
+import {
+  CreateEconomicalActivityDto,
+  UpdateEconomicalActivityDto,
+} from './dto';
 import { Prisma, PrismaClient, EconomicalActivity } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EconomicalActivityEntity } from './entities/economical_activity.entity';
@@ -9,16 +12,19 @@ export class EconomicalActivitiesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    economicalActivityDto,
+    createEconomicalActivityDto,
   }: {
-    economicalActivityDto: EconomicalActivityDto;
+    createEconomicalActivityDto: CreateEconomicalActivityDto;
   }): Promise<EconomicalActivityEntity> {
     try {
       // find all economicalActivities with a name similar to the name provided
       const economicalActivitiesWithName =
         await this.prisma.economicalActivity.findMany({
           where: {
-            name: { contains: economicalActivityDto.name, mode: 'insensitive' },
+            name: {
+              contains: createEconomicalActivityDto.name,
+              mode: 'insensitive',
+            },
           },
         });
 
@@ -27,7 +33,7 @@ export class EconomicalActivitiesService {
         // throw an error if a economicalActivity have the same name as the name provided
         if (
           economicalActivity.name.toLowerCase() ===
-          economicalActivityDto.name.toLowerCase()
+          createEconomicalActivityDto.name.toLowerCase()
         ) {
           throw new Error('Name already used');
         }
@@ -35,7 +41,7 @@ export class EconomicalActivitiesService {
 
       // create a new economicalActivity
       return this.prisma.economicalActivity.create({
-        data: economicalActivityDto,
+        data: createEconomicalActivityDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -123,10 +129,10 @@ export class EconomicalActivitiesService {
 
   async update({
     id,
-    economicalActivityDto,
+    updateEconomicalActivityDto,
   }: {
     id: number;
-    economicalActivityDto: EconomicalActivityDto;
+    updateEconomicalActivityDto: UpdateEconomicalActivityDto;
   }): Promise<EconomicalActivityEntity> {
     try {
       // fetch economicalActivity with the provided ID
@@ -144,7 +150,10 @@ export class EconomicalActivitiesService {
       const economicalActivitiesWithName =
         await this.prisma.economicalActivity.findMany({
           where: {
-            name: { contains: economicalActivityDto.name, mode: 'insensitive' },
+            name: {
+              contains: updateEconomicalActivityDto.name,
+              mode: 'insensitive',
+            },
           },
         });
 
@@ -153,7 +162,7 @@ export class EconomicalActivitiesService {
         // throw an error if a economicalActivity have the same name as the name provided
         if (
           economicalActivity.name.toLowerCase() ===
-            economicalActivityDto.name.toLowerCase() &&
+            updateEconomicalActivityDto.name.toLowerCase() &&
           economicalActivity.id != id
         ) {
           throw new Error('Name already used');
@@ -163,7 +172,7 @@ export class EconomicalActivitiesService {
       // update the economicalActivity data
       return await this.prisma.economicalActivity.update({
         where: { id },
-        data: economicalActivityDto,
+        data: updateEconomicalActivityDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

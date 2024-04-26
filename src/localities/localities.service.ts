@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LocalityDto } from './dto/locality.dto';
+import { CreateLocalityDto, UpdateLocalityDto } from './dto';
 import { Prisma, PrismaClient, Locality } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocalityEntity } from './entities/locality.entity';
@@ -9,27 +9,31 @@ export class LocalitiesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    localityDto,
+    createLocalityDto,
   }: {
-    localityDto: LocalityDto;
+    createLocalityDto: CreateLocalityDto;
   }): Promise<LocalityEntity> {
     try {
       // find all localities with a name similar to the name provided
       const localitiesWithName = await this.prisma.locality.findMany({
-        where: { name: { contains: localityDto.name, mode: 'insensitive' } },
+        where: {
+          name: { contains: createLocalityDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
       for (const locality of localitiesWithName) {
         // throw an error if a locality have the same name as the name provided
-        if (locality.name.toLowerCase() === localityDto.name.toLowerCase()) {
+        if (
+          locality.name.toLowerCase() === createLocalityDto.name.toLowerCase()
+        ) {
           throw new Error('Name already used');
         }
       }
 
       // create a new locality
       return this.prisma.locality.create({
-        data: localityDto,
+        data: createLocalityDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -116,10 +120,10 @@ export class LocalitiesService {
 
   async update({
     id,
-    localityDto,
+    updateLocalityDto,
   }: {
     id: number;
-    localityDto: LocalityDto;
+    updateLocalityDto: UpdateLocalityDto;
   }): Promise<LocalityEntity> {
     try {
       // fetch locality with the provided ID
@@ -134,14 +138,17 @@ export class LocalitiesService {
 
       // find all localities with a name to the name provided
       const localitiesWithName = await this.prisma.locality.findMany({
-        where: { name: { contains: localityDto.name, mode: 'insensitive' } },
+        where: {
+          name: { contains: updateLocalityDto.name, mode: 'insensitive' },
+        },
       });
 
       // loop the result
       for (const locality of localitiesWithName) {
         // throw an error if a locality have the same name as the name provided
         if (
-          locality.name.toLowerCase() === localityDto.name.toLowerCase() &&
+          locality.name.toLowerCase() ===
+            updateLocalityDto.name.toLowerCase() &&
           locality.id != id
         ) {
           throw new Error('Name already used');
@@ -151,7 +158,7 @@ export class LocalitiesService {
       // update the locality data
       return await this.prisma.locality.update({
         where: { id },
-        data: localityDto,
+        data: updateLocalityDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

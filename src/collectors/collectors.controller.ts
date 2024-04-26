@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
-import { CollectorDto } from './dto/collector.dto';
+import { CollectorDto } from './dto/create-collector.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CollectorEntity } from './entities/collector.entity';
 import { Prisma } from '@prisma/client';

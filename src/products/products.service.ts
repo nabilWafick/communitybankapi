@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ProductDto } from './dto/product.dto';
+import { CreateProductDto, UpdateProductDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductEntity } from './entities/product.entity';
@@ -9,29 +9,31 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    productDto,
+    createProductDto,
   }: {
-    productDto: ProductDto;
+    createProductDto: CreateProductDto;
   }): Promise<ProductEntity> {
     try {
       // find all products with a name similar to the name provided
       const productWithName = await this.prisma.product.findMany({
         where: {
-          name: { contains: productDto.name, mode: 'insensitive' },
+          name: { contains: createProductDto.name, mode: 'insensitive' },
         },
       });
 
       // loop the result
       for (const product of productWithName) {
         // throw an error if a product have the same name as the name provided
-        if (product.name.toLowerCase() === productDto.name.toLowerCase()) {
+        if (
+          product.name.toLowerCase() === createProductDto.name.toLowerCase()
+        ) {
           throw new Error('Name already used');
         }
       }
 
       // create a new product
       return this.prisma.product.create({
-        data: productDto,
+        data: createProductDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -118,10 +120,10 @@ export class ProductsService {
 
   async update({
     id,
-    productDto,
+    updateProductDto,
   }: {
     id: number;
-    productDto: ProductDto;
+    updateProductDto: UpdateProductDto;
   }): Promise<ProductEntity> {
     try {
       // fetch product with the provided ID
@@ -137,7 +139,7 @@ export class ProductsService {
       // find all product with a name to the name provided
       const productWithName = await this.prisma.product.findMany({
         where: {
-          name: { contains: productDto.name, mode: 'insensitive' },
+          name: { contains: updateProductDto.name, mode: 'insensitive' },
         },
       });
 
@@ -145,7 +147,7 @@ export class ProductsService {
       for (const product of productWithName) {
         // throw an error if a product have the same name as the name provided
         if (
-          product.name.toLowerCase() === productDto.name.toLowerCase() &&
+          product.name.toLowerCase() === updateProductDto.name.toLowerCase() &&
           product.id != id
         ) {
           throw new Error('Name already used');
@@ -155,7 +157,7 @@ export class ProductsService {
       // update the product data
       return await this.prisma.product.update({
         where: { id },
-        data: productDto,
+        data: updateProductDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

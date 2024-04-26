@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ProductDto } from './dto/product.dto';
+import { ProductDto } from './dto/create-product.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ProductEntity } from './entities/product.entity';
 import { Prisma } from '@prisma/client';

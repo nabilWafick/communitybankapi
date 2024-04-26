@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ModificationsService } from './modifications.service';
-import { ModificationDto } from './dto/modification.dto';
+import { CreateModificationDto, UpdateModificationDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ModificationEntity } from './entities/modification.entity';
 import { Prisma } from '@prisma/client';
@@ -25,15 +25,16 @@ export class ModificationsController {
   @Post()
   @ApiCreatedResponse({ type: ModificationEntity })
   async create(
-    @Body() modificationDto: ModificationDto,
+    @Body() createModificationDto: CreateModificationDto,
   ): Promise<ModificationEntity> {
     try {
       return await this.modificationsService.create({
-        modificationDto: modificationDto,
+        createModificationDto: createModificationDto,
       });
     } catch (error) {
       if (
-        error.message === `Agent with ID ${modificationDto.agentId} not found`
+        error.message ===
+        `Agent with ID ${createModificationDto.agentId} not found`
       ) {
         throw new HttpException(
           {
@@ -301,12 +302,12 @@ export class ModificationsController {
   @ApiOkResponse({ type: ModificationEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() modificationDto: ModificationDto,
+    @Body() updateModificationDto: UpdateModificationDto,
   ): Promise<ModificationEntity> {
     try {
       return await this.modificationsService.update({
         id: +id,
-        modificationDto: modificationDto,
+        updateModificationDto: updateModificationDto,
       });
     } catch (error) {
       if (error.message === `Modification with ID ${id} not found`) {
@@ -324,7 +325,8 @@ export class ModificationsController {
       }
 
       if (
-        error.message === `Agent with ID ${modificationDto.agentId} not found`
+        error.message ===
+        `Agent with ID ${updateModificationDto.agentId} not found`
       ) {
         throw new HttpException(
           {

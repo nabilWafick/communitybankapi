@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
-import { CardDto } from './dto/card.dto';
+import { CreateCardDto, UpdateCardDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CardEntity } from './entities/card.entity';
 import { Prisma } from '@prisma/client';
@@ -24,10 +24,10 @@ export class CardsController {
 
   @Post()
   @ApiCreatedResponse({ type: CardEntity })
-  async create(@Body() cardDto: CardDto): Promise<CardEntity> {
+  async create(@Body() createCardDto: CreateCardDto): Promise<CardEntity> {
     try {
       return await this.cardService.create({
-        cardDto: cardDto,
+        createCardDto: createCardDto,
       });
     } catch (error) {
       if (error.message === 'Name already used') {
@@ -323,12 +323,12 @@ export class CardsController {
   @ApiOkResponse({ type: CardEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() cardDto: CardDto,
+    @Body() updateCardDto: UpdateCardDto,
   ): Promise<CardEntity> {
     try {
       return await this.cardService.update({
         id: +id,
-        cardDto: cardDto,
+        updateCardDto: updateCardDto,
       });
     } catch (error) {
       if (error.message === `Card with ID ${id} not found`) {
@@ -351,6 +351,48 @@ export class CardsController {
             message: {
               en: 'The provided name is owned by another card',
               fr: "Le nom fourni est celui d'une autre carte",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Refund and Satisfaction dates provided') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The refund and satisfaction dates have been provided. Only one of them can be setted',
+              fr: "Les dates de remboursement et de satisfaction ont été fournies. Seule une d'elle peût être définie.",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Refund and Transfer dates provided') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The refund and transfer dates have been provided. Only one of them can be setted',
+              fr: "Les dates de remboursement et de transfert ont été fournies. Seule une d'elle peût être définie.",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Satisfaction and Transfer dates provided') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The satisfaction and transfer dates have been provided. Only one of them can be setted',
+              fr: "Les dates de satisfaction et de transfert ont été fournies. Seule une d'elle peût être définie.",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CollectorDto } from './dto/collector.dto';
+import { CreateCollectorDto, UpdateCollectorDto } from './dto';
 import { Prisma, PrismaClient, Collector } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CollectorEntity } from './entities/collector.entity';
@@ -9,14 +9,14 @@ export class CollectorsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create({
-    collectorDto,
+    createCollectorDto,
   }: {
-    collectorDto: CollectorDto;
+    createCollectorDto: CreateCollectorDto;
   }): Promise<CollectorEntity> {
     try {
       // find any collector with the provided phone number
       const collectorWithPhoneNumber = await this.prisma.collector.findUnique({
-        where: { phoneNumber: collectorDto.phoneNumber },
+        where: { phoneNumber: createCollectorDto.phoneNumber },
       });
 
       // throw an error if an collector is found
@@ -26,7 +26,7 @@ export class CollectorsService {
 
       // create a new collector
       return this.prisma.collector.create({
-        data: collectorDto,
+        data: createCollectorDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -113,10 +113,10 @@ export class CollectorsService {
 
   async update({
     id,
-    collectorDto,
+    updateCollectorDto,
   }: {
     id: number;
-    collectorDto: CollectorDto;
+    updateCollectorDto: UpdateCollectorDto;
   }): Promise<CollectorEntity> {
     try {
       // fetch collector with the provided ID
@@ -131,7 +131,7 @@ export class CollectorsService {
 
       // find any collector with the provided phone number
       const collectorWithPhoneNumber = await this.prisma.collector.findUnique({
-        where: { phoneNumber: collectorDto.phoneNumber },
+        where: { phoneNumber: updateCollectorDto.phoneNumber },
       });
 
       // throw an error if an collector is found and it is not the requested collector
@@ -142,7 +142,7 @@ export class CollectorsService {
       // update the collector data
       return await this.prisma.collector.update({
         where: { id },
-        data: collectorDto,
+        data: updateCollectorDto,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

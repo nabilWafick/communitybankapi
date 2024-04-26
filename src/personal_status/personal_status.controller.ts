@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { PersonalStatusService } from './personal_status.service';
-import { PersonalStatusDto } from './dto/personal_status.dto';
+import { CreatePersonalStatusDto, UpdatePersonalStatusDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { PersonalStatusEntity } from './entities/personal_status.entity';
 import { Prisma } from '@prisma/client';
@@ -25,11 +25,11 @@ export class PersonalStatusController {
   @Post()
   @ApiCreatedResponse({ type: PersonalStatusEntity })
   async create(
-    @Body() personalStatusDto: PersonalStatusDto,
+    @Body() createPersonalStatusDto: CreatePersonalStatusDto,
   ): Promise<PersonalStatusEntity> {
     try {
       return await this.personalStatusService.create({
-        personalStatusDto: personalStatusDto,
+        createPersonalStatusDto: createPersonalStatusDto,
       });
     } catch (error) {
       if (error.message === 'Name already used') {
@@ -119,7 +119,7 @@ export class PersonalStatusController {
     try {
       return await this.personalStatusService.findOne({ id: +id });
     } catch (error) {
-      if (error.message === `personalStatus with ID ${id} not found`) {
+      if (error.message === `Personal Status with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
@@ -299,15 +299,15 @@ export class PersonalStatusController {
   @ApiOkResponse({ type: PersonalStatusEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() personalStatusDto: PersonalStatusDto,
+    @Body() updatePersonalStatusDto: UpdatePersonalStatusDto,
   ): Promise<PersonalStatusEntity> {
     try {
       return await this.personalStatusService.update({
         id: +id,
-        personalStatusDto: personalStatusDto,
+        updatePersonalStatusDto: updatePersonalStatusDto,
       });
     } catch (error) {
-      if (error.message === `personalStatus with ID ${id} not found`) {
+      if (error.message === `Personal Status with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
@@ -408,7 +408,7 @@ export class PersonalStatusController {
     try {
       return await this.personalStatusService.remove({ id: +id });
     } catch (error) {
-      if (error.message === `personalStatus with ID ${id} not found`) {
+      if (error.message === `Personal Status with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {

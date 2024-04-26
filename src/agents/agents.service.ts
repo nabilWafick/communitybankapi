@@ -160,15 +160,10 @@ export class AgentsService {
         throw new Error('Phone number already used');
       }
 
-      // check if the creation date is valid
-      if (updateAgentDto.createdAt && !isDateString(updateAgentDto.createdAt)) {
-        throw Error(`Invalid creation date`);
-      }
-
       // update the agent data
       return await this.prisma.agent.update({
         where: { id },
-        data: { ...updateAgentDto, updatedAt: Date.now().toLocaleString() },
+        data: { ...updateAgentDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { TypesService } from './types.service';
-import { TypeDto } from './dto/type.dto';
+import { CreateTypeDto, UpdateTypeDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TypeEntity } from './entities/type.entity';
 import { Prisma } from '@prisma/client';
@@ -24,10 +24,10 @@ export class TypesController {
 
   @Post()
   @ApiCreatedResponse({ type: TypeEntity })
-  async create(@Body() typeDto: TypeDto): Promise<TypeEntity> {
+  async create(@Body() createTypeDto: CreateTypeDto): Promise<TypeEntity> {
     try {
       return await this.typeService.create({
-        typeDto: typeDto,
+        createTypeDto: createTypeDto,
       });
     } catch (error) {
       if (error.message === 'Name already used') {
@@ -323,12 +323,12 @@ export class TypesController {
   @ApiOkResponse({ type: TypeEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() typeDto: TypeDto,
+    @Body() updateTypeDto: UpdateTypeDto,
   ): Promise<TypeEntity> {
     try {
       return await this.typeService.update({
         id: +id,
-        typeDto: typeDto,
+        updateTypeDto: updateTypeDto,
       });
     } catch (error) {
       if (error.message === `Type with ID ${id} not found`) {

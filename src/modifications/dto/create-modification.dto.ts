@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModificationDto {
+export class CreateModificationDto {
   @IsNumber({}, { message: 'Agent ID must be a number' })
   @IsPositive({ message: 'Agent ID must be positive' })
   @ApiProperty()
