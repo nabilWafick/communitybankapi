@@ -8,11 +8,13 @@ import {
   IsString,
   Matches,
   MinLength,
+  NotEquals,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateModificationDto {
   @IsNumber({}, { message: 'Agent ID must be a number' })
+  @NotEquals(0, { message: 'Agent ID must not be equal to 0' })
   @IsPositive({ message: 'Agent ID must be positive' })
   @ApiProperty()
   agentId: number;

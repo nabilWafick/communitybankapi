@@ -44,6 +44,22 @@ export class TypesController {
         );
       }
 
+      if (
+        error.message === 'Products array and numbers array incompatibility'
+      ) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The products ids array length is not equal to products numbers array length',
+              fr: "La longueur de la liste des identifiants des produits n'est pas égale à la longueur de la liste des nombres des produits",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Repeated ID') {
         throw new HttpException(
           {
@@ -351,6 +367,22 @@ export class TypesController {
             message: {
               en: 'The provided name is owned by another type',
               fr: "Le nom fourni est celui d'un autre type",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (
+        error.message === 'Products array and numbers array incompatibility'
+      ) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The products ids array length is not equal to products numbers array length',
+              fr: "La longueur de la liste des identifiants des produits n'est pas égale à la longueur de la liste des nombres des produits",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,

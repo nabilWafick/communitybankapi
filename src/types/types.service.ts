@@ -29,6 +29,13 @@ export class TypesService {
         }
       }
 
+      // check if productsIds length === products numbers length
+      if (
+        createTypeDto.productsIds.length != createTypeDto.productsNumbers.length
+      ) {
+        throw new Error('Products array and numbers array incompatibility');
+      }
+
       // check if products ids are not repeated and related products exist
       for (const productId of createTypeDto.productsIds) {
         let repetiton = 0;
@@ -173,6 +180,13 @@ export class TypesService {
         ) {
           throw new Error('Name already used');
         }
+      }
+
+      // check if productsIds length === products numbers length
+      if (
+        updateTypeDto.productsIds.length != updateTypeDto.productsNumbers.length
+      ) {
+        throw new Error('Products array and numbers array incompatibility');
       }
 
       // check if products ids are not repeated and related products exist

@@ -10,6 +10,7 @@ import {
   IsPositive,
   IsString,
   MinLength,
+  NotEquals,
 } from 'class-validator';
 
 export class CreateTypeDto {
@@ -20,6 +21,7 @@ export class CreateTypeDto {
   name: string;
 
   @IsNumber({}, { message: 'Stake must be a number' })
+  @NotEquals(0, { message: 'Stake must not be equal to 0' })
   @IsPositive({ message: 'Stake must be positive' })
   @ApiProperty()
   stake: Decimal;
