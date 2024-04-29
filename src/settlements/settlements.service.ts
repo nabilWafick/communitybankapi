@@ -103,10 +103,11 @@ export class SettlementsService {
 
       // substract settlement amount from
       // the remaining amount of the collection
-      collection.rest.toNumber() -
+      collection.rest.minus(
         createSettlementDto.number *
           card.typesNumber *
-          card.type.stake.toNumber();
+          card.type.stake.toNumber(),
+      );
 
       // update the collection
       this.prisma.collection.update({
@@ -232,17 +233,26 @@ export class SettlementsService {
       }
 
       // check if settlement card would be updated
-      if (updateSettlementDto.cardId) {
+      if (
+        updateSettlementDto.cardId &&
+        updateSettlementDto.cardId != settlement.cardId
+      ) {
         throw Error('Card immutable');
       }
 
       // check if settlement collection would be updated
-      if (updateSettlementDto.collectionId) {
+      if (
+        updateSettlementDto.collectionId &&
+        updateSettlementDto.collectionId != settlement.collectionId
+      ) {
         throw Error('Collection immutable');
       }
 
       // check if settlement agent would be updated
-      if (updateSettlementDto.collectionId) {
+      if (
+        updateSettlementDto.agentId &&
+        updateSettlementDto.agentId != settlement.agentId
+      ) {
         throw Error('Agent immutable');
       }
 
@@ -291,7 +301,33 @@ export class SettlementsService {
           // validation status passed is true or null
 
           // check if the number would be updated
-          if (updateSettlementDto.number) {
+          if (
+            updateSettlementDto.number &&
+            updateSettlementDto.number != settlement.number
+          ) {
+            // check if there is not a risk of over settlement
+
+            // fetch all validated settlements of the settlement card
+            const validatedSettlements = settlement.card.settlements.filter(
+              (settlement) => settlement.isValidated,
+            );
+
+            // calculate the total of validated settlements
+            const validatedSettlementsTotal = validatedSettlements.reduce(
+              (total, settlement) => total + settlement.number,
+              0,
+            );
+
+            // throw an error if this could lead to excessive settlement
+            if (
+              validatedSettlementsTotal -
+                settlement.number +
+                updateSettlementDto.number >
+              372
+            ) {
+              throw Error('Risk of over settlement');
+            }
+
             // check if remain collection amount is sufficient
 
             const previousSettlementAmount =
@@ -314,10 +350,11 @@ export class SettlementsService {
               throw Error('Insufficient amount of collection');
             }
 
+            // return the previous amount
+            settlement.collection.rest.add(previousSettlementAmount);
+
             // substract the new amount
-            settlement.collection.rest.toNumber() +
-              previousSettlementAmount -
-              newSettlementAmount;
+            settlement.collection.rest.minus(newSettlementAmount);
 
             // update the collection
             this.prisma.collection.update({
@@ -345,7 +382,10 @@ export class SettlementsService {
           // the validation status would be passed to true
 
           // check if the number would be updated
-          if (updateSettlementDto.number) {
+          if (
+            updateSettlementDto.number &&
+            updateSettlementDto.number != settlement.number
+          ) {
             // re-make a the settlement
 
             // check if the maximum of settlememnt total is not reached
@@ -368,12 +408,7 @@ export class SettlementsService {
             }
 
             // check if the remain amount of the collection
-            // is enough for making the retrocession
-
-            const previousSettlementAmount =
-              settlement.number *
-              settlement.card.typesNumber *
-              settlement.card.type.stake.toNumber();
+            // is enough for making the settlement
 
             const newSettlementAmount =
               updateSettlementDto.number *
@@ -382,9 +417,7 @@ export class SettlementsService {
 
             // throw an error if the remain amount is not enough
             if (
-              settlement.collection.rest.toNumber() -
-                previousSettlementAmount +
-                newSettlementAmount <
+              settlement.collection.rest.toNumber() - newSettlementAmount <
               0
             ) {
               throw Error('Insufficient amount of collection');
@@ -392,9 +425,7 @@ export class SettlementsService {
 
             // substract settlement amount from
             // the remaining amount of the collection
-            settlement.collection.rest.toNumber() -
-              previousSettlementAmount +
-              newSettlementAmount;
+            settlement.collection.rest.minus(newSettlementAmount);
 
             // update the collection
             this.prisma.collection.update({
@@ -430,22 +461,19 @@ export class SettlementsService {
             // check if the remain amount of the collection
             // is enough for making the retrocession
 
-            const previousSettlementAmount =
+            const settlementAmount =
               settlement.number *
               settlement.card.typesNumber *
               settlement.card.type.stake.toNumber();
 
             // throw an error if the remain amount is not enough
-            if (
-              settlement.collection.rest.toNumber() - previousSettlementAmount <
-              0
-            ) {
+            if (settlement.collection.rest.toNumber() - settlementAmount < 0) {
               throw Error('Insufficient amount of collection');
             }
 
             // substract settlement amount from
             // the remaining amount of the collection
-            settlement.collection.rest.toNumber() - previousSettlementAmount;
+            settlement.collection.rest.minus(settlementAmount);
 
             // update the collection
             this.prisma.collection.update({
