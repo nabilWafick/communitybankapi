@@ -173,6 +173,8 @@ export class CollectionsService {
 
       // check if the aagent would be modified
 
+      // check if the amount would be modified
+
       // update the collection data
       return await this.prisma.collection.update({
         where: { id },
