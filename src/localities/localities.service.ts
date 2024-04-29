@@ -158,7 +158,7 @@ export class LocalitiesService {
       // update the locality data
       return await this.prisma.locality.update({
         where: { id },
-        data: updateLocalityDto,
+        data: { ...updateLocalityDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

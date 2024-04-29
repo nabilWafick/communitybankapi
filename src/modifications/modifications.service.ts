@@ -146,7 +146,7 @@ export class ModificationsService {
       // update the modification data
       return await this.prisma.modification.update({
         where: { id },
-        data: updateModificationDto,
+        data: { ...updateModificationDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

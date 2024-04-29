@@ -172,7 +172,10 @@ export class EconomicalActivitiesService {
       // update the economicalActivity data
       return await this.prisma.economicalActivity.update({
         where: { id },
-        data: updateEconomicalActivityDto,
+        data: {
+          ...updateEconomicalActivityDto,
+          updatedAt: new Date().toISOString(),
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

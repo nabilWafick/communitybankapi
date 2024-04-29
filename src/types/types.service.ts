@@ -215,7 +215,7 @@ export class TypesService {
       // update the type data
       return await this.prisma.type.update({
         where: { id },
-        data: updateTypeDto,
+        data: { ...updateTypeDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

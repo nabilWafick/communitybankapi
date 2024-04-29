@@ -252,7 +252,7 @@ export class CardsService {
       // update the card data
       return await this.prisma.card.update({
         where: { id },
-        data: updateCardDto,
+        data: { ...updateCardDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

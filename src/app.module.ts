@@ -14,6 +14,7 @@ import { TypesModule } from './types/types.module';
 import { CardsModule } from './cards/cards.module';
 import { SettlementsModule } from './settlements/settlements.module';
 import { CollectionsModule } from './collections/collections.module';
+import { TransfersModule } from './transfers/transfers.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CollectionsModule } from './collections/collections.module';
     CardsModule,
     SettlementsModule,
     CollectionsModule,
+    TransfersModule,
   ],
 })
 export class AppModule {}

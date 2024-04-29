@@ -158,7 +158,7 @@ export class CategoriesService {
       // update the Category data
       return await this.prisma.category.update({
         where: { id },
-        data: updateCategoryDto,
+        data: { ...updateCategoryDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

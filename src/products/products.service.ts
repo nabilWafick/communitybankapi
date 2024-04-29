@@ -157,7 +157,7 @@ export class ProductsService {
       // update the product data
       return await this.prisma.product.update({
         where: { id },
-        data: updateProductDto,
+        data: { ...updateProductDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

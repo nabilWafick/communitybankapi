@@ -159,7 +159,10 @@ export class PersonalStatusService {
       // update the personalStatus data
       return await this.prisma.personalStatus.update({
         where: { id },
-        data: updatePersonalStatusDto,
+        data: {
+          ...updatePersonalStatusDto,
+          updatedAt: new Date().toISOString(),
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

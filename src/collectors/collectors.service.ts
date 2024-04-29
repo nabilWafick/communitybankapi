@@ -142,7 +142,7 @@ export class CollectorsService {
       // update the collector data
       return await this.prisma.collector.update({
         where: { id },
-        data: updateCollectorDto,
+        data: { ...updateCollectorDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
