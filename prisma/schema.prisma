@@ -210,7 +210,7 @@ model Settlement {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Stock {
   id              Int      @id(map: "stock_pkey") @default(autoincrement())
-  product_id      Int      @map("product_id")
+  productId       Int      @map("product_id")
   initialQuantity Int      @map("initial_quantity")
   createdAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
@@ -222,7 +222,7 @@ model Stock {
   agentId         Int      @map("agent_id")
   agent           Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")
   card            Card?    @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_carte_fkey")
-  product         Product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_produit_fkey")
+  product         Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_produit_fkey")
 
   @@map("stocks")
 }

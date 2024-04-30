@@ -202,7 +202,7 @@ export class CardsService {
         if (cardWithID.typeId != updateCardDto.typeId) {
           // check if a settlement have be done in customer card
           if (cardWithID.settlements.length > 0) {
-            throw 'Card contains already settlement';
+            throw 'Type Immutable';
           }
         }
       }
@@ -217,36 +217,9 @@ export class CardsService {
         throw Error(`Customer not found`);
       }
 
-      // check it two card end dates are provided at the same time
-      if (updateCardDto.repaidAt && updateCardDto.satisfiedAt) {
-        throw Error('Refund and Satisfaction dates provided');
-      }
-
-      if (updateCardDto.repaidAt && updateCardDto.transferedAt) {
-        throw Error('Refund and Transfer dates provided');
-      }
-
-      if (updateCardDto.satisfiedAt && updateCardDto.transferedAt) {
-        throw Error('Satisfaction and Transfer dates provided');
-      }
-
       // check if repaid, satisfied and transfered dates if provided are valid
       if (updateCardDto.repaidAt && !isDateString(updateCardDto.repaidAt)) {
         throw Error(`Invalid refund date`);
-      }
-
-      if (
-        updateCardDto.satisfiedAt &&
-        !isDateString(updateCardDto.satisfiedAt)
-      ) {
-        throw Error(`Invalid satisfaction date`);
-      }
-
-      if (
-        updateCardDto.transferedAt &&
-        !isDateString(updateCardDto.transferedAt)
-      ) {
-        throw Error(`Invalid transfer date`);
       }
 
       // update the card data

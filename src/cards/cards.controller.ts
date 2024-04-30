@@ -401,82 +401,12 @@ export class CardsController {
         );
       }
 
-      if (error.message === 'Refund and Satisfaction dates provided') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The refund and satisfaction dates have been provided. Only one of them can be setted',
-              fr: "Les dates de remboursement et de satisfaction ont été fournies. Seule une d'elle peût être définie.",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Refund and Transfer dates provided') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The refund and transfer dates have been provided. Only one of them can be setted',
-              fr: "Les dates de remboursement et de transfert ont été fournies. Seule une d'elle peût être définie.",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      if (error.message === 'Satisfaction and Transfer dates provided') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The satisfaction and transfer dates have been provided. Only one of them can be setted',
-              fr: "Les dates de satisfaction et de transfert ont été fournies. Seule une d'elle peût être définie.",
-            },
-            error: { en: 'Conflict', fr: 'Conflit' },
-            statusCode: HttpStatus.CONFLICT,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
       if (error.message === 'Invalid refund date') {
         throw new HttpException(
           {
             message: {
               en: 'The provided refund date is invalid',
               fr: 'Le date de remboursement fournie est invalide',
-            },
-            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
-            statusCode: HttpStatus.BAD_REQUEST,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (error.message === 'Invalid satisfaction date') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided satisfaction date is invalid',
-              fr: 'Le date de satisfaction fournie est invalide',
-            },
-            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
-            statusCode: HttpStatus.BAD_REQUEST,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (error.message === 'Invalid transfer date') {
-        throw new HttpException(
-          {
-            message: {
-              en: 'The provided transfer date is invalid',
-              fr: 'Le date de transfert fournie est invalide',
             },
             error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
             statusCode: HttpStatus.BAD_REQUEST,
@@ -499,7 +429,7 @@ export class CardsController {
         );
       }
 
-      if (error.message === 'Card contains already settlement') {
+      if (error.message === 'Type Immutable') {
         throw new HttpException(
           {
             message: {
