@@ -217,7 +217,7 @@ model Stock {
   inputQuantity   Int?     @map("input_quantity")
   outputQuantity  Int?     @map("output_quantity")
   stockQuantity   Int      @map("stock_quantity")
-  movementType    String?  @map("movement_type") @db.VarChar
+  movementType    String   @map("movement_type") @db.VarChar
   cardId          Int?     @map("card_id")
   agentId         Int      @map("agent_id")
   agent           Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")

@@ -4,7 +4,6 @@ import {
   UpdateStockInputDto,
   CreateStockNormalRetrocessionDto,
   UpdateStockNormalRetrocessionDto,
-  Cre,
   CreateStockManualOutputDto,
   CreateStockNormalOutputDto,
 } from './dto';
@@ -12,6 +11,8 @@ import { Prisma, Stock } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StockEntity } from './entities/stock.entity';
 import { isDateString } from 'class-validator';
+import { ProductsService } from '../products/products.service';
+import { StockInputType, StockOutputType } from './class';
 
 @Injectable()
 export class StocksService {
@@ -61,6 +62,7 @@ export class StocksService {
           ...createStockInputDto,
           initialQuantity: 0,
           stockQuantity: createStockInputDto.inputQuantity,
+          movementType: StockInputType.manual,
         };
       } else {
         // complete the stock
@@ -69,6 +71,7 @@ export class StocksService {
           initialQuantity: lastProductStock.stockQuantity,
           stockQuantity:
             lastProductStock.stockQuantity + createStockInputDto.inputQuantity,
+          movementType: StockInputType.manual,
         };
       }
 
@@ -136,7 +139,7 @@ export class StocksService {
           createStockManualOutputDto.outputQuantity <
         0
       ) {
-        throw Error('Insufficient stock');
+        throw Error('Insufficient stock quantity');
       }
 
       // create a new stock
@@ -147,6 +150,7 @@ export class StocksService {
           stockQuantity:
             lastProductStock.stockQuantity -
             createStockManualOutputDto.outputQuantity,
+          movementType: StockOutputType.manual,
         },
       });
     } catch (error) {
@@ -192,41 +196,22 @@ export class StocksService {
         throw Error(`Card not found`);
       }
 
-      // try to get last product stock
-      const lastProductStocks = await this.prisma.stock.findMany({
-        where: { id: product.id },
-        orderBy: {
-          id: 'desc',
-        },
-        take: 1,
+      // check all the product availability
+      const isAllProductsAvailable = this.checkProductsStocksAvailability({
+        productsIds: card.type.productsIds,
+        productsOutputQuantities: card.type.productsNumbers,
       });
 
-      const lastProductStock =
-        lastProductStocks.length > 0 ? lastProductStocks[0] : null;
-
       // if the product is not in stock
-      if (!lastProductStock) {
-        throw Error('Product not in stock');
+      if (!isAllProductsAvailable) {
+        throw Error('Products not available');
       }
 
-      // check if the stock is sufficient for making an output
-      if (
-        lastProductStock.stockQuantity -
-          createStockManualOutputDto.outputQuantity <
-        0
-      ) {
-        throw Error('Insufficient stock');
-      }
-
-      // create a new stock
-      return this.prisma.stock.create({
-        data: {
-          ...createStockManualOutputDto,
-          initialQuantity: lastProductStock.stockQuantity,
-          stockQuantity:
-            lastProductStock.stockQuantity -
-            createStockManualOutputDto.outputQuantity,
-        },
+      // make an output
+      this.outputProducts({
+        productsIds: card.type.productsIds,
+        productsOutputQuantities: card.type.productsNumbers,
+        agentId: createStockNormalOutputDto.agentId,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -239,6 +224,89 @@ export class StocksService {
         throw new Error('Prisma client initialization error');
       }
       throw error;
+    }
+  }
+
+  async checkProductsStocksAvailability({
+    productsIds,
+    productsOutputQuantities,
+  }: {
+    productsIds: number[];
+    productsOutputQuantities: number[];
+  }): Promise<boolean> {
+    // check if every product passed are availaible in stock and
+    // it stock quantity is equal or greather than the required
+    // the required for making an output
+
+    let availabilities: boolean[] = [];
+
+    for (let i = 0; i < productsIds.length; i++) {
+      // get the last product stock
+      const productStocks = await this.prisma.stock.findMany({
+        where: { productId: productsIds[i] },
+        orderBy: {
+          id: 'desc',
+        },
+        take: 1,
+      });
+
+      const lastProductStock =
+        productStocks.length > 0 ? productStocks[0] : null;
+
+      // if the product stock not exist
+      if (!lastProductStock) {
+        // mark as not available
+        availabilities[i] = false;
+        // continue with the next productId
+        continue;
+      } else {
+        // the product is available in stock
+
+        // check if it stock quantity is sufficient for the output
+        if (lastProductStock.stockQuantity - productsOutputQuantities[i] > 0) {
+          availabilities[i] = true;
+        } else {
+          availabilities[i] = false;
+        }
+      }
+    }
+
+    return availabilities.every((availability) => availability);
+  }
+
+  async outputProducts({
+    productsIds,
+    productsOutputQuantities,
+    agentId,
+  }: {
+    productsIds: number[];
+    productsOutputQuantities: number[];
+    agentId: number;
+  }): Promise<void> {
+    for (let i = 0; i < productsIds.length; i++) {
+      // get the last product stock
+      const productStocks = await this.prisma.stock.findMany({
+        where: { productId: productsIds[i] },
+        orderBy: {
+          id: 'desc',
+        },
+        take: 1,
+      });
+
+      const lastProductStock = productStocks[0];
+
+      // create output stock
+      this.prisma.stock.create({
+        data: {
+          productId: productsIds[i],
+          initialQuantity: lastProductStock.stockQuantity,
+          outputQuantity: productsOutputQuantities[i],
+          stockQuantity:
+            lastProductStock.stockQuantity - productsOutputQuantities[i],
+          movementType: StockOutputType.normal,
+          agentId: agentId,
+        },
+      });
     }
   }
 

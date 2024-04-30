@@ -1,3 +1,7 @@
+
+> communitybankapi@0.0.1 npx
+> prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script
+
 -- CreateTable
 CREATE TABLE "agents" (
     "id" SERIAL NOT NULL,
@@ -186,7 +190,7 @@ CREATE TABLE "stocks" (
     "input_quantity" INTEGER,
     "output_quantity" INTEGER,
     "stock_quantity" INTEGER NOT NULL,
-    "movement_type" VARCHAR,
+    "movement_type" VARCHAR NOT NULL,
     "card_id" INTEGER,
     "agent_id" INTEGER NOT NULL,
 
