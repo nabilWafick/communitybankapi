@@ -874,6 +874,20 @@ export class stocksController {
         );
       }
 
+      if (error.message === 'Immutable stock') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The movement cannot be modified',
+              fr: 'Ce mouvement ne peut être modifié',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Agent not found') {
         throw new HttpException(
           {
@@ -899,6 +913,20 @@ export class stocksController {
             statusCode: HttpStatus.NOT_FOUND,
           },
           HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === `Invalid Stock`) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid stock',
+              fr: 'Stock invalide',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -993,6 +1021,20 @@ export class stocksController {
         );
       }
 
+      if (error.message === 'Immutable stock') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The movement cannot be modified',
+              fr: 'Ce mouvement ne peut être modifié',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Agent not found') {
         throw new HttpException(
           {
@@ -1060,6 +1102,20 @@ export class stocksController {
             statusCode: HttpStatus.CONFLICT,
           },
           HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === `Invalid Stock`) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid stock',
+              fr: 'Stock invalide',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -1145,6 +1201,20 @@ export class stocksController {
             statusCode: HttpStatus.NOT_FOUND,
           },
           HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Deletion impossible') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The movement cannot be deleted',
+              fr: 'Ce mouvement ne peut être supprimé',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
         );
       }
 

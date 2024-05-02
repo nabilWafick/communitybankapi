@@ -1,21 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { Card, Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { StockInputType, StockOutputType } from './class';
 import {
+  CreateStockConstrainedOutputDto,
   CreateStockInputDto,
-  UpdateStockInputDto,
-  CreateStockRetrocessionDto,
-  UpdateStockRetrocessionDto,
   CreateStockManualOutputDto,
   CreateStockNormalOutputDto,
-  CreateStockConstrainedOutputDto,
+  CreateStockRetrocessionDto,
+  UpdateStockInputDto,
   UpdateStockManualOutputDto,
 } from './dto';
-import { Card, Prisma, Stock } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { StockEntity } from './entities/stock.entity';
-import { isDateString } from 'class-validator';
-import { ProductsService } from '../products/products.service';
-import { StockInputType, StockOutputType } from './class';
-import { CardEntity } from 'src/cards/entities/card.entity';
 
 @Injectable()
 export class StocksService {
@@ -746,6 +742,14 @@ export class StocksService {
         throw new Error(`Stock with ID ${id} not found`);
       }
 
+      // check it is stock input and not a retrocession
+      if (
+        stock.inputQuantity === null ||
+        stock.movementType !== StockInputType.manual
+      ) {
+        throw new Error(`Invalid Stock`);
+      }
+
       // check if the provided agent ID exist
       const agent = await this.prisma.agent.findUnique({
         where: { id: updateStockInputDto.agentId },
@@ -795,7 +799,7 @@ export class StocksService {
     }
   }
 
-  async updateStockManualput({
+  async updateStockManualOutput({
     id,
     updateStockManualOutputDto,
   }: {
@@ -811,6 +815,14 @@ export class StocksService {
       // throw an error if any stock is found
       if (!stock) {
         throw new Error(`Stock with ID ${id} not found`);
+      }
+
+      // check it is stock input and not a retrocession
+      if (
+        stock.outputQuantity === null ||
+        stock.movementType !== StockOutputType.manual
+      ) {
+        throw new Error(`Invalid Stock`);
       }
 
       // check if the provided agent ID exist
@@ -834,6 +846,16 @@ export class StocksService {
       // throw an error if not
       if (stock.id !== lastStocks[0].id) {
         throw Error(`Immutable stock`);
+      }
+
+      // check if the stock is sufficient for making an output
+      if (
+        lastStocks[0].stockQuantity +
+          lastStocks[0].outputQuantity -
+          updateStockManualOutputDto.outputQuantity <
+        0
+      ) {
+        throw Error('Insufficient stock quantity');
       }
 
       // update the stock data
