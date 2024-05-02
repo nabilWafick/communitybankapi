@@ -51,7 +51,7 @@ export class TypesController {
           {
             message: {
               en: 'The products ids array length is not equal to products numbers array length',
-              fr: "La longueur de la liste des identifiants des produits n'est pas égale à la longueur de la liste des nombres des produits",
+              fr: "La longueur de la liste des identifiants des produits n'est pas égale à celle des nombres des produits",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -382,7 +382,7 @@ export class TypesController {
           {
             message: {
               en: 'The products ids array length is not equal to products numbers array length',
-              fr: "La longueur de la liste des identifiants des produits n'est pas égale à la longueur de la liste des nombres des produits",
+              fr: "La longueur de la liste des identifiants des produits n'est pas égale à celle des nombres des produits",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,

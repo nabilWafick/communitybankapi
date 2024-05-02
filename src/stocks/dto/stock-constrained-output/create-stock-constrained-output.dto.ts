@@ -20,7 +20,7 @@ export class CreateStockConstrainedOutputDto {
     message: 'Produsts Numbers must contain a least 1 number',
   })
   @ApiProperty()
-  productsNumbers: number[];
+  productsOutputQuantities: number[];
 
   @IsInt({ message: 'Card ID must be an integer' })
   @NotEquals(0, { message: 'Card ID must not be equal to 0' })

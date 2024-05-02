@@ -11,8 +11,8 @@ export class CreateStockInputDto {
   @IsInt({ message: 'Input Quantity must be an integer' })
   @NotEquals(0, { message: 'Input Quantity must not be equal to 0' })
   @IsPositive({ message: 'Input Quantity must be positive' })
-  @ApiProperty({ nullable: true })
-  inputQuantity: number | null;
+  @ApiProperty()
+  inputQuantity: number;
 
   @IsInt({ message: 'Agent ID must be an integer' })
   @NotEquals(0, { message: 'Agent ID must not be equal to 0' })

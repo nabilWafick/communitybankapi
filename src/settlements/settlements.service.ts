@@ -3,7 +3,6 @@ import { CreateSettlementDto, UpdateSettlementDto } from './dto';
 import { Prisma, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SettlementEntity } from './entities/settlement.entity';
-import { isDateString } from 'class-validator';
 
 @Injectable()
 export class SettlementsService {

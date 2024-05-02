@@ -159,14 +159,18 @@ export class CardsService {
       }
 
       // check if the card is usable
-      if (cardWithID.repaidAt) {
-        throw Error('Card already repaid');
-      }
       if (cardWithID.satisfiedAt) {
         throw Error('Card already satisfied');
       }
+
       if (cardWithID.transferedAt) {
         throw Error('Card already transfered');
+      }
+
+      // repayment date can be passed to null
+      // if the it have been update by mistake
+      if (cardWithID.repaidAt && updateCardDto.repaidAt !== null) {
+        throw Error('Card already repaid');
       }
 
       // find all card with a label to the label provided
@@ -217,8 +221,11 @@ export class CardsService {
         throw Error(`Customer not found`);
       }
 
-      // check if repaid, satisfied and transfered dates if provided are valid
-      if (updateCardDto.repaidAt && !isDateString(updateCardDto.repaidAt)) {
+      // check if repaid date if provided is valid
+      if (
+        typeof updateCardDto.repaidAt === 'string' &&
+        !isDateString(updateCardDto.repaidAt)
+      ) {
         throw Error(`Invalid refund date`);
       }
 
