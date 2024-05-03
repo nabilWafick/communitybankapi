@@ -516,6 +516,12 @@ export class SettlementsService {
         throw new Error(`Settlement with ID ${id} not found`);
       }
 
+      // throw an error if it is a transfered settlement
+
+      if (settlementWithID.collectionId === null) {
+        throw Error('Transfered settlement deletion impossible');
+      }
+
       // remove the specified settlement
       const settlement = await this.prisma.settlement.delete({
         where: { id },
