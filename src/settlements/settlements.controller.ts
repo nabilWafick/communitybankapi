@@ -704,6 +704,20 @@ export class SettlementsController {
         );
       }
 
+      if (error.message === 'Transfered settlement deletion impossible') {
+        throw new HttpException(
+          {
+            message: {
+              en: "A transfered settlement can't be deleted",
+              fr: 'Un règlement transféré ne peut pas être supprimé',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {

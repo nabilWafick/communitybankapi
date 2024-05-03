@@ -39,11 +39,25 @@ export class TransfersService {
         throw Error(`Issuing card not found`);
       }
 
+      // check if the issuing card is usable
+      if (issuingCard.repaidAt) {
+        throw Error('Issuing Card already repaid');
+      }
+
+      if (issuingCard.satisfiedAt) {
+        throw Error('Issuing Card already satisfied');
+      }
+
+      if (issuingCard.transferedAt) {
+        throw Error('Issuing Card already transfered');
+      }
+
       // check if the provided receiving card ID exist
       const receivingCard = await this.prisma.card.findUnique({
         where: { id: createTransferDto.receivingCardId },
         include: {
           type: true,
+          settlements: true,
         },
       });
 
@@ -52,38 +66,72 @@ export class TransfersService {
         throw Error(`Receiving card not found`);
       }
 
+      // check if the receiving card is usable
+      if (receivingCard.repaidAt) {
+        throw Error('Receiving Card already repaid');
+      }
+
+      if (receivingCard.satisfiedAt) {
+        throw Error('Receiving Card already satisfied');
+      }
+
+      if (receivingCard.transferedAt) {
+        throw Error('Receiving Card already transfered');
+      }
+
       // check if transfer is possible
 
       // fetch all validated settlements of the issuingCard
-      const validatedSettlements = issuingCard.settlements.filter(
+      const issuingCardValidatedSettlements = issuingCard.settlements.filter(
         (settlement) => settlement.isValidated,
       );
 
       // calculate the total of validated settlements
-      const validatedSettlementsTotal = validatedSettlements.reduce(
-        (total, settlement) => total + settlement.number,
-        0,
-      );
+      const issuingCardValidatedSettlementsTotal =
+        issuingCardValidatedSettlements.reduce(
+          (total, settlement) => total + settlement.number,
+          0,
+        );
 
       // calculate the amount of all validated settlements
       const issuingCardSettlementsAmount =
-        validatedSettlementsTotal *
+        issuingCardValidatedSettlementsTotal *
         issuingCard.typesNumber *
         issuingCard.type.stake.toNumber();
 
       // calculate the amount to transfert
-      const transfAmount = Math.round(
+      const transferAmount = Math.round(
         (2 * issuingCardSettlementsAmount) / 3 - 300, // 300 for card fees
       );
 
       // calculate the number of settlement that the receiving card will receive
-      const settlementsReceived = Math.round(
-        transfAmount /
+      const settlementsTransfer = Math.round(
+        transferAmount /
           (receivingCard.typesNumber * receivingCard.type.stake.toNumber()),
       );
 
-      if (settlementsReceived < 1) {
+      if (settlementsTransfer < 1) {
         throw Error('Insufficient settlements');
+      }
+
+      // check if all receiving card setlements are not done
+      // fetch all validated settlements of the receivingCard
+
+      const receivingCardValidatedSettlements =
+        receivingCard.settlements.filter(
+          (settlement) => settlement.isValidated,
+        );
+
+      // calculate the total of validated settlements
+      const receivingCardValidatedSettlementsTotal =
+        receivingCardValidatedSettlements.reduce(
+          (total, settlement) => total + settlement.number,
+          0,
+        );
+
+      // throw an error if all settlements are done on rceiving card
+      if (receivingCardValidatedSettlementsTotal === 372) {
+        throw Error('Receiving card settlements made');
       }
 
       // create a new transfer
@@ -229,6 +277,7 @@ export class TransfersService {
         where: { id: updateTransferDto.receivingCardId },
         include: {
           type: true,
+          settlements: true,
         },
       });
 
@@ -272,35 +321,64 @@ export class TransfersService {
         // fetch all settlements of issuing card calculate the total amount
 
         // fetch all validated settlements of the issuingCard
-        const validatedSettlements = issuingCard.settlements.filter(
+        const issuingCardValidatedSettlements = issuingCard.settlements.filter(
           (settlement) => settlement.isValidated,
         );
 
         // calculate the total of validated settlements
-        const validatedSettlementsTotal = validatedSettlements.reduce(
-          (total, settlement) => total + settlement.number,
-          0,
-        );
+        const issuingCardValidatedSettlementsTotal =
+          issuingCardValidatedSettlements.reduce(
+            (total, settlement) => total + settlement.number,
+            0,
+          );
 
         // calculate the amount of all validated settlements
         const issuingCardSettlementsAmount =
-          validatedSettlementsTotal *
+          issuingCardValidatedSettlementsTotal *
           issuingCard.typesNumber *
           issuingCard.type.stake.toNumber();
 
         // calculate the amount to transfert
-        const transfAmount = Math.round(
+        const transferAmount = Math.round(
           (2 * issuingCardSettlementsAmount) / 3 - 300,
         );
 
         // calculate the number of settlement that the receiving card will receive
-        const settlementsReceived = Math.round(
-          transfAmount /
+        let settlementsTransfer = Math.round(
+          transferAmount /
             (receivingCard.typesNumber * receivingCard.type.stake.toNumber()),
         );
 
-        if (settlementsReceived < 1) {
+        if (settlementsTransfer < 1) {
           throw Error('Insufficient settlements');
+        }
+
+        // check if all receiving card setlements are not done
+        // fetch all validated settlements of the receivingCard
+
+        const receivingCardValidatedSettlements =
+          receivingCard.settlements.filter(
+            (settlement) => settlement.isValidated,
+          );
+
+        // calculate the total of validated settlements
+        const receivingCardValidatedSettlementsTotal =
+          receivingCardValidatedSettlements.reduce(
+            (total, settlement) => total + settlement.number,
+            0,
+          );
+
+        // throw an error if all settlements are done on rceiving card
+        if (receivingCardValidatedSettlementsTotal === 372) {
+          throw Error('Receiving card settlements made');
+        }
+
+        // check over settlements risk on the receiving card
+        if (
+          receivingCardValidatedSettlementsTotal + settlementsTransfer >
+          372
+        ) {
+          settlementsTransfer = 372 - receivingCardValidatedSettlementsTotal;
         }
 
         // update issuing card, mark it as transfered
@@ -317,7 +395,7 @@ export class TransfersService {
         // add settlement to receiving card
         this.prisma.settlement.create({
           data: {
-            number: settlementsReceived,
+            number: settlementsTransfer,
             cardId: receivingCard.id,
             collectionId: null,
             agentId: transfer.agentId,

@@ -88,6 +88,20 @@ export class TransfersController {
         );
       }
 
+      if (error.message === 'Receiving card settlements made') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'All settlements of the receiving card have been made',
+              fr: 'Tous les règlements de la carte réceptrice ont été effectués',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {
@@ -509,6 +523,20 @@ export class TransfersController {
             message: {
               en: 'The settlements of the issuing card are not sufficient for carrying out that transfer',
               fr: 'Les règlements de la carte émettrice ne sont pas suffisants pour effectuer ce transfert',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Receiving card settlements made') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'All settlements of the receiving card have been made',
+              fr: 'Tous les règlements de la carte réceptrice ont été effectués',
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
