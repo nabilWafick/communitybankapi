@@ -17,7 +17,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CategoryEntity } from './entities/category.entity';
 import { Prisma } from '@prisma/client';
 
-@Controller('Categories')
+@Controller('categories')
 @ApiTags('Categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}

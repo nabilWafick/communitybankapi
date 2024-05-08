@@ -10,6 +10,10 @@ import { error } from 'console';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // set global prefix for all routes
+  app.setGlobalPrefix('api/v1');
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -27,14 +31,15 @@ async function bootstrap() {
       stopAtFirstError: true,
     }),
   );
+
   const config = new DocumentBuilder()
     .setTitle('Community Bank')
     .setDescription('The Community Bank API description')
-    .setVersion('0.1')
+    .setVersion('1.0')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/v1/doc', app, document);
   await app.listen(7000);
 }
 bootstrap();

@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmpty,
   IsInt,
+  IsNotEmpty,
   IsPositive,
   IsString,
   MinLength,
@@ -10,7 +11,7 @@ import {
 
 export class CreateCardDto {
   @IsString({ message: 'Label must be text' })
-  @IsEmpty({ message: 'Label must not be empty' })
+  @IsNotEmpty({ message: 'Label must not be empty' })
   @MinLength(5, { message: 'Label must contain a least 5 characters' })
   @ApiProperty()
   label: string;

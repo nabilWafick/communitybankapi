@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { LocalitiesService } from './localities.service';
-import { LocalityDto } from './dto/create-locality.dto';
+import { CreateLocalityDto, UpdateLocalityDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LocalityEntity } from './entities/locality.entity';
 import { Prisma } from '@prisma/client';
@@ -24,9 +24,13 @@ export class LocalitiesController {
 
   @Post()
   @ApiCreatedResponse({ type: LocalityEntity })
-  async create(@Body() localityDto: LocalityDto): Promise<LocalityEntity> {
+  async create(
+    @Body() createLocalityDto: CreateLocalityDto,
+  ): Promise<LocalityEntity> {
     try {
-      return await this.localitiesService.create({ localityDto: localityDto });
+      return await this.localitiesService.create({
+        createLocalityDto: createLocalityDto,
+      });
     } catch (error) {
       if (error.message === 'Name already used') {
         throw new HttpException(
@@ -295,12 +299,12 @@ export class LocalitiesController {
   @ApiOkResponse({ type: LocalityEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() localityDto: LocalityDto,
+    @Body() updateLocalityDto: UpdateLocalityDto,
   ): Promise<LocalityEntity> {
     try {
       return await this.localitiesService.update({
         id: +id,
-        localityDto: localityDto,
+        updateLocalityDto: updateLocalityDto,
       });
     } catch (error) {
       if (error.message === `Locality with ID ${id} not found`) {

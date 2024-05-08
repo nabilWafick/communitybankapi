@@ -27,7 +27,7 @@ import { Prisma } from '@prisma/client';
 
 @Controller('stocks')
 @ApiTags('Stocks')
-export class stocksController {
+export class StocksController {
   constructor(private readonly stockService: StocksService) {}
 
   @Post()

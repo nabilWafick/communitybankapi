@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ProductDto } from './dto/create-product.dto';
+import { CreateProductDto, UpdateProductDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ProductEntity } from './entities/product.entity';
 import { Prisma } from '@prisma/client';
@@ -24,10 +24,12 @@ export class ProductsController {
 
   @Post()
   @ApiCreatedResponse({ type: ProductEntity })
-  async create(@Body() productDto: ProductDto): Promise<ProductEntity> {
+  async create(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<ProductEntity> {
     try {
       return await this.productService.create({
-        productDto: productDto,
+        createProductDto: createProductDto,
       });
     } catch (error) {
       if (error.message === 'Name already used') {
@@ -295,12 +297,12 @@ export class ProductsController {
   @ApiOkResponse({ type: ProductEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() productDto: ProductDto,
+    @Body() updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
     try {
       return await this.productService.update({
         id: +id,
-        productDto: productDto,
+        updateProductDto: updateProductDto,
       });
     } catch (error) {
       if (error.message === `Product with ID ${id} not found`) {

@@ -19,7 +19,14 @@ export class CreateProductDto {
   @ApiProperty()
   name: string;
 
-  @IsNumber({}, { message: 'Purchase Price must be a number' })
+  @IsNumber(
+    {
+      allowInfinity: false,
+      allowNaN: false,
+      maxDecimalPlaces: 2,
+    },
+    { message: 'Purchase Price must be a number' },
+  )
   @NotEquals(0, { message: 'Purchase Price must not be equal to 0' })
   @IsPositive({ message: 'Purcharse Price must be positive' })
   @ApiProperty()

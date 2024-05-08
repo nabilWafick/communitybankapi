@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
-import { CollectorDto } from './dto/create-collector.dto';
+import { CreateCollectorDto, UpdateCollectorDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CollectorEntity } from './entities/collector.entity';
 import { Prisma } from '@prisma/client';
@@ -24,10 +24,12 @@ export class CollectorsController {
 
   @Post()
   @ApiCreatedResponse({ type: CollectorEntity })
-  async create(@Body() collectorDto: CollectorDto): Promise<CollectorEntity> {
+  async create(
+    @Body() createCollectorDto: CreateCollectorDto,
+  ): Promise<CollectorEntity> {
     try {
       return await this.collectorsService.create({
-        collectorDto: collectorDto,
+        createCollectorDto: createCollectorDto,
       });
     } catch (error) {
       if (error.message === 'Phone number already used') {
@@ -297,12 +299,12 @@ export class CollectorsController {
   @ApiOkResponse({ type: CollectorEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() collector: CollectorDto,
+    @Body() updateCollector: UpdateCollectorDto,
   ): Promise<CollectorEntity> {
     try {
       return await this.collectorsService.update({
         id: +id,
-        collectorDto: collector,
+        updateCollectorDto: updateCollector,
       });
     } catch (error) {
       if (error.message === `Collector with ID ${id} not found`) {
