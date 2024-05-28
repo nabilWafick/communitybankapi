@@ -17,7 +17,10 @@ import {
   UpdateEconomicalActivityDto,
 } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { EconomicalActivityEntity } from './entities/economical_activity.entity';
+import {
+  EconomicalActivityEntity,
+  EconomicalActivityCountEntity,
+} from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('economical-activities')
@@ -236,6 +239,161 @@ export class EconomicalActivitiesController {
         );
       }
 
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/all')
+  @ApiOkResponse({ type: EconomicalActivityCountEntity })
+  async countAll(): Promise<EconomicalActivityCountEntity> {
+    try {
+      return await this.economicalActivitiesService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: EconomicalActivityCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number | null,
+    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('cursor') cursor?: Prisma.EconomicalActivityWhereUniqueInput,
+    @Query('where') where?: Prisma.EconomicalActivityWhereInput,
+    @Query('orderBy')
+    orderBy?: Prisma.EconomicalActivityOrderByWithRelationInput,
+  ): Promise<EconomicalActivityCountEntity> {
+    try {
+      return await this.economicalActivitiesService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {

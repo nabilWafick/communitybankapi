@@ -82,6 +82,10 @@ export class CollectionsService {
         cursor,
         where,
         orderBy,
+        include: {
+          collector: true,
+          agent: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
