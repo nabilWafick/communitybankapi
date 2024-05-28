@@ -206,8 +206,8 @@ export class EconomicalActivitiesController {
   @Get()
   @ApiOkResponse({ type: EconomicalActivityEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.EconomicalActivityWhereUniqueInput,
     @Query('where') where?: Prisma.EconomicalActivityWhereInput,
     @Query('orderBy')

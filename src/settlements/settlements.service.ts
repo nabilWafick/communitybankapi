@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateSettlementDto, UpdateSettlementDto } from './dto';
 import { Prisma, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SettlementEntity } from './entities/settlement.entity';
+import { SettlementEntity, SettlementCountEntity } from './entities';
 
 @Injectable()
 export class SettlementsService {
@@ -162,6 +162,68 @@ export class SettlementsService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<SettlementCountEntity> {
+    try {
+      // find all settlements
+      const settlements = await this.prisma.settlement.findMany();
+
+      // return settlements count
+      return { count: settlements.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.SettlementWhereUniqueInput;
+    where?: Prisma.SettlementWhereInput;
+    orderBy?: Prisma.SettlementOrderByWithRelationInput;
+  }): Promise<SettlementCountEntity> {
+    try {
+      // find all settlement
+      const settlement = await this.prisma.settlement.findMany();
+      // find specific settlements
+      const specificsettlements = await this.prisma.settlement.findMany({
+        skip: 0,
+        take: settlement.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return settlements count
+      return { count: specificsettlements.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

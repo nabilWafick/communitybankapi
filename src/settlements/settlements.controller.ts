@@ -14,13 +14,13 @@ import {
 import { SettlementsService } from './settlements.service';
 import { CreateSettlementDto, UpdateSettlementDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { SettlementEntity } from './entities/settlement.entity';
+import { SettlementEntity, SettlementCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('settlements')
 @ApiTags('Settlements')
 export class SettlementsController {
-  constructor(private readonly settlementService: SettlementsService) {}
+  constructor(private readonly settlementsService: SettlementsService) {}
 
   @Post()
   @ApiCreatedResponse({ type: SettlementEntity })
@@ -28,7 +28,7 @@ export class SettlementsController {
     @Body() createSettlementDto: CreateSettlementDto,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementService.create({
+      return await this.settlementsService.create({
         createSettlementDto: createSettlementDto,
       });
     } catch (error) {
@@ -229,7 +229,7 @@ export class SettlementsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementService.findOne({ id: +id });
+      return await this.settlementsService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `settlement with ID ${id} not found`) {
         throw new HttpException(
@@ -313,14 +313,14 @@ export class SettlementsController {
   @Get()
   @ApiOkResponse({ type: SettlementEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.SettlementWhereUniqueInput,
     @Query('where') where?: Prisma.SettlementWhereInput,
     @Query('orderBy') orderBy?: Prisma.SettlementOrderByWithRelationInput,
   ): Promise<SettlementEntity[]> {
     try {
-      return await this.settlementService.findAll({
+      return await this.settlementsService.findAll({
         skip,
         take,
         cursor,
@@ -407,6 +407,160 @@ export class SettlementsController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: SettlementCountEntity })
+  async countAll(): Promise<SettlementCountEntity> {
+    try {
+      return await this.settlementsService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: SettlementCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.SettlementWhereUniqueInput,
+    @Query('where') where?: Prisma.SettlementWhereInput,
+    @Query('orderBy') orderBy?: Prisma.SettlementOrderByWithRelationInput,
+  ): Promise<SettlementCountEntity> {
+    try {
+      return await this.settlementsService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: SettlementEntity })
   async update(
@@ -414,7 +568,7 @@ export class SettlementsController {
     @Body() updateSettlementDto: UpdateSettlementDto,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementService.update({
+      return await this.settlementsService.update({
         id: +id,
         updateSettlementDto: updateSettlementDto,
       });
@@ -688,7 +842,7 @@ export class SettlementsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementService.remove({ id: +id });
+      return await this.settlementsService.remove({ id: +id });
     } catch (error) {
       if (error.message === `settlement with ID ${id} not found`) {
         throw new HttpException(

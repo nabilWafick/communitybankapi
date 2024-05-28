@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatePersonalStatusDto, UpdatePersonalStatusDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PersonalStatusEntity } from './entities/personal_status.entity';
+import { PersonalStatusEntity, PersonalStatusCountEntity } from './entities';
 
 @Injectable()
 export class PersonalStatusService {
@@ -78,6 +78,68 @@ export class PersonalStatusService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<PersonalStatusCountEntity> {
+    try {
+      // find all personalStatuss
+      const personalStatuss = await this.prisma.personalStatus.findMany();
+
+      // return personalStatuss count
+      return { count: personalStatuss.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.PersonalStatusWhereUniqueInput;
+    where?: Prisma.PersonalStatusWhereInput;
+    orderBy?: Prisma.PersonalStatusOrderByWithRelationInput;
+  }): Promise<PersonalStatusCountEntity> {
+    try {
+      // find all personalStatus
+      const personalStatus = await this.prisma.personalStatus.findMany();
+      // find specific personalStatuss
+      const specificPersonalStatus = await this.prisma.personalStatus.findMany({
+        skip: 0,
+        take: personalStatus.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return personalStatuss count
+      return { count: specificPersonalStatus.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

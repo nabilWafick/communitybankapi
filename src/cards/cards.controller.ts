@@ -14,19 +14,19 @@ import {
 import { CardsService } from './cards.service';
 import { CreateCardDto, UpdateCardDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { CardEntity } from './entities/card.entity';
+import { CardEntity, CardCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('cards')
 @ApiTags('Cards')
 export class CardsController {
-  constructor(private readonly cardService: CardsService) {}
+  constructor(private readonly cardsService: CardsService) {}
 
   @Post()
   @ApiCreatedResponse({ type: CardEntity })
   async create(@Body() createCardDto: CreateCardDto): Promise<CardEntity> {
     try {
-      return await this.cardService.create({
+      return await this.cardsService.create({
         createCardDto: createCardDto,
       });
     } catch (error) {
@@ -141,7 +141,7 @@ export class CardsController {
   @ApiOkResponse({ type: CardEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<CardEntity> {
     try {
-      return await this.cardService.findOne({ id: +id });
+      return await this.cardsService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Card with ID ${id} not found`) {
         throw new HttpException(
@@ -225,14 +225,14 @@ export class CardsController {
   @Get()
   @ApiOkResponse({ type: CardEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.CardWhereUniqueInput,
     @Query('where') where?: Prisma.CardWhereInput,
     @Query('orderBy') orderBy?: Prisma.CardOrderByWithRelationInput,
   ): Promise<CardEntity[]> {
     try {
-      return await this.cardService.findAll({
+      return await this.cardsService.findAll({
         skip,
         take,
         cursor,
@@ -319,6 +319,160 @@ export class CardsController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: CardCountEntity })
+  async countAll(): Promise<CardCountEntity> {
+    try {
+      return await this.cardsService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: CardCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.CardWhereUniqueInput,
+    @Query('where') where?: Prisma.CardWhereInput,
+    @Query('orderBy') orderBy?: Prisma.CardOrderByWithRelationInput,
+  ): Promise<CardCountEntity> {
+    try {
+      return await this.cardsService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: CardEntity })
   async update(
@@ -326,7 +480,7 @@ export class CardsController {
     @Body() updateCardDto: UpdateCardDto,
   ): Promise<CardEntity> {
     try {
-      return await this.cardService.update({
+      return await this.cardsService.update({
         id: +id,
         updateCardDto: updateCardDto,
       });
@@ -526,7 +680,7 @@ export class CardsController {
   @ApiOkResponse({ type: CardEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<CardEntity> {
     try {
-      return await this.cardService.remove({ id: +id });
+      return await this.cardsService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Card with ID ${id} not found`) {
         throw new HttpException(

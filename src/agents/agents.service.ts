@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateAgentDto, UpdateAgentDto } from './dto';
 import { Prisma, PrismaClient, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AgentEntity } from './entities/agent.entity';
-import { isDateString } from 'class-validator';
-
+import { AgentEntity, AgentCountEntity } from './entities';
 @Injectable()
 export class AgentsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -81,6 +79,69 @@ export class AgentsService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<AgentCountEntity> {
+    try {
+      // find all agents
+      const agents = await this.prisma.agent.findMany();
+
+      // return agents count
+      return { count: agents.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.AgentWhereUniqueInput;
+    where?: Prisma.AgentWhereInput;
+    orderBy?: Prisma.AgentOrderByWithRelationInput;
+  }): Promise<AgentCountEntity> {
+    try {
+      // find all agent
+      const agent = await this.prisma.agent.findMany();
+
+      // find specific agents
+      const specificAgents = await this.prisma.agent.findMany({
+        skip: 0,
+        take: agent.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return agents count
+      return { count: specificAgents.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

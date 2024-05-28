@@ -14,13 +14,13 @@ import {
 import { CollectionsService } from './collections.service';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { CollectionEntity } from './entities/collection.entity';
+import { CollectionEntity, CollectionCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('collections')
 @ApiTags('Collections')
 export class CollectionsController {
-  constructor(private readonly collectionService: CollectionsService) {}
+  constructor(private readonly collectionsService: CollectionsService) {}
 
   @Post()
   @ApiCreatedResponse({ type: CollectionEntity })
@@ -28,7 +28,7 @@ export class CollectionsController {
     @Body() createCollectionDto: CreateCollectionDto,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.create({
+      return await this.collectionsService.create({
         createCollectionDto: createCollectionDto,
       });
     } catch (error) {
@@ -145,7 +145,7 @@ export class CollectionsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.findOne({ id: +id });
+      return await this.collectionsService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {
         throw new HttpException(
@@ -229,14 +229,14 @@ export class CollectionsController {
   @Get()
   @ApiOkResponse({ type: CollectionEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.CollectionWhereUniqueInput,
     @Query('where') where?: Prisma.CollectionWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectionOrderByWithRelationInput,
   ): Promise<CollectionEntity[]> {
     try {
-      return await this.collectionService.findAll({
+      return await this.collectionsService.findAll({
         skip,
         take,
         cursor,
@@ -323,6 +323,160 @@ export class CollectionsController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: CollectionCountEntity })
+  async countAll(): Promise<CollectionCountEntity> {
+    try {
+      return await this.collectionsService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: CollectionCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.CollectionWhereUniqueInput,
+    @Query('where') where?: Prisma.CollectionWhereInput,
+    @Query('orderBy') orderBy?: Prisma.CollectionOrderByWithRelationInput,
+  ): Promise<CollectionCountEntity> {
+    try {
+      return await this.collectionsService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: CollectionEntity })
   async update(
@@ -330,7 +484,7 @@ export class CollectionsController {
     @Body() updateCollectionDto: UpdateCollectionDto,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.update({
+      return await this.collectionsService.update({
         id: +id,
         updateCollectionDto: updateCollectionDto,
       });
@@ -519,7 +673,7 @@ export class CollectionsController {
     @Body() updateCollectionDto: UpdateCollectionDto,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.increaseAmount({
+      return await this.collectionsService.increaseAmount({
         id: +id,
         updateCollectionDto: updateCollectionDto,
       });
@@ -610,7 +764,7 @@ export class CollectionsController {
     @Body() updateCollectionDto: UpdateCollectionDto,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.decreaseAmount({
+      return await this.collectionsService.decreaseAmount({
         id: +id,
         updateCollectionDto: updateCollectionDto,
       });
@@ -714,7 +868,7 @@ export class CollectionsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<CollectionEntity> {
     try {
-      return await this.collectionService.remove({ id: +id });
+      return await this.collectionsService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {
         throw new HttpException(

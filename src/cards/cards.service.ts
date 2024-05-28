@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCardDto, UpdateCardDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CardEntity } from './entities/card.entity';
+import { CardEntity, CardCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 
 @Injectable()
@@ -96,6 +96,68 @@ export class CardsService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<CardCountEntity> {
+    try {
+      // find all cards
+      const cards = await this.prisma.card.findMany();
+
+      // return cards count
+      return { count: cards.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.CardWhereUniqueInput;
+    where?: Prisma.CardWhereInput;
+    orderBy?: Prisma.CardOrderByWithRelationInput;
+  }): Promise<CardCountEntity> {
+    try {
+      // find all card
+      const card = await this.prisma.card.findMany();
+      // find specific cards
+      const specificCards = await this.prisma.card.findMany({
+        skip: 0,
+        take: card.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return cards count
+      return { count: specificCards.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

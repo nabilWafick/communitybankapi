@@ -14,19 +14,19 @@ import {
 import { TypesService } from './types.service';
 import { CreateTypeDto, UpdateTypeDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { TypeEntity } from './entities/type.entity';
+import { TypeEntity, TypeCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('types')
 @ApiTags('Types')
 export class TypesController {
-  constructor(private readonly typeService: TypesService) {}
+  constructor(private readonly typesService: TypesService) {}
 
   @Post()
   @ApiCreatedResponse({ type: TypeEntity })
   async create(@Body() createTypeDto: CreateTypeDto): Promise<TypeEntity> {
     try {
-      return await this.typeService.create({
+      return await this.typesService.create({
         createTypeDto: createTypeDto,
       });
     } catch (error) {
@@ -157,7 +157,7 @@ export class TypesController {
   @ApiOkResponse({ type: TypeEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<TypeEntity> {
     try {
-      return await this.typeService.findOne({ id: +id });
+      return await this.typesService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Type with ID ${id} not found`) {
         throw new HttpException(
@@ -241,14 +241,14 @@ export class TypesController {
   @Get()
   @ApiOkResponse({ type: TypeEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.TypeWhereUniqueInput,
     @Query('where') where?: Prisma.TypeWhereInput,
     @Query('orderBy') orderBy?: Prisma.TypeOrderByWithRelationInput,
   ): Promise<TypeEntity[]> {
     try {
-      return await this.typeService.findAll({
+      return await this.typesService.findAll({
         skip,
         take,
         cursor,
@@ -335,6 +335,160 @@ export class TypesController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: TypeCountEntity })
+  async countAll(): Promise<TypeCountEntity> {
+    try {
+      return await this.typesService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: TypeCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.TypeWhereUniqueInput,
+    @Query('where') where?: Prisma.TypeWhereInput,
+    @Query('orderBy') orderBy?: Prisma.TypeOrderByWithRelationInput,
+  ): Promise<TypeCountEntity> {
+    try {
+      return await this.typesService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: TypeEntity })
   async update(
@@ -342,7 +496,7 @@ export class TypesController {
     @Body() updateTypeDto: UpdateTypeDto,
   ): Promise<TypeEntity> {
     try {
-      return await this.typeService.update({
+      return await this.typesService.update({
         id: +id,
         updateTypeDto: updateTypeDto,
       });
@@ -488,7 +642,7 @@ export class TypesController {
   @ApiOkResponse({ type: TypeEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<TypeEntity> {
     try {
-      return await this.typeService.remove({ id: +id });
+      return await this.typesService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Type with ID ${id} not found`) {
         throw new HttpException(

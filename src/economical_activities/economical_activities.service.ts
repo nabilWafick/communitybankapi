@@ -5,7 +5,10 @@ import {
 } from './dto';
 import { Prisma, PrismaClient, EconomicalActivity } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EconomicalActivityEntity } from './entities/economical_activity.entity';
+import {
+  EconomicalActivityEntity,
+  EconomicalActivityCountEntity,
+} from './entities';
 
 @Injectable()
 export class EconomicalActivitiesService {
@@ -85,6 +88,71 @@ export class EconomicalActivitiesService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<EconomicalActivityCountEntity> {
+    try {
+      // find all economicalActivities
+      const economicalActivities =
+        await this.prisma.economicalActivity.findMany();
+
+      // return economicalActivities count
+      return { count: economicalActivities.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.EconomicalActivityWhereUniqueInput;
+    where?: Prisma.EconomicalActivityWhereInput;
+    orderBy?: Prisma.EconomicalActivityOrderByWithRelationInput;
+  }): Promise<EconomicalActivityCountEntity> {
+    try {
+      // find all economicalActivity
+      const economicalActivity =
+        await this.prisma.economicalActivity.findMany();
+      // find specific economicalActivities
+      const specificEconomicalActivities =
+        await this.prisma.economicalActivity.findMany({
+          skip: 0,
+          take: economicalActivity.length,
+          cursor,
+          where,
+          orderBy,
+        });
+
+      // return economicalActivities count
+      return { count: specificEconomicalActivities.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

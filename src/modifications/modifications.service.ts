@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateModificationDto, UpdateModificationDto } from './dto';
 import { Prisma, PrismaClient, Modification } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ModificationEntity } from './entities/modification.entity';
+import { ModificationEntity, ModificationCountEntity } from './entities';
 
 @Injectable()
 export class ModificationsService {
@@ -72,6 +72,68 @@ export class ModificationsService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<ModificationCountEntity> {
+    try {
+      // find all modifications
+      const modifications = await this.prisma.modification.findMany();
+
+      // return modifications count
+      return { count: modifications.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.ModificationWhereUniqueInput;
+    where?: Prisma.ModificationWhereInput;
+    orderBy?: Prisma.ModificationOrderByWithRelationInput;
+  }): Promise<ModificationCountEntity> {
+    try {
+      // find all modification
+      const modification = await this.prisma.modification.findMany();
+      // find specific modifications
+      const specificmodifications = await this.prisma.modification.findMany({
+        skip: 0,
+        take: modification.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return modifications count
+      return { count: specificmodifications.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

@@ -22,13 +22,13 @@ import {
   UpdateStockManualOutputDto,
 } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { StockEntity } from './entities/stock.entity';
+import { StockEntity, StockCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('stocks')
 @ApiTags('Stocks')
 export class StocksController {
-  constructor(private readonly stockService: StocksService) {}
+  constructor(private readonly stocksService: StocksService) {}
 
   @Post()
   @ApiCreatedResponse({ type: StockEntity })
@@ -36,7 +36,7 @@ export class StocksController {
     @Body() createStockInputDto: CreateStockInputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stockService.createStockInput({
+      return await this.stocksService.createStockInput({
         createStockInputDto: createStockInputDto,
       });
     } catch (error) {
@@ -137,7 +137,7 @@ export class StocksController {
     @Body() createStockRetrocessionDto: CreateStockRetrocessionDto,
   ): Promise<StockEntity[]> {
     try {
-      return await this.stockService.createStockRetrocession({
+      return await this.stocksService.createStockRetrocession({
         createStockRetrocessionDto: createStockRetrocessionDto,
       });
     } catch (error) {
@@ -294,7 +294,7 @@ export class StocksController {
     @Body() createStockManualOutputDto: CreateStockManualOutputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stockService.createStockManualOutput({
+      return await this.stocksService.createStockManualOutput({
         createStockManualOutputDto: createStockManualOutputDto,
       });
     } catch (error) {
@@ -423,7 +423,7 @@ export class StocksController {
     @Body() createStockNormalOutputDto: CreateStockNormalOutputDto,
   ): Promise<StockEntity[]> {
     try {
-      return await this.stockService.createStockNormalOutput({
+      return await this.stocksService.createStockNormalOutput({
         createStockNormalOutputDto: createStockNormalOutputDto,
       });
     } catch (error) {
@@ -538,7 +538,7 @@ export class StocksController {
     @Body() createStockConstrainedOutputDto: CreateStockConstrainedOutputDto,
   ): Promise<StockEntity[]> {
     try {
-      return await this.stockService.createStockConstrainedOutput({
+      return await this.stocksService.createStockConstrainedOutput({
         createStockConstrainedOutputDto: createStockConstrainedOutputDto,
       });
     } catch (error) {
@@ -670,7 +670,7 @@ export class StocksController {
   @ApiOkResponse({ type: StockEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<StockEntity> {
     try {
-      return await this.stockService.findOne({ id: +id });
+      return await this.stocksService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Stock with ID ${id} not found`) {
         throw new HttpException(
@@ -754,14 +754,14 @@ export class StocksController {
   @Get()
   @ApiOkResponse({ type: StockEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.StockWhereUniqueInput,
     @Query('where') where?: Prisma.StockWhereInput,
     @Query('orderBy') orderBy?: Prisma.StockOrderByWithRelationInput,
   ): Promise<StockEntity[]> {
     try {
-      return await this.stockService.findAll({
+      return await this.stocksService.findAll({
         skip,
         take,
         cursor,
@@ -848,6 +848,160 @@ export class StocksController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: StockCountEntity })
+  async countAll(): Promise<StockCountEntity> {
+    try {
+      return await this.stocksService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: StockCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.StockWhereUniqueInput,
+    @Query('where') where?: Prisma.StockWhereInput,
+    @Query('orderBy') orderBy?: Prisma.StockOrderByWithRelationInput,
+  ): Promise<StockCountEntity> {
+    try {
+      return await this.stocksService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch('/input/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockInput(
@@ -855,7 +1009,7 @@ export class StocksController {
     @Body() updateStockInputDto: UpdateStockInputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stockService.updateStockInput({
+      return await this.stocksService.updateStockInput({
         id: +id,
         updateStockInputDto: updateStockInputDto,
       });
@@ -995,14 +1149,14 @@ export class StocksController {
     }
   }
 
-  @Patch('/input/:id')
+  @Patch('/output/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualOutput(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStockManualOutputDto: UpdateStockManualOutputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stockService.updateStockManualOutput({
+      return await this.stocksService.updateStockManualOutput({
         id: +id,
         updateStockManualOutputDto: updateStockManualOutputDto,
       });
@@ -1188,7 +1342,7 @@ export class StocksController {
   @ApiOkResponse({ type: StockEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<StockEntity> {
     try {
-      return await this.stockService.remove({ id: +id });
+      return await this.stocksService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Stock with ID ${id} not found`) {
         throw new HttpException(

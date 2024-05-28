@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateLocalityDto, UpdateLocalityDto } from './dto';
 import { Prisma, PrismaClient, Locality } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { LocalityEntity } from './entities/locality.entity';
+import { LocalityEntity, LocalityCountEntity } from './entities';
 
 @Injectable()
 export class LocalitiesService {
@@ -77,6 +77,68 @@ export class LocalitiesService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<LocalityCountEntity> {
+    try {
+      // find all localities
+      const localities = await this.prisma.locality.findMany();
+
+      // return localities count
+      return { count: localities.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.LocalityWhereUniqueInput;
+    where?: Prisma.LocalityWhereInput;
+    orderBy?: Prisma.LocalityOrderByWithRelationInput;
+  }): Promise<LocalityCountEntity> {
+    try {
+      // find all locality
+      const locality = await this.prisma.locality.findMany();
+      // find specific localities
+      const specificLocalities = await this.prisma.locality.findMany({
+        skip: 0,
+        take: locality.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return localities count
+      return { count: specificLocalities.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

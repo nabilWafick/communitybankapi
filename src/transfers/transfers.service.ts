@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTransferDto, UpdateTransferDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { TransferEntity } from './entities/transfer.entity';
+import { TransferEntity, TransferCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 
 @Injectable()
@@ -180,6 +180,68 @@ export class TransfersService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<TransferCountEntity> {
+    try {
+      // find all types
+      const types = await this.prisma.transfer.findMany();
+
+      // return types count
+      return { count: types.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.TransferWhereUniqueInput;
+    where?: Prisma.TransferWhereInput;
+    orderBy?: Prisma.TransferOrderByWithRelationInput;
+  }): Promise<TransferCountEntity> {
+    try {
+      // find all transfer
+      const transfer = await this.prisma.transfer.findMany();
+      // find specific types
+      const specificTypes = await this.prisma.transfer.findMany({
+        skip: 0,
+        take: transfer.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return types count
+      return { count: specificTypes.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

@@ -1,26 +1,25 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  ParseIntPipe,
+  Get,
   HttpException,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { CreateProductDto, UpdateProductDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { ProductEntity, ProductCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
-
+import { CreateProductDto, UpdateProductDto } from './dto';
+import { ProductCountEntity, ProductEntity } from './entities';
+import { ProductsService } from './products.service';
 @Controller('products')
 @ApiTags('Products')
 export class ProductsController {
-  constructor(private readonly productService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   @ApiCreatedResponse({ type: ProductEntity })
@@ -28,7 +27,7 @@ export class ProductsController {
     @Body() createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
     try {
-      return await this.productService.create({
+      return await this.productsService.create({
         createProductDto: createProductDto,
       });
     } catch (error) {
@@ -115,7 +114,7 @@ export class ProductsController {
   @ApiOkResponse({ type: ProductEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
     try {
-      return await this.productService.findOne({ id: +id });
+      return await this.productsService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Product with ID ${id} not found`) {
         throw new HttpException(
@@ -196,17 +195,88 @@ export class ProductsController {
     }
   }
 
+  @Get('test/prisma')
+  @ApiOkResponse({ type: ProductEntity })
+  async test() {
+    try {
+      return await this.productsService.test();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get()
   @ApiOkResponse({ type: ProductEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.ProductWhereUniqueInput,
     @Query('where') where?: Prisma.ProductWhereInput,
     @Query('orderBy') orderBy?: Prisma.ProductOrderByWithRelationInput,
   ): Promise<ProductEntity[]> {
     try {
-      return await this.productService.findAll({
+      return await this.productsService.findAll({
         skip,
         take,
         cursor,
@@ -297,7 +367,7 @@ export class ProductsController {
   @ApiOkResponse({ type: ProductCountEntity })
   async countAll(): Promise<ProductCountEntity> {
     try {
-      return await this.productService.countAll();
+      return await this.productsService.countAll();
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
@@ -367,14 +437,14 @@ export class ProductsController {
   @Get('count/specific')
   @ApiOkResponse({ type: ProductCountEntity })
   async countSpecific(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.ProductWhereUniqueInput,
     @Query('where') where?: Prisma.ProductWhereInput,
     @Query('orderBy') orderBy?: Prisma.ProductOrderByWithRelationInput,
   ): Promise<ProductCountEntity> {
     try {
-      return await this.productService.countSpecific({
+      return await this.productsService.countSpecific({
         skip,
         take,
         cursor,
@@ -454,7 +524,7 @@ export class ProductsController {
     @Body() updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
     try {
-      return await this.productService.update({
+      return await this.productsService.update({
         id: +id,
         updateProductDto: updateProductDto,
       });
@@ -556,7 +626,7 @@ export class ProductsController {
   @ApiOkResponse({ type: ProductEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
     try {
-      return await this.productService.remove({ id: +id });
+      return await this.productsService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Product with ID ${id} not found`) {
         throw new HttpException(

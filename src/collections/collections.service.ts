@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CollectionEntity } from './entities/collection.entity';
+import { CollectionEntity, CollectionCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 
 @Injectable()
@@ -89,6 +89,68 @@ export class CollectionsService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<CollectionCountEntity> {
+    try {
+      // find all collections
+      const collections = await this.prisma.collection.findMany();
+
+      // return collections count
+      return { count: collections.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.CollectionWhereUniqueInput;
+    where?: Prisma.CollectionWhereInput;
+    orderBy?: Prisma.CollectionOrderByWithRelationInput;
+  }): Promise<CollectionCountEntity> {
+    try {
+      // find all collection
+      const collection = await this.prisma.collection.findMany();
+      // find specific collections
+      const specificCollections = await this.prisma.collection.findMany({
+        skip: 0,
+        take: collection.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return collections count
+      return { count: specificCollections.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

@@ -14,13 +14,13 @@ import {
 import { TransfersService } from './transfers.service';
 import { CreateTransferDto, UpdateTransferDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { TransferEntity } from './entities/transfer.entity';
+import { TransferEntity, TransferCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('Transfers')
 @ApiTags('Transfers')
 export class TransfersController {
-  constructor(private readonly transferService: TransfersService) {}
+  constructor(private readonly transfersService: TransfersService) {}
 
   @Post()
   @ApiCreatedResponse({ type: TransferEntity })
@@ -28,7 +28,7 @@ export class TransfersController {
     @Body() createTransferDto: CreateTransferDto,
   ): Promise<TransferEntity> {
     try {
-      return await this.transferService.create({
+      return await this.transfersService.create({
         createTransferDto: createTransferDto,
       });
     } catch (error) {
@@ -173,7 +173,7 @@ export class TransfersController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<TransferEntity> {
     try {
-      return await this.transferService.findOne({ id: +id });
+      return await this.transfersService.findOne({ id: +id });
     } catch (error) {
       if (error.message === `Transfer with ID ${id} not found`) {
         throw new HttpException(
@@ -257,14 +257,14 @@ export class TransfersController {
   @Get()
   @ApiOkResponse({ type: TransferEntity, isArray: true })
   async findAll(
-    @Query('skip', ParseIntPipe) skip?: number | null,
-    @Query('take', ParseIntPipe) take?: number | null,
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
     @Query('cursor') cursor?: Prisma.TransferWhereUniqueInput,
     @Query('where') where?: Prisma.TransferWhereInput,
     @Query('orderBy') orderBy?: Prisma.TransferOrderByWithRelationInput,
   ): Promise<TransferEntity[]> {
     try {
-      return await this.transferService.findAll({
+      return await this.transfersService.findAll({
         skip,
         take,
         cursor,
@@ -351,6 +351,160 @@ export class TransfersController {
     }
   }
 
+  @Get('count/all')
+  @ApiOkResponse({ type: TransferCountEntity })
+  async countAll(): Promise<TransferCountEntity> {
+    try {
+      return await this.transfersService.countAll();
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('count/specific')
+  @ApiOkResponse({ type: TransferCountEntity })
+  async countSpecific(
+    @Query('skip', ParseIntPipe) skip?: number,
+    @Query('take', ParseIntPipe) take?: number,
+    @Query('cursor') cursor?: Prisma.TransferWhereUniqueInput,
+    @Query('where') where?: Prisma.TransferWhereInput,
+    @Query('orderBy') orderBy?: Prisma.TransferOrderByWithRelationInput,
+  ): Promise<TransferCountEntity> {
+    try {
+      return await this.transfersService.countSpecific({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+      });
+    } catch (error) {
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: TransferEntity })
   async update(
@@ -358,7 +512,7 @@ export class TransfersController {
     @Body() updateTransferDto: UpdateTransferDto,
   ): Promise<TransferEntity> {
     try {
-      return await this.transferService.update({
+      return await this.transfersService.update({
         id: +id,
         updateTransferDto: updateTransferDto,
       });
@@ -614,7 +768,7 @@ export class TransfersController {
   @ApiOkResponse({ type: TransferEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<TransferEntity> {
     try {
-      return await this.transferService.remove({ id: +id });
+      return await this.transfersService.remove({ id: +id });
     } catch (error) {
       if (error.message === `Transfer with ID ${id} not found`) {
         throw new HttpException(

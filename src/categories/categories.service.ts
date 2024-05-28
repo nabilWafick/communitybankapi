@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { Prisma, PrismaClient, Category } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CategoryEntity } from './entities/category.entity';
+import { CategoryEntity, CategoryCountEntity } from './entities';
 
 @Injectable()
 export class CategoriesService {
@@ -63,7 +63,7 @@ export class CategoriesService {
     orderBy?: Prisma.CategoryOrderByWithRelationInput;
   }): Promise<CategoryEntity[]> {
     try {
-      // fetch all Categorys with the specified parameters
+      // fetch all Categories with the specified parameters
       return await this.prisma.category.findMany({
         skip,
         take,
@@ -77,6 +77,68 @@ export class CategoriesService {
           throw new Error('Records not found');
         }
       }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countAll(): Promise<CategoryCountEntity> {
+    try {
+      // find all categories
+      const categories = await this.prisma.category.findMany();
+
+      // return categories count
+      return { count: categories.length };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async countSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.CategoryWhereUniqueInput;
+    where?: Prisma.CategoryWhereInput;
+    orderBy?: Prisma.CategoryOrderByWithRelationInput;
+  }): Promise<CategoryCountEntity> {
+    try {
+      // find all category
+      const category = await this.prisma.category.findMany();
+      // find specific categories
+      const specificCategories = await this.prisma.category.findMany({
+        skip: 0,
+        take: category.length,
+        cursor,
+        where,
+        orderBy,
+      });
+
+      // return categories count
+      return { count: specificCategories.length };
+    } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }

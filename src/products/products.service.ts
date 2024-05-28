@@ -3,6 +3,7 @@ import { CreateProductDto, UpdateProductDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductCountEntity, ProductEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class ProductsService {
@@ -166,6 +167,33 @@ export class ProductsService {
 
       // return the requested product
       return product;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async test() {
+    try {
+      // fetch product with the provided ID
+      const products = await this.prisma.product.findMany({
+        where: {
+          name: {
+            contains: 'r',
+          },
+        },
+      });
+
+      // return the requested product
+      return products;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
