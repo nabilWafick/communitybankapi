@@ -143,7 +143,11 @@ export class StocksService {
         id: cardId,
       },
       include: {
-        type: true,
+        type: {
+          include: {
+            typeProducts: true,
+          },
+        },
       },
     });
 
@@ -169,8 +173,8 @@ export class StocksService {
     if (lastCardStockOutput.movementType === StockOutputType.normal) {
       // make simple retrocession based on card types products
 
-      for (let i = 0; i < card.type.productsIds.length; i++) {
-        const productId = card.type.productsIds[i];
+      for (let i = 0; i < card.type.typeProducts.length; i++) {
+        const productId = card.type.typeProducts[i].productId;
 
         // get the last stock of the product
         const productLastStocks = await this.prisma.stock.findMany({
@@ -535,7 +539,11 @@ export class StocksService {
       const card = await this.prisma.card.findUnique({
         where: { id: createStockNormalOutputDto.cardId },
         include: {
-          type: true,
+          type: {
+            include: {
+              typeProducts: true,
+            },
+          },
         },
       });
 
@@ -546,8 +554,12 @@ export class StocksService {
 
       // check all the product availability
       const isAllProductsAvailable = this.checkProductsStocksAvailability({
-        productsIds: card.type.productsIds,
-        productsOutputQuantities: card.type.productsNumbers,
+        productsIds: card.type.typeProducts.map(
+          (productType) => productType.productId,
+        ),
+        productsOutputQuantities: card.type.typeProducts.map(
+          (productType) => productType.productNumber,
+        ),
       });
 
       // throw error, if one of products are not available in stock or it a
@@ -559,8 +571,12 @@ export class StocksService {
       // make outputs
       return await this.outputProducts({
         card: card,
-        productsIds: card.type.productsIds,
-        productsOutputQuantities: card.type.productsNumbers,
+        productsIds: card.type.typeProducts.map(
+          (productType) => productType.productId,
+        ),
+        productsOutputQuantities: card.type.typeProducts.map(
+          (productType) => productType.productNumber,
+        ),
         outputType: StockOutputType.normal,
         agentId: createStockNormalOutputDto.agentId,
       });
@@ -676,6 +692,11 @@ export class StocksService {
         cursor,
         where,
         orderBy,
+        include: {
+          product: true,
+          card: true,
+          agent: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {

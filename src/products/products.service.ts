@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProductDto, UpdateProductDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateProductDto, UpdateProductDto } from './dto';
 import { ProductCountEntity, ProductEntity } from './entities';
-import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class ProductsService {
@@ -181,19 +180,41 @@ export class ProductsService {
     }
   }
 
-  async test() {
+  /*
+  async poupulateTypeProduct() {
     try {
-      // fetch product with the provided ID
-      const products = await this.prisma.product.findMany({
-        where: {
-          name: {
-            contains: 'r',
-          },
-        },
-      });
+      const types = await this.prisma.type.findMany({});
 
+      const products = await this.prisma.product.findMany({});
+
+      // try population
+
+      for (const type of types) {
+        for (const productId of type.productsIds) {
+          // find the corresponding product
+          const product = products.find((prod) => prod.id === productId);
+
+          if (product) {
+            // create type product
+
+            const newTypeProduct = await this.prisma.typeProduct.create({
+              data: {
+                typeId: type.id,
+                productId: product.id,
+                productNumber:
+                  type.productsNumbers[type.productsIds.indexOf(product.id)],
+              },
+            });
+
+            if (newTypeProduct) {
+              console.log('New Type product created');
+            }
+          }
+        }
+      }
+
+      return types;
       // return the requested product
-      return products;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -207,6 +228,7 @@ export class ProductsService {
       throw error;
     }
   }
+*/
 
   async update({
     id,

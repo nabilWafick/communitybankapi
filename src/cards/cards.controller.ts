@@ -587,8 +587,22 @@ export class CardsController {
         throw new HttpException(
           {
             message: {
-              en: "The card type can't be update. It contains a least one settlement",
-              fr: 'Le type de la carte ne peut être modifiée. Elle contient au moins un règlement',
+              en: "The type of the card can't be update. The card contains a least one settlement",
+              fr: 'Le type de la carte ne peut être modifié. La carte contient au moins un règlement',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Customer Immutable') {
+        throw new HttpException(
+          {
+            message: {
+              en: "The owner of the card can't be update. The card contains a least one settlement",
+              fr: 'Le propriétaire de la carte ne peut être modifié. La carte contient au moins un règlement',
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,

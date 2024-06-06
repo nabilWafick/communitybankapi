@@ -4,6 +4,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CollectionEntity, CollectionCountEntity } from './entities';
 import { isDateString } from 'class-validator';
+import { equal } from 'assert';
+import { AjustCollectionAmount } from './dto/ajust-collection-amount.dto';
 
 @Injectable()
 export class CollectionsService {
@@ -26,7 +28,7 @@ export class CollectionsService {
       }
 
       // check if the provided agent ID exist
-      const agent = await this.prisma.customer.findUnique({
+      const agent = await this.prisma.agent.findUnique({
         where: { id: createCollectionDto.agentId },
       });
 
@@ -43,10 +45,35 @@ export class CollectionsService {
         throw Error(`Invalid collection date`);
       }
 
+      console.log({ collector: createCollectionDto.collectorId });
+
+      // check if the collector have already a collection made that day
+      const collectorCollections = await this.prisma.collection.findMany({
+        where: {
+          collectorId: createCollectionDto.collectorId,
+        },
+      });
+
+      const collectionDate = new Date(createCollectionDto.collectedAt);
+
+      for (const collectorCollection of collectorCollections) {
+        if (
+          collectorCollection.collectedAt.getFullYear() ===
+            collectionDate.getFullYear() &&
+          collectorCollection.collectedAt.getMonth() ===
+            collectionDate.getMonth() &&
+          collectorCollection.collectedAt.getDate() === collectionDate.getDate()
+        ) {
+          throw Error('Collection already made');
+        }
+      }
+
       // create a new collection
-      return this.prisma.collection.create({
+      const collection = await this.prisma.collection.create({
         data: { ...createCollectionDto, rest: createCollectionDto.amount },
       });
+
+      return this.findOne({ id: collection.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -173,6 +200,10 @@ export class CollectionsService {
       // fetch collection with the provided ID
       const collection = await this.prisma.collection.findUnique({
         where: { id },
+        include: {
+          collector: true,
+          agent: true,
+        },
       });
 
       // throw an error if any collection is found
@@ -228,7 +259,7 @@ export class CollectionsService {
       }
 
       // check if the provided agent ID exist
-      const agent = await this.prisma.customer.findUnique({
+      const agent = await this.prisma.agent.findUnique({
         where: { id: updateCollectionDto.agentId },
       });
 
@@ -245,14 +276,39 @@ export class CollectionsService {
         throw Error(`Invalid collection date`);
       }
 
-      // check if collection would be update
+      const collectionDate = new Date(updateCollectionDto.collectedAt);
+
+      // check if collection date would be update
       if (
-        updateCollectionDto.collectedAt &&
-        collection.collectedAt != updateCollectionDto.collectedAt
+        collection.collectedAt.getFullYear() !== collectionDate.getFullYear() ||
+        collection.collectedAt.getMonth() !== collectionDate.getMonth() ||
+        collection.collectedAt.getDate() !== collectionDate.getDate()
       ) {
         // check if there is at least one settlement maked with the collection
         if (collection.settlements.length > 0) {
           throw Error('Collection date immutable');
+        }
+
+        console.log('collection date would be update');
+
+        // check if the collector have not made a collection at the new date
+        const collectorCollections = await this.prisma.collection.findMany({
+          where: {
+            collectorId: updateCollectionDto.collectorId,
+          },
+        });
+
+        for (const collectorCollection of collectorCollections) {
+          if (
+            collectorCollection.collectedAt.getFullYear() ===
+              collectionDate.getFullYear() &&
+            collectorCollection.collectedAt.getMonth() ===
+              collectionDate.getMonth() &&
+            collectorCollection.collectedAt.getDate() ===
+              collectionDate.getDate()
+          ) {
+            throw Error('Collection already made');
+          }
         }
       }
 
@@ -287,7 +343,7 @@ export class CollectionsService {
       }
 
       // update the collection data
-      return await this.prisma.collection.update({
+      await this.prisma.collection.update({
         where: { id },
         data: {
           ...updateCollectionDto,
@@ -295,6 +351,8 @@ export class CollectionsService {
           updatedAt: new Date().toISOString(),
         },
       });
+
+      return this.findOne({ id: id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -311,10 +369,10 @@ export class CollectionsService {
 
   async increaseAmount({
     id,
-    updateCollectionDto,
+    ajustCollectionAmount,
   }: {
     id: number;
-    updateCollectionDto: UpdateCollectionDto;
+    ajustCollectionAmount: AjustCollectionAmount;
   }): Promise<CollectionEntity> {
     try {
       // fetch collection with the provided ID
@@ -330,20 +388,18 @@ export class CollectionsService {
         throw new Error(`Collection with ID ${id} not found`);
       }
 
-      // if the amount to increase have not been passed
-      if (!updateCollectionDto.amount) {
-        return collection;
-      }
-
       // update the collection data
-      return await this.prisma.collection.update({
+      await this.prisma.collection.update({
         where: { id },
         data: {
-          amount: collection.amount.add(updateCollectionDto.amount),
-          rest: collection.rest.add(updateCollectionDto.amount),
+          amount: collection.amount.add(ajustCollectionAmount.amount),
+          rest: collection.rest.add(ajustCollectionAmount.amount),
           updatedAt: new Date().toISOString(),
         },
       });
+
+      // return the updated collection
+      return this.findOne({ id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -360,18 +416,15 @@ export class CollectionsService {
 
   async decreaseAmount({
     id,
-    updateCollectionDto,
+    ajustCollectionAmount,
   }: {
     id: number;
-    updateCollectionDto: UpdateCollectionDto;
+    ajustCollectionAmount: AjustCollectionAmount;
   }): Promise<CollectionEntity> {
     try {
       // fetch collection with the provided ID
       const collection = await this.prisma.collection.findUnique({
         where: { id },
-        include: {
-          settlements: true,
-        },
       });
 
       // throw an error if any collection is found
@@ -379,27 +432,23 @@ export class CollectionsService {
         throw new Error(`Collection with ID ${id} not found`);
       }
 
-      // if the amount to increase have not been passed
-      if (!updateCollectionDto.amount) {
-        return collection;
-      }
-
-      if (
-        collection.rest.toNumber() - updateCollectionDto.amount.toNumber() <
-        0
-      ) {
+      // check if the rest of collection can be decrease
+      if (collection.rest.minus(ajustCollectionAmount.amount).toNumber() < 0) {
         throw Error('Insufficient amount');
       }
 
       // update the collection data
-      return await this.prisma.collection.update({
+      await this.prisma.collection.update({
         where: { id },
         data: {
-          amount: collection.amount.minus(updateCollectionDto.amount),
-          rest: collection.rest.minus(updateCollectionDto.amount),
+          amount: collection.amount.minus(ajustCollectionAmount.amount),
+          rest: collection.rest.minus(ajustCollectionAmount.amount),
           updatedAt: new Date().toISOString(),
         },
       });
+
+      // return the updated collection
+      return this.findOne({ id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -419,6 +468,10 @@ export class CollectionsService {
       // fetch collection with the provided ID
       const collectionWithID = await this.prisma.collection.findUnique({
         where: { id },
+        include: {
+          collector: true,
+          agent: true,
+        },
       });
 
       // throw an error if any collection is found
@@ -427,12 +480,12 @@ export class CollectionsService {
       }
 
       // remove the specified collection
-      const collection = await this.prisma.collection.delete({
+      await this.prisma.collection.delete({
         where: { id },
       });
 
       // return removed collection
-      return collection;
+      return collectionWithID;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

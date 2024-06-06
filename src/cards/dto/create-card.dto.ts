@@ -3,6 +3,7 @@ import {
   IsEmpty,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsPositive,
   IsString,
   MinLength,
@@ -10,6 +11,13 @@ import {
 } from 'class-validator';
 
 export class CreateCardDto {
+  @IsOptional()
+  @IsInt({ message: 'Card ID must be an integer' })
+  @NotEquals(0, { message: 'Card ID must not be equal to 0' })
+  @IsPositive({ message: 'Card ID must be positive' })
+  @ApiProperty()
+  id?: number | null;
+
   @IsString({ message: 'Label must be text' })
   @IsNotEmpty({ message: 'Label must not be empty' })
   @MinLength(5, { message: 'Label must contain a least 5 characters' })

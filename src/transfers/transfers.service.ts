@@ -48,7 +48,7 @@ export class TransfersService {
         throw Error('Issuing Card already satisfied');
       }
 
-      if (issuingCard.transferedAt) {
+      if (issuingCard.transferredAt) {
         throw Error('Issuing Card already transfered');
       }
 
@@ -75,7 +75,7 @@ export class TransfersService {
         throw Error('Receiving Card already satisfied');
       }
 
-      if (receivingCard.transferedAt) {
+      if (receivingCard.transferredAt) {
         throw Error('Receiving Card already transfered');
       }
 
@@ -173,6 +173,11 @@ export class TransfersService {
         cursor,
         where,
         orderBy,
+        include: {
+          issuingCard: true,
+          receivingCard: true,
+          agent: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -449,7 +454,7 @@ export class TransfersService {
             id: issuingCard.id,
           },
           data: {
-            transferedAt: new Date().toISOString(),
+            transferredAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
         });

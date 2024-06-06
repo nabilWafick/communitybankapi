@@ -13,12 +13,6 @@ export class TypeEntity implements Type {
   stake: Decimal;
 
   @ApiProperty()
-  productsIds: number[];
-
-  @ApiProperty()
-  productsNumbers: number[];
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

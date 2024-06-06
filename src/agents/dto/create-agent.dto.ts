@@ -33,11 +33,11 @@ export class CreateAgentDto {
   @ApiProperty({ required: false })
   phoneNumber?: string | null;
 
-  /* @IsString({ message: 'Address must be a text' })
+  @IsString({ message: 'Address must be a text' })
   @IsNotEmpty({ message: 'Address must not be empty' })
-  @MinLength(3, { message: 'Address must contain at least 3 characters' })*/
-  @ApiProperty({ required: false })
-  address?: string | null;
+  @MinLength(3, { message: 'Address must contain at least 3 characters' })
+  @ApiProperty()
+  address: string;
 
   // @IsString({ message: 'Profile must be a text' })
   @ApiProperty({ required: false })

@@ -52,7 +52,7 @@ export class SettlementsService {
         throw Error(`Card already satisfied`);
       }
 
-      if (card.transferedAt) {
+      if (card.transferredAt) {
         throw Error(`Card already transfered`);
       }
 
@@ -155,6 +155,29 @@ export class SettlementsService {
         cursor,
         where,
         orderBy,
+        include: {
+          collection: {
+            include: {
+              collector: true,
+              agent: true,
+            },
+          },
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: true,
+            },
+          },
+          agent: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -241,7 +264,38 @@ export class SettlementsService {
     try {
       // fetch settlement with the provided ID
       const settlement = await this.prisma.settlement.findUnique({
-        where: { id },
+        where: {
+          id,
+        },
+        include: {
+          collection: {
+            include: {
+              collector: true,
+            },
+          },
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  category: true,
+                  personalStatus: true,
+                  economicalActivity: true,
+                  locality: true,
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any settlement is found
@@ -270,12 +324,15 @@ export class SettlementsService {
     updateSettlementDto,
   }: {
     id: number;
+
     updateSettlementDto: UpdateSettlementDto;
   }): Promise<SettlementEntity> {
     try {
       // fetch settlement with the provided ID
       const settlement = await this.prisma.settlement.findUnique({
-        where: { id },
+        where: {
+          id,
+        },
         include: {
           card: {
             include: {
@@ -326,7 +383,7 @@ export class SettlementsService {
         throw Error('Card already satisfied');
       }
 
-      if (settlement.card.transferedAt) {
+      if (settlement.card.transferredAt) {
         throw Error('Card already transfered');
       }
 
@@ -549,7 +606,9 @@ export class SettlementsService {
 
       // update the settlement data
       return await this.prisma.settlement.update({
-        where: { id },
+        where: {
+          id,
+        },
         data: { ...updateSettlementDto, updatedAt: new Date().toISOString() },
       });
     } catch (error) {
@@ -570,7 +629,9 @@ export class SettlementsService {
     try {
       // fetch settlement with the provided ID
       const settlementWithID = await this.prisma.settlement.findUnique({
-        where: { id },
+        where: {
+          id,
+        },
       });
 
       // throw an error if any settlement is found
@@ -586,7 +647,9 @@ export class SettlementsService {
 
       // remove the specified settlement
       const settlement = await this.prisma.settlement.delete({
-        where: { id },
+        where: {
+          id,
+        },
       });
 
       // return removed settlement

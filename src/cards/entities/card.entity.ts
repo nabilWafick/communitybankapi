@@ -24,7 +24,7 @@ export class CardEntity implements Card {
   repaidAt: Date | null;
 
   @ApiProperty({ nullable: true })
-  transferedAt: Date | null;
+  transferredAt: Date | null;
 
   @ApiProperty()
   createdAt: Date;

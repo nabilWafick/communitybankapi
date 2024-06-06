@@ -26,6 +26,7 @@ export class TypesController {
   @ApiCreatedResponse({ type: TypeEntity })
   async create(@Body() createTypeDto: CreateTypeDto): Promise<TypeEntity> {
     try {
+      console.log('IN TYPE CONTROLLER');
       return await this.typesService.create({
         createTypeDto: createTypeDto,
       });

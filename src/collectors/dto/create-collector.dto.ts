@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsEmail,
   IsNotEmpty,
   IsPhoneNumber,
   IsString,
@@ -15,9 +14,9 @@ export class CreateCollectorDto {
   @ApiProperty()
   name: string;
 
-  @IsString({ message: 'Name must be a text' })
-  @IsNotEmpty({ message: 'Name must not be empty' })
-  @MinLength(3, { message: 'Name must contain at least 3 characters' })
+  @IsString({ message: 'Firstnames must be a text' })
+  @IsNotEmpty({ message: 'Firstnames must not be empty' })
+  @MinLength(3, { message: 'Firstnames must contain at least 3 characters' })
   @ApiProperty()
   firstnames: string;
 
@@ -33,7 +32,7 @@ export class CreateCollectorDto {
 
   @IsString({ message: 'Address must be a text' })
   @IsNotEmpty({ message: 'Address must not be empty' })
-  @MinLength(3, { message: 'Address must contain at least 5 characters' })
+  @MinLength(3, { message: 'Address must contain at least 3 characters' })
   @ApiProperty()
   address: string;
 

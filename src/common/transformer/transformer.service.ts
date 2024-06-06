@@ -1,21 +1,14 @@
 import { Prisma } from '@prisma/client';
 
-export function transformWhereInput(where: any): Prisma.ProductWhereInput {
-  const transformedWhere: Prisma.ProductWhereInput = {};
+export function transformWhereInput(where: any): Object {
+  const transformedWhere: Object = {};
 
   if (where && typeof where === 'object') {
     for (const key in where) {
       if (where.hasOwnProperty(key)) {
         const value = where[key];
 
-        if (
-          (key === 'AND' || key === 'OR' || key === 'NOT') &&
-          Array.isArray(value)
-        ) {
-          transformedWhere.AND = value.map((andCondition) =>
-            transformWhereInput(andCondition),
-          );
-        } else if (typeof value === 'object') {
+        if (typeof value === 'object') {
           transformedWhere[key] = transformWhereInput(value);
         } else {
           transformedWhere[key] = convertValueToCorrectType(value);
@@ -29,7 +22,9 @@ export function transformWhereInput(where: any): Prisma.ProductWhereInput {
 
 function convertValueToCorrectType(value: any): any {
   if (typeof value === 'string') {
-    if (value.toLowerCase() === 'true') {
+    if (typeof parseInt(value) === 'number') return parseInt(value);
+    else if (typeof parseFloat(value) === 'number') return parseFloat(value);
+    else if (value.toLowerCase() === 'true') {
       return true;
     } else if (value.toLowerCase() === 'false') {
       return false;

@@ -60,9 +60,30 @@ export class TypesService {
       }
 
       // create a new type
-      return this.prisma.type.create({
-        data: createTypeDto,
+      const type = await this.prisma.type.create({
+        data: {
+          name: createTypeDto.name,
+          stake: createTypeDto.stake,
+        },
       });
+
+      // create typeProducts
+
+      for (let index = 0; index < createTypeDto.productsIds.length; index++) {
+        const productId = createTypeDto.productsIds[index];
+        const productNumber = createTypeDto.productsNumbers[index];
+
+        await this.prisma.typeProduct.create({
+          data: {
+            typeId: type.id,
+            productId,
+            productNumber,
+          },
+        });
+      }
+
+      // return type created with its products
+      return this.findOne({ id: type.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -98,6 +119,13 @@ export class TypesService {
         cursor,
         where,
         orderBy,
+        include: {
+          typeProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -185,6 +213,13 @@ export class TypesService {
       // fetch type with the provided ID
       const type = await this.prisma.type.findUnique({
         where: { id },
+        include: {
+          typeProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
       });
 
       // throw an error if any type is found
@@ -275,10 +310,56 @@ export class TypesService {
       }
 
       // update the type data
-      return await this.prisma.type.update({
+      const type = await this.prisma.type.update({
         where: { id },
-        data: { ...updateTypeDto, updatedAt: new Date().toISOString() },
+        data: {
+          name: updateTypeDto.name,
+          stake: updateTypeDto.stake,
+          updatedAt: new Date().toISOString(),
+        },
       });
+
+      // remove all typeProducts added
+      // remove instead of update because when a type is update a product of the
+      // type can be remove (in front), so product passed to the api
+      // can all be new products, it better to remove every record
+      // of the type in typeProduct model, and add news on update case
+
+      // get all typeProducts
+      const typeProducts = await this.prisma.typeProduct.findMany({
+        where: {
+          typeId: type.id,
+        },
+      });
+
+      // add new typeProducts
+      for (let index = 0; index < updateTypeDto.productsIds.length; index++) {
+        const productId = updateTypeDto.productsIds[index];
+        const productNumber = updateTypeDto.productsNumbers[index];
+
+        await this.prisma.typeProduct.create({
+          data: {
+            typeId: type.id,
+            productId,
+            productNumber,
+          },
+        });
+      }
+
+      // delete every typeProducts records
+      for (const typeProduct of typeProducts) {
+        await this.prisma.typeProduct.delete({
+          where: {
+            typeId_productId: {
+              typeId: typeProduct.typeId,
+              productId: typeProduct.productId,
+            },
+          },
+        });
+      }
+
+      // return type updated with its products
+      return this.findOne({ id: type.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

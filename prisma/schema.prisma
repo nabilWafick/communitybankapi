@@ -41,7 +41,7 @@ model Card {
   updatedAt               DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
   customerId              Int          @map("customer_id")
   typesNumber             Int          @default(1) @map("types_number")
-  transferedAt            DateTime?    @map("transfered_at") @db.Timestamptz(6)
+  transferredAt           DateTime?    @map("transferred_at") @db.Timestamptz(6)
   customer                Customer     @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_client_fkey")
   type                    Type         @relation(fields: [typeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartes_id_type_fkey")
   settlements             Settlement[]
@@ -180,19 +180,20 @@ model PersonalStatus {
 }
 
 model Product {
-  id            Int      @id(map: "produits_pkey") @default(autoincrement())
-  name          String   @unique(map: "produits_nom_key")
-  purchasePrice Decimal  @map("purchase_price") @db.Decimal
+  id            Int           @id(map: "produits_pkey") @default(autoincrement())
+  name          String        @unique(map: "produits_nom_key")
+  purchasePrice Decimal       @map("purchase_price") @db.Decimal
   photo         String?
-  createdAt     DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  createdAt     DateTime      @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
   stocks        Stock[]
+  typeProducts  TypeProduct[]
 
   @@map("products")
 }
 
 model Settlement {
-  id           Int         @id(map: "reglements_pkey") @default(autoincrement())
+  id           Int         @id(map: "settlements_pkey") @default(autoincrement())
   number       Int
   agentId      Int         @map("agent_id")
   createdAt    DateTime    @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
@@ -246,16 +247,26 @@ model Transfer {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Type {
-  id              Int      @id(map: "types_pkey1") @default(autoincrement())
-  name            String   @unique(map: "types_nom_key")
-  stake           Decimal  @db.Decimal
-  productsIds     Int[]    @map("products_ids")
-  createdAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  productsNumbers Int[]    @map("products_numbers")
-  cards           Card[]
+  id           Int           @id(map: "types_pkey1") @default(autoincrement())
+  name         String        @unique(map: "types_nom_key")
+  stake        Decimal       @db.Decimal
+  createdAt    DateTime      @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  cards        Card[]
+  typeProducts TypeProduct[]
 
   @@map("types")
+}
+
+model TypeProduct {
+  typeId        Int     @map("type_id")
+  productId     Int     @map("product_id")
+  productNumber Int     @map("product_number")
+  type          Type    @relation(fields: [typeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product       Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([typeId, productId])
+  @@map("type_product")
 }
 
 model User {

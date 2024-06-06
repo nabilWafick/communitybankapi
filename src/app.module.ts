@@ -16,6 +16,7 @@ import { SettlementsModule } from './settlements/settlements.module';
 import { CollectionsModule } from './collections/collections.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { StocksModule } from './stocks/stocks.module';
+import { CustomersModule } from './customers/customers.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +29,7 @@ import { StocksModule } from './stocks/stocks.module';
     CategoriesModule,
     CollectionsModule,
     CollectorsModule,
+    CustomersModule,
     EconomicalActivitiesModule,
     LocalitiesModule,
     ModificationsModule,

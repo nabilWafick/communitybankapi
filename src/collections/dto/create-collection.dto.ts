@@ -31,5 +31,5 @@ export class CreateCollectionDto {
   @IsDateString({}, { message: 'Collection Date must be a ISO8601String' })
   @IsNotEmpty({ message: 'Collection Date must not be empty' })
   @ApiProperty()
-  collectedAt: Date;
+  collectedAt: string;
 }

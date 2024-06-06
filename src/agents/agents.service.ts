@@ -35,7 +35,11 @@ export class AgentsService {
 
       // create a new agent
       return this.prisma.agent.create({
-        data: createAgentDto,
+        data: {
+          ...createAgentDto,
+          permissions: JSON.parse(createAgentDto.permissions.toString()),
+          views: JSON.parse(createAgentDto.views.toString()),
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -224,7 +228,12 @@ export class AgentsService {
       // update the agent data
       return await this.prisma.agent.update({
         where: { id },
-        data: { ...updateAgentDto, updatedAt: new Date().toISOString() },
+        data: {
+          ...updateAgentDto,
+          permissions: JSON.parse(updateAgentDto.permissions.toString()),
+          views: JSON.parse(updateAgentDto.views.toString()),
+          updatedAt: new Date().toISOString(),
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {

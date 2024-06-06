@@ -30,7 +30,7 @@ CREATE TABLE "cards" (
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "customer_id" INTEGER NOT NULL,
     "types_number" INTEGER NOT NULL DEFAULT 1,
-    "transfered_at" TIMESTAMPTZ(6),
+    "transferred_at" TIMESTAMPTZ(6),
 
     CONSTRAINT "cartes_pkey1" PRIMARY KEY ("id")
 );
@@ -177,7 +177,7 @@ CREATE TABLE "settlements" (
     "collection_id" INTEGER,
     "is_validated" BOOLEAN NOT NULL,
 
-    CONSTRAINT "reglements_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "settlements_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -216,12 +216,19 @@ CREATE TABLE "types" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "stake" DECIMAL NOT NULL,
-    "products_ids" INTEGER[],
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc-1'::text),
-    "products_numbers" INTEGER[],
 
     CONSTRAINT "types_pkey1" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "type_product" (
+    "type_id" INTEGER NOT NULL,
+    "product_id" INTEGER NOT NULL,
+    "product_number" INTEGER NOT NULL,
+
+    CONSTRAINT "type_product_pkey" PRIMARY KEY ("type_id","product_id")
 );
 
 -- CreateTable
@@ -358,6 +365,12 @@ ALTER TABLE "transfers" ADD CONSTRAINT "public_transferts_id_carte_emettrice_fke
 
 -- AddForeignKey
 ALTER TABLE "transfers" ADD CONSTRAINT "public_transferts_id_carte_receptrice_fkey" FOREIGN KEY ("receiving_card_id") REFERENCES "cards"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "type_product" ADD CONSTRAINT "type_product_type_id_fkey" FOREIGN KEY ("type_id") REFERENCES "types"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "type_product" ADD CONSTRAINT "type_product_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "agents"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;

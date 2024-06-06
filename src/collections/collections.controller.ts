@@ -12,7 +12,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
-import { CreateCollectionDto, UpdateCollectionDto } from './dto';
+import {
+  AjustCollectionAmount,
+  CreateCollectionDto,
+  UpdateCollectionDto,
+} from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CollectionEntity, CollectionCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
@@ -71,6 +75,20 @@ export class CollectionsController {
             statusCode: HttpStatus.BAD_REQUEST,
           },
           HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Collection already made') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The collector have already made a collection at that date',
+              fr: 'Le collecteur a déjà éffectué une collecte à cette date',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
         );
       }
 
@@ -545,6 +563,20 @@ export class CollectionsController {
         );
       }
 
+      if (error.message === 'Collection already made') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The collector have already made a collection at that date',
+              fr: 'Le collecteur a déjà éffectué une collecte à cette date',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Collection date immutable') {
         throw new HttpException(
           {
@@ -666,16 +698,16 @@ export class CollectionsController {
     }
   }
 
-  @Patch(':id')
+  @Patch('amount/increase/:id')
   @ApiOkResponse({ type: CollectionEntity })
   async increaseAmount(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateCollectionDto: UpdateCollectionDto,
+    @Body() ajustCollectionAmount: AjustCollectionAmount,
   ): Promise<CollectionEntity> {
     try {
       return await this.collectionsService.increaseAmount({
         id: +id,
-        updateCollectionDto: updateCollectionDto,
+        ajustCollectionAmount: ajustCollectionAmount,
       });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {
@@ -757,16 +789,16 @@ export class CollectionsController {
     }
   }
 
-  @Patch(':id')
+  @Patch('amount/decrease/:id')
   @ApiOkResponse({ type: CollectionEntity })
   async decreaseAmount(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateCollectionDto: UpdateCollectionDto,
+    @Body() ajustCollectionAmount: AjustCollectionAmount,
   ): Promise<CollectionEntity> {
     try {
       return await this.collectionsService.decreaseAmount({
         id: +id,
-        updateCollectionDto: updateCollectionDto,
+        ajustCollectionAmount: ajustCollectionAmount,
       });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {

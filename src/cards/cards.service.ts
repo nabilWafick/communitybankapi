@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CardEntity, CardCountEntity } from './entities';
 import { isDateString } from 'class-validator';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class CardsService {
@@ -83,13 +84,28 @@ export class CardsService {
   }): Promise<CardEntity[]> {
     try {
       // fetch all cards with the specified parameters
-      return await this.prisma.card.findMany({
+      const cards = await this.prisma.card.findMany({
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
+        include: {
+          customer: true,
+          type: {
+            include: {
+              typeProducts: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+        },
       });
+
+      // sort cards by customer
+      return cards.sort((card1, card2) => card1.customerId - card2.customerId);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -145,15 +161,17 @@ export class CardsService {
   }): Promise<CardCountEntity> {
     try {
       // find all card
-      const card = await this.prisma.card.findMany();
+      const cards = await this.prisma.card.findMany();
       // find specific cards
       const specificCards = await this.prisma.card.findMany({
         skip: 0,
-        take: card.length,
+        take: cards.length,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
+
+      await this.prisma.type.findMany();
 
       // return cards count
       return { count: specificCards.length };
@@ -176,6 +194,18 @@ export class CardsService {
       // fetch card with the provided ID
       const card = await this.prisma.card.findUnique({
         where: { id },
+        include: {
+          type: {
+            include: {
+              typeProducts: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+          customer: true,
+        },
       });
 
       // throw an error if any card is found
@@ -225,12 +255,12 @@ export class CardsService {
         throw Error('Card already satisfied');
       }
 
-      if (cardWithID.transferedAt) {
+      if (cardWithID.transferredAt) {
         throw Error('Card already transfered');
       }
 
       // repayment date can be passed to null
-      // if the it have been update by mistake
+      // if it have been update by mistake
       if (cardWithID.repaidAt && updateCardDto.repaidAt !== null) {
         throw Error('Card already repaid');
       }
@@ -266,7 +296,7 @@ export class CardsService {
       // check if the type would be update
       if (updateCardDto.typeId) {
         if (cardWithID.typeId != updateCardDto.typeId) {
-          // check if a settlement have be done in customer card
+          // check if a settlement have be done on customer card
           if (cardWithID.settlements.length > 0) {
             throw 'Type Immutable';
           }
@@ -278,12 +308,20 @@ export class CardsService {
         where: { id: updateCardDto.customerId },
       });
 
+      if (cardWithID.customerId != updateCardDto.customerId) {
+        // check if a settlement have be done on customer card
+        if (cardWithID.settlements.length > 0) {
+          throw 'Customer Immutable';
+        }
+      }
+
       // throw an error if not
       if (!customer) {
         throw Error(`Customer not found`);
       }
 
       // check if repaid date if provided is valid
+
       if (
         typeof updateCardDto.repaidAt === 'string' &&
         !isDateString(updateCardDto.repaidAt)
@@ -292,10 +330,19 @@ export class CardsService {
       }
 
       // update the card data
-      return await this.prisma.card.update({
+      await this.prisma.card.update({
         where: { id },
-        data: { ...updateCardDto, updatedAt: new Date().toISOString() },
+        data: {
+          label: updateCardDto.label,
+          typesNumber: updateCardDto.typesNumber,
+          customerId: updateCardDto.customerId,
+          typeId: updateCardDto.typeId,
+          repaidAt: updateCardDto.repaidAt,
+          updatedAt: new Date().toISOString(),
+        },
       });
+
+      return this.findOne({ id: id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

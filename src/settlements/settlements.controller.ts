@@ -229,9 +229,11 @@ export class SettlementsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementsService.findOne({ id: +id });
+      return await this.settlementsService.findOne({
+        id: +id,
+      });
     } catch (error) {
-      if (error.message === `settlement with ID ${id} not found`) {
+      if (error.message === `Settlement with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
@@ -842,9 +844,11 @@ export class SettlementsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SettlementEntity> {
     try {
-      return await this.settlementsService.remove({ id: +id });
+      return await this.settlementsService.remove({
+        id: +id,
+      });
     } catch (error) {
-      if (error.message === `settlement with ID ${id} not found`) {
+      if (error.message === `Settlement with ID ${id} not found`) {
         throw new HttpException(
           {
             message: {
