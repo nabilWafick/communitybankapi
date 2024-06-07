@@ -8,7 +8,14 @@ export function transformWhereInput(where: any): Object {
       if (where.hasOwnProperty(key)) {
         const value = where[key];
 
-        if (typeof value === 'object') {
+        if (
+          (key === 'AND' || key === 'OR' || key === 'NOT') &&
+          Array.isArray(value)
+        ) {
+          transformedWhere[key] = value.map((andCondition) =>
+            transformWhereInput(andCondition),
+          );
+        } else if (typeof value === 'object') {
           transformedWhere[key] = transformWhereInput(value);
         } else {
           transformedWhere[key] = convertValueToCorrectType(value);
@@ -22,15 +29,21 @@ export function transformWhereInput(where: any): Object {
 
 function convertValueToCorrectType(value: any): any {
   if (typeof value === 'string') {
-    if (typeof parseInt(value) === 'number') return parseInt(value);
-    else if (typeof parseFloat(value) === 'number') return parseFloat(value);
-    else if (value.toLowerCase() === 'true') {
+    if (typeof parseInt(value) === 'number' && !Number.isNaN(parseInt(value))) {
+      return parseInt(value);
+    } else if (
+      typeof parseFloat(value) === 'number' &&
+      !Number.isNaN(parseFloat(value))
+    ) {
+      return parseFloat(value);
+    } else if (value.toLowerCase() === 'true') {
       return true;
     } else if (value.toLowerCase() === 'false') {
       return false;
     } else if (value.toLowerCase() === 'null') {
       return null;
     }
+    return value.toString();
   }
 
   return value;
