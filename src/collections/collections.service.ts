@@ -6,6 +6,7 @@ import { CollectionEntity, CollectionCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 import { equal } from 'assert';
 import { AjustCollectionAmount } from './dto/ajust-collection-amount.dto';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class CollectionsService {
@@ -107,7 +108,7 @@ export class CollectionsService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           collector: true,
@@ -136,10 +137,10 @@ export class CollectionsService {
   async countAll(): Promise<CollectionCountEntity> {
     try {
       // find all collections
-      const collections = await this.prisma.collection.findMany();
+      const collectionsCount = await this.prisma.collection.count();
 
       // return collections count
-      return { count: collections.length };
+      return { count: collectionsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -168,19 +169,17 @@ export class CollectionsService {
     orderBy?: Prisma.CollectionOrderByWithRelationInput;
   }): Promise<CollectionCountEntity> {
     try {
-      // find all collection
-      const collection = await this.prisma.collection.findMany();
       // find specific collections
-      const specificCollections = await this.prisma.collection.findMany({
+      const specificCollectionsCount = await this.prisma.collection.count({
         skip: 0,
-        take: collection.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return collections count
-      return { count: specificCollections.length };
+      return { count: specificCollectionsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

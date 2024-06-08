@@ -3,6 +3,7 @@ import { CreateSettlementDto, UpdateSettlementDto } from './dto';
 import { Prisma, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SettlementEntity, SettlementCountEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class SettlementsService {
@@ -153,7 +154,7 @@ export class SettlementsService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           collection: {
@@ -201,10 +202,10 @@ export class SettlementsService {
   async countAll(): Promise<SettlementCountEntity> {
     try {
       // find all settlements
-      const settlements = await this.prisma.settlement.findMany();
+      const settlementsCount = await this.prisma.settlement.count();
 
       // return settlements count
-      return { count: settlements.length };
+      return { count: settlementsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -233,19 +234,56 @@ export class SettlementsService {
     orderBy?: Prisma.SettlementOrderByWithRelationInput;
   }): Promise<SettlementCountEntity> {
     try {
-      // find all settlement
-      const settlement = await this.prisma.settlement.findMany();
       // find specific settlements
-      const specificsettlements = await this.prisma.settlement.findMany({
+      const specificSettlementsCount = await this.prisma.settlement.count({
         skip: 0,
-        take: settlement.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return settlements count
-      return { count: specificsettlements.length };
+      return { count: specificSettlementsCount };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async sumOfNumberForCard({
+    cardId,
+  }: {
+    cardId: number;
+  }): Promise<SettlementCountEntity> {
+    try {
+      // check if the card exist
+      const cardExist = await this.prisma.card.findUnique({
+        where: {
+          id: cardId,
+        },
+      });
+
+      if (!cardExist) {
+        throw Error(`Card with ID ${cardId} not found`);
+      }
+
+      const sum = await this.prisma.settlement.aggregate({
+        where: { cardId },
+        _sum: {
+          number: true,
+        },
+      });
+
+      return { count: sum._sum.number || 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

@@ -12,6 +12,7 @@ import {
   UpdateStockManualOutputDto,
 } from './dto';
 import { StockEntity, StockCountEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class StocksService {
@@ -690,7 +691,7 @@ export class StocksService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           product: true,
@@ -720,10 +721,10 @@ export class StocksService {
   async countAll(): Promise<StockCountEntity> {
     try {
       // find all stocks
-      const stocks = await this.prisma.stock.findMany();
+      const stocksCount = await this.prisma.stock.count();
 
       // return stocks count
-      return { count: stocks.length };
+      return { count: stocksCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -752,19 +753,17 @@ export class StocksService {
     orderBy?: Prisma.StockOrderByWithRelationInput;
   }): Promise<StockCountEntity> {
     try {
-      // find all stock
-      const stock = await this.prisma.stock.findMany();
       // find specific stocks
-      const specificstocks = await this.prisma.stock.findMany({
+      const specificStocksCount = await this.prisma.stock.count({
         skip: 0,
-        take: stock.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return stocks count
-      return { count: specificstocks.length };
+      return { count: specificStocksCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

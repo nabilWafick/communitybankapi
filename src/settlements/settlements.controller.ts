@@ -312,6 +312,96 @@ export class SettlementsController {
     }
   }
 
+  @Get('/sum-number/card/:cardId')
+  @ApiOkResponse({ type: SettlementCountEntity })
+  async sumOfNumberForCard(
+    @Param('cardId', ParseIntPipe) cardId: number,
+  ): Promise<SettlementCountEntity> {
+    try {
+      return await this.settlementsService.sumOfNumberForCard({
+        cardId: +cardId,
+      });
+    } catch (error) {
+      if (error.message === `Card with ID ${cardId} not found`) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The specified card is not found',
+              fr: 'La carte spécifiée est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est settlemente sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est settlemente sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est settlemente sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
   @Get()
   @ApiOkResponse({ type: SettlementEntity, isArray: true })
   async findAll(

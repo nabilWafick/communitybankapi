@@ -86,10 +86,10 @@ export class CollectorsService {
   async countAll(): Promise<CollectorCountEntity> {
     try {
       // find all collectors
-      const collectors = await this.prisma.collector.findMany();
+      const collectorsCount = await this.prisma.collector.count();
 
       // return collectors count
-      return { count: collectors.length };
+      return { count: collectorsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -118,19 +118,17 @@ export class CollectorsService {
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
   }): Promise<CollectorCountEntity> {
     try {
-      // find all collector
-      const collector = await this.prisma.collector.findMany();
       // find specific collectors
-      const specificCollectors = await this.prisma.collector.findMany({
+      const specificCollectorsCount = await this.prisma.collector.count({
         skip: 0,
-        take: collector.length,
+        take: (await this.countAll()).count,
         cursor,
         where,
         orderBy,
       });
 
       // return collectors count
-      return { count: specificCollectors.length };
+      return { count: specificCollectorsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

@@ -3,6 +3,7 @@ import { CreateLocalityDto, UpdateLocalityDto } from './dto';
 import { Prisma, PrismaClient, Locality } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocalityEntity, LocalityCountEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class LocalitiesService {
@@ -68,7 +69,7 @@ export class LocalitiesService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
     } catch (error) {
@@ -93,10 +94,10 @@ export class LocalitiesService {
   async countAll(): Promise<LocalityCountEntity> {
     try {
       // find all localities
-      const localities = await this.prisma.locality.findMany();
+      const localitiesCount = await this.prisma.locality.count();
 
       // return localities count
-      return { count: localities.length };
+      return { count: localitiesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -125,19 +126,17 @@ export class LocalitiesService {
     orderBy?: Prisma.LocalityOrderByWithRelationInput;
   }): Promise<LocalityCountEntity> {
     try {
-      // find all locality
-      const locality = await this.prisma.locality.findMany();
       // find specific localities
-      const specificLocalities = await this.prisma.locality.findMany({
+      const specificLocalitiesCount = await this.prisma.locality.count({
         skip: 0,
-        take: locality.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return localities count
-      return { count: specificLocalities.length };
+      return { count: specificLocalitiesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

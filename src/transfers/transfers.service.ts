@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TransferEntity, TransferCountEntity } from './entities';
 import { isDateString } from 'class-validator';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class TransfersService {
@@ -171,7 +172,7 @@ export class TransfersService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           issuingCard: true,
@@ -201,10 +202,10 @@ export class TransfersService {
   async countAll(): Promise<TransferCountEntity> {
     try {
       // find all types
-      const types = await this.prisma.transfer.findMany();
+      const typesCount = await this.prisma.transfer.count();
 
       // return types count
-      return { count: types.length };
+      return { count: typesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -233,19 +234,17 @@ export class TransfersService {
     orderBy?: Prisma.TransferOrderByWithRelationInput;
   }): Promise<TransferCountEntity> {
     try {
-      // find all transfer
-      const transfer = await this.prisma.transfer.findMany();
       // find specific types
-      const specificTypes = await this.prisma.transfer.findMany({
+      const specificTypesCount = await this.prisma.transfer.count({
         skip: 0,
-        take: transfer.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return types count
-      return { count: specificTypes.length };
+      return { count: specificTypesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

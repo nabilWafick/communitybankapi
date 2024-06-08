@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomerEntity, CustomerCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 import { CardsService } from 'src/cards/cards.service';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class CustomersService {
@@ -158,7 +159,7 @@ export class CustomersService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           collector: true,
@@ -190,10 +191,10 @@ export class CustomersService {
   async countAll(): Promise<CustomerCountEntity> {
     try {
       // find all customers
-      const customers = await this.prisma.customer.findMany();
+      const customersCount = await this.prisma.customer.count();
 
       // return customers count
-      return { count: customers.length };
+      return { count: customersCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -222,19 +223,17 @@ export class CustomersService {
     orderBy?: Prisma.CustomerOrderByWithRelationInput;
   }): Promise<CustomerCountEntity> {
     try {
-      // find all customer
-      const customers = await this.prisma.customer.findMany();
       // find specific customers
-      const specificCustomers = await this.prisma.customer.findMany({
+      const specificCustomersCount = await this.prisma.customer.count({
         skip: 0,
-        take: customers.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return customers count
-      return { count: specificCustomers.length };
+      return { count: specificCustomersCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

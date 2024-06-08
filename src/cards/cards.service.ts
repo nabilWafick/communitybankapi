@@ -128,10 +128,10 @@ export class CardsService {
   async countAll(): Promise<CardCountEntity> {
     try {
       // find all cards
-      const cards = await this.prisma.card.findMany();
+      const cardsCount = await this.prisma.card.count();
 
       // return cards count
-      return { count: cards.length };
+      return { count: cardsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -160,12 +160,10 @@ export class CardsService {
     orderBy?: Prisma.CardOrderByWithRelationInput;
   }): Promise<CardCountEntity> {
     try {
-      // find all card
-      const cards = await this.prisma.card.findMany();
       // find specific cards
-      const specificCards = await this.prisma.card.findMany({
+      const specificCardsCount = await this.prisma.card.count({
         skip: 0,
-        take: cards.length,
+        take: (await this.countAll()).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
@@ -174,7 +172,7 @@ export class CardsService {
       await this.prisma.type.findMany();
 
       // return cards count
-      return { count: specificCards.length };
+      return { count: specificCardsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

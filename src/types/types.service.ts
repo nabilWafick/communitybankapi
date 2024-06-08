@@ -3,6 +3,7 @@ import { CreateTypeDto, UpdateTypeDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TypeEntity, TypeCountEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class TypesService {
@@ -117,7 +118,7 @@ export class TypesService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
         include: {
           typeProducts: {
@@ -149,10 +150,10 @@ export class TypesService {
   async countAll(): Promise<TypeCountEntity> {
     try {
       // find all types
-      const types = await this.prisma.type.findMany();
+      const typesCount = await this.prisma.type.count();
 
       // return types count
-      return { count: types.length };
+      return { count: typesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -181,19 +182,17 @@ export class TypesService {
     orderBy?: Prisma.TypeOrderByWithRelationInput;
   }): Promise<TypeCountEntity> {
     try {
-      // find all type
-      const type = await this.prisma.type.findMany();
       // find specific types
-      const specificTypes = await this.prisma.type.findMany({
+      const specificTypesCount = await this.prisma.type.count({
         skip: 0,
-        take: type.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return types count
-      return { count: specificTypes.length };
+      return { count: specificTypesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

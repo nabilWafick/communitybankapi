@@ -9,6 +9,7 @@ import {
   EconomicalActivityEntity,
   EconomicalActivityCountEntity,
 } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class EconomicalActivitiesService {
@@ -79,7 +80,7 @@ export class EconomicalActivitiesService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
     } catch (error) {
@@ -104,11 +105,11 @@ export class EconomicalActivitiesService {
   async countAll(): Promise<EconomicalActivityCountEntity> {
     try {
       // find all economicalActivities
-      const economicalActivities =
-        await this.prisma.economicalActivity.findMany();
+      const economicalActivitiesCount =
+        await this.prisma.economicalActivity.count();
 
       // return economicalActivities count
-      return { count: economicalActivities.length };
+      return { count: economicalActivitiesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -137,21 +138,18 @@ export class EconomicalActivitiesService {
     orderBy?: Prisma.EconomicalActivityOrderByWithRelationInput;
   }): Promise<EconomicalActivityCountEntity> {
     try {
-      // find all economicalActivity
-      const economicalActivity =
-        await this.prisma.economicalActivity.findMany();
       // find specific economicalActivities
-      const specificEconomicalActivities =
-        await this.prisma.economicalActivity.findMany({
+      const specificEconomicalActivitiesCount =
+        await this.prisma.economicalActivity.count({
           skip: 0,
-          take: economicalActivity.length,
+          take: (await this.countAll()).count,
           cursor,
           where,
           orderBy,
         });
 
       // return economicalActivities count
-      return { count: specificEconomicalActivities.length };
+      return { count: specificEconomicalActivitiesCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

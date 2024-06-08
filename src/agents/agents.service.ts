@@ -3,6 +3,7 @@ import { CreateAgentDto, UpdateAgentDto } from './dto';
 import { Prisma, PrismaClient, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgentEntity, AgentCountEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 @Injectable()
 export class AgentsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -74,7 +75,7 @@ export class AgentsService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
     } catch (error) {
@@ -99,10 +100,10 @@ export class AgentsService {
   async countAll(): Promise<AgentCountEntity> {
     try {
       // find all agents
-      const agents = await this.prisma.agent.findMany();
+      const agentsCount = await this.prisma.agent.count();
 
       // return agents count
-      return { count: agents.length };
+      return { count: agentsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -131,20 +132,17 @@ export class AgentsService {
     orderBy?: Prisma.AgentOrderByWithRelationInput;
   }): Promise<AgentCountEntity> {
     try {
-      // find all agent
-      const agent = await this.prisma.agent.findMany();
-
       // find specific agents
-      const specificAgents = await this.prisma.agent.findMany({
+      const specificAgentsCount = await this.prisma.agent.count({
         skip: 0,
-        take: agent.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return agents count
-      return { count: specificAgents.length };
+      return { count: specificAgentsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

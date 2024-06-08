@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { ProductCountEntity, ProductEntity } from './entities';
+import { transformWhereInput } from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class ProductsService {
@@ -68,7 +69,7 @@ export class ProductsService {
         skip,
         take,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
     } catch (error) {
@@ -93,10 +94,10 @@ export class ProductsService {
   async countAll(): Promise<ProductCountEntity> {
     try {
       // find all products
-      const products = await this.prisma.product.findMany();
+      const productsCount = await this.prisma.product.count();
 
       // return products count
-      return { count: products.length };
+      return { count: productsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -125,19 +126,17 @@ export class ProductsService {
     orderBy?: Prisma.ProductOrderByWithRelationInput;
   }): Promise<ProductCountEntity> {
     try {
-      // find all product
-      const product = await this.prisma.product.findMany();
       // find specific products
-      const specificProducts = await this.prisma.product.findMany({
+      const specificProductsCount = await this.prisma.product.count({
         skip: 0,
-        take: product.length,
+        take: (await this.countAll()).count,
         cursor,
-        where,
+        where: transformWhereInput(where),
         orderBy,
       });
 
       // return products count
-      return { count: specificProducts.length };
+      return { count: specificProductsCount };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
