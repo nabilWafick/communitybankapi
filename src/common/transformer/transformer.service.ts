@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { debugPort } from 'process';
 
 export function transformWhereInput(where: any): Object {
   const transformedWhere: Object = {};
@@ -15,6 +16,10 @@ export function transformWhereInput(where: any): Object {
           transformedWhere[key] = value.map((andCondition) =>
             transformWhereInput(andCondition),
           );
+        } else if (Array.isArray(value)) {
+          transformedWhere[key] = value.map((data) =>
+            convertValueToCorrectType(data),
+          );
         } else if (typeof value === 'object') {
           transformedWhere[key] = transformWhereInput(value);
         } else {
@@ -26,80 +31,6 @@ export function transformWhereInput(where: any): Object {
 
   return transformedWhere;
 }
-
-/// * FIRTS FUNCTION * ///
-/*
-function convertValueToCorrectType(value: any): any {
-  if (typeof value === 'string') {
-    if (typeof parseInt(value) === 'number' && !Number.isNaN(parseInt(value))) {
-      return parseInt(value);
-    } else if (
-      typeof parseFloat(value) === 'number' &&
-      !Number.isNaN(parseFloat(value))
-    ) {
-      return parseFloat(value);
-    } else if (value.toLowerCase() === 'true') {
-      return true;
-    } else if (value.toLowerCase() === 'false') {
-      return false;
-    } else if (value.toLowerCase() === 'null') {
-      return null;
-    } else {
-      const parsedDate = new Date(value);
-      if (!isNaN(parsedDate.valueOf())) {
-        console.log('Date');
-        return parsedDate;
-      }
-     
-    }
-  }
-
-  return value;
-}
-*/
-
-///* TEST SECOND
-
-/*
-function convertValueToCorrectType(value: any): any {
-  // Check if the input value is a number
-  if (typeof value === 'number') {
-    return value;
-  }
-  // Check if the input value is a string
-  else if (typeof value === 'string') {
-    // Check if the string can be parsed as an integer
-    if (!isNaN(parseInt(value))) {
-      return parseInt(value);
-    }
-    // Check if the string can be parsed as a float
-    else if (!isNaN(parseFloat(value))) {
-      return parseFloat(value);
-    }
-    // Check if the string represents a boolean value
-    else if (value.toLowerCase() === 'true') {
-      return true;
-    } else if (value.toLowerCase() === 'false') {
-      return false;
-    }
-    // Check if the string represents null
-    else if (value.toLowerCase() === 'null') {
-      return null;
-    }
-    // Check if the string can be parsed as a date
-    else {
-      const parsedDate = new Date(value);
-      if (!isNaN(parsedDate.valueOf())) {
-        return parsedDate;
-      }
-    }
-    // If none of the above conditions match, return the string as-is
-    return value;
-  }
-  // If the input value is not a number or string, return it as-is
-  return value;
-}
-*/
 
 /// * TEST THIRD
 function convertValueToCorrectType(value: any): any {
@@ -116,22 +47,28 @@ function convertValueToCorrectType(value: any): any {
     }
 
     // Handle numbers, booleans, and null as before
-    if (typeof parseInt(value) === 'number' && !Number.isNaN(parseInt(value))) {
+    if (value.toLowerCase() === 'true') {
+      return true;
+    } else if (value.toLowerCase() === 'false') {
+      return false;
+    } else if (value.toLowerCase() === 'null') {
+      return null;
+    } else if (
+      typeof parseInt(value) === 'number' &&
+      !Number.isNaN(parseInt(value))
+    ) {
       return parseInt(value);
     } else if (
       typeof parseFloat(value) === 'number' &&
       !Number.isNaN(parseFloat(value))
     ) {
       return parseFloat(value);
-    } else if (value.toLowerCase() === 'true') {
-      return true;
-    } else if (value.toLowerCase() === 'false') {
-      return false;
-    } else if (value.toLowerCase() === 'null') {
-      return null;
     }
+  } else if (typeof value === 'object') {
+    return transformWhereInput(value);
   }
 
   // Return the original value for unsupported types
+  console.log({ default: value });
   return value;
 }

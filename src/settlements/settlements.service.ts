@@ -92,35 +92,40 @@ export class SettlementsService {
 
       // throw an error if the remain amount is not enough
       if (
-        collection.rest.toNumber() -
-          createSettlementDto.number *
-            card.typesNumber *
-            card.type.stake.toNumber() <
-        0
+        collection.rest
+          .minus(
+            createSettlementDto.number *
+              card.typesNumber *
+              card.type.stake.toNumber(),
+          )
+          .toNumber() < 0
       ) {
         throw Error('Insufficient amount of collection');
       }
 
       // substract settlement amount from
       // the remaining amount of the collection
-      collection.rest.minus(
+      const collectionRest = collection.rest.minus(
         createSettlementDto.number *
           card.typesNumber *
           card.type.stake.toNumber(),
       );
 
       // update the collection
-      this.prisma.collection.update({
+      await this.prisma.collection.update({
         where: {
           id: collection.id,
         },
-        data: collection,
+        data: { rest: collectionRest, updatedAt: new Date() },
       });
 
       // create a new settlement
-      return this.prisma.settlement.create({
+      const settlement = await this.prisma.settlement.create({
         data: createSettlementDto,
       });
+
+      // return created settlement
+      return this.findOne({ id: settlement.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -154,6 +159,7 @@ export class SettlementsService {
         skip,
         take,
         cursor,
+
         where: transformWhereInput(where),
         orderBy,
         include: {
@@ -309,6 +315,7 @@ export class SettlementsService {
           collection: {
             include: {
               collector: true,
+              agent: true,
             },
           },
           card: {
@@ -430,7 +437,10 @@ export class SettlementsService {
         // check if the validation status would be switched to false
         if (updateSettlementDto.isValidated === false) {
           // check if the number is passed
-          if (updateSettlementDto.number) {
+          if (
+            updateSettlementDto.number &&
+            updateSettlementDto.number != settlement.number
+          ) {
             throw Error('Immutable number and negatif status simultaneously');
           }
 
@@ -442,14 +452,15 @@ export class SettlementsService {
               settlement.card.type.stake.toNumber(),
           );
 
-          settlement.collection.rest.add(settlementAmount);
+          const collectionRest =
+            settlement.collection.rest.add(settlementAmount);
 
-          this.prisma.collection.update({
+          await this.prisma.collection.update({
             where: {
               id: settlement.collection.id,
             },
             data: {
-              ...settlement.collection,
+              rest: collectionRest,
               updatedAt: new Date().toISOString(),
             },
           });
@@ -507,16 +518,19 @@ export class SettlementsService {
             }
 
             // return the previous amount
-            settlement.collection.rest.add(previousSettlementAmount);
+            const previousCollectionAmount = settlement.collection.rest.add(
+              previousSettlementAmount,
+            );
 
             // substract the new amount
-            settlement.collection.rest.minus(newSettlementAmount);
+            const newCollectionAmount =
+              previousCollectionAmount.toNumber() - newSettlementAmount;
 
             // update the collection
             this.prisma.collection.update({
               where: { id: settlement.collection.id },
               data: {
-                ...settlement.collection,
+                rest: newCollectionAmount,
                 updatedAt: new Date().toISOString(),
               },
             });
@@ -531,7 +545,10 @@ export class SettlementsService {
           updateSettlementDto.isValidated === false
         ) {
           // check if the number would updated
-          if (updateSettlementDto.number) {
+          if (
+            updateSettlementDto.number &&
+            updateSettlementDto.number != settlement.number
+          ) {
             throw Error('Immutable number when negatif status');
           }
         } else {
@@ -581,14 +598,18 @@ export class SettlementsService {
 
             // substract settlement amount from
             // the remaining amount of the collection
-            settlement.collection.rest.minus(newSettlementAmount);
+            const newCollectionAmount =
+              settlement.collection.rest.minus(newSettlementAmount);
 
             // update the collection
-            this.prisma.collection.update({
+            await this.prisma.collection.update({
               where: {
                 id: settlement.collection.id,
               },
-              data: settlement.collection,
+              data: {
+                rest: newCollectionAmount,
+                updatedAt: new Date(),
+              },
             });
           } else {
             // number would not be updated
@@ -629,26 +650,32 @@ export class SettlementsService {
 
             // substract settlement amount from
             // the remaining amount of the collection
-            settlement.collection.rest.minus(settlementAmount);
+            const newCollectionAmount =
+              settlement.collection.rest.minus(settlementAmount);
 
             // update the collection
-            this.prisma.collection.update({
+            await this.prisma.collection.update({
               where: {
                 id: settlement.collection.id,
               },
-              data: settlement.collection,
+              data: {
+                rest: newCollectionAmount,
+                updatedAt: new Date().toISOString(),
+              },
             });
           }
         }
       }
 
       // update the settlement data
-      return await this.prisma.settlement.update({
+      await this.prisma.settlement.update({
         where: {
           id,
         },
         data: { ...updateSettlementDto, updatedAt: new Date().toISOString() },
       });
+
+      return this.findOne({ id: id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -670,6 +697,36 @@ export class SettlementsService {
         where: {
           id,
         },
+        include: {
+          collection: {
+            include: {
+              collector: true,
+              agent: true,
+            },
+          },
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  category: true,
+                  personalStatus: true,
+                  economicalActivity: true,
+                  locality: true,
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any settlement is found
@@ -683,15 +740,36 @@ export class SettlementsService {
         throw Error('Transfered settlement deletion impossible');
       }
 
+      // check if the settlement is validated
+      if (settlementWithID.isValidated) {
+        // retrocede collection amount
+        const collectionRest = settlementWithID.collection.rest.add(
+          settlementWithID.card.typesNumber *
+            settlementWithID.number *
+            settlementWithID.card.type.stake.toNumber(),
+        );
+
+        // update collection amount
+        await this.prisma.collection.update({
+          where: {
+            id: settlementWithID.collection.id,
+          },
+          data: {
+            rest: collectionRest,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      }
+
       // remove the specified settlement
-      const settlement = await this.prisma.settlement.delete({
+      await this.prisma.settlement.delete({
         where: {
           id,
         },
       });
 
       // return removed settlement
-      return settlement;
+      return settlementWithID;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

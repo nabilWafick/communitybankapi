@@ -83,6 +83,8 @@ export class CardsService {
     orderBy?: Prisma.CardOrderByWithRelationInput;
   }): Promise<CardEntity[]> {
     try {
+      //  console.log('check id');
+      //  console.log(where['AND'][0]);
       // fetch all cards with the specified parameters
       const cards = await this.prisma.card.findMany({
         skip,
