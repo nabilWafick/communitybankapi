@@ -9,6 +9,7 @@ export class UpdateTransferDto extends PartialType(CreateTransferDto) {
   @ApiProperty({ required: false, nullable: true })
   validatedAt?: string | null;
 
+  @IsOptional()
   @IsDateString({}, { message: 'Discardation Date must be a ISO8601String' })
   @IsNotEmpty({ message: 'Discardation Date must not be empty' })
   @ApiProperty({ required: false, nullable: true })

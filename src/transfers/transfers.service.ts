@@ -522,7 +522,7 @@ export class TransfersService {
         }
 
         // update issuing card, mark it as transfered
-        this.prisma.card.update({
+        await this.prisma.card.update({
           where: {
             id: issuingCard.id,
           },
@@ -533,7 +533,7 @@ export class TransfersService {
         });
 
         // add settlement to receiving card
-        this.prisma.settlement.create({
+        await this.prisma.settlement.create({
           data: {
             number: settlementsTransfer,
             cardId: receivingCard.id,
@@ -545,10 +545,13 @@ export class TransfersService {
       }
 
       // update the transfer data
-      return await this.prisma.transfer.update({
+      await this.prisma.transfer.update({
         where: { id },
         data: { ...updateTransferDto, updatedAt: new Date().toISOString() },
       });
+
+      // return the updated transfer
+      return this.findOne({ id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
