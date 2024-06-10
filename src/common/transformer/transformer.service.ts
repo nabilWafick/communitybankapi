@@ -16,6 +16,10 @@ export function transformWhereInput(where: any): Object {
           transformedWhere[key] = value.map((andCondition) =>
             transformWhereInput(andCondition),
           );
+        }
+        // trannsform 'in' and 'not in' keys values to list
+        else if (key === 'in' || (key == 'notIn' && !Array.isArray(value))) {
+          transformedWhere[key] = [convertValueToCorrectType(value)];
         } else if (Array.isArray(value)) {
           transformedWhere[key] = value.map((data) =>
             convertValueToCorrectType(data),
@@ -64,11 +68,9 @@ function convertValueToCorrectType(value: any): any {
     ) {
       return parseFloat(value);
     }
-  } else if (typeof value === 'object') {
-    return transformWhereInput(value);
   }
 
   // Return the original value for unsupported types
-  console.log({ default: value });
+
   return value;
 }

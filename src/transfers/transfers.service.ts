@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTransferDto, UpdateTransferDto } from './dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, Customer } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TransferEntity, TransferCountEntity } from './entities';
 import { isDateString } from 'class-validator';
@@ -130,15 +130,16 @@ export class TransfersService {
           0,
         );
 
-      // throw an error if all settlements are done on rceiving card
+      // throw an error if all settlements are done on receiving card
       if (receivingCardValidatedSettlementsTotal === 372) {
         throw Error('Receiving card settlements made');
       }
 
       // create a new transfer
-      return this.prisma.transfer.create({
+      const newTransfer = await this.prisma.transfer.create({
         data: createTransferDto,
       });
+      return this.findOne({ id: newTransfer.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -175,8 +176,42 @@ export class TransfersService {
         where: transformWhereInput(where),
         orderBy,
         include: {
-          issuingCard: true,
-          receivingCard: true,
+          issuingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
+          receivingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
           agent: true,
         },
       });
@@ -264,6 +299,45 @@ export class TransfersService {
       // fetch transfer with the provided ID
       const transfer = await this.prisma.transfer.findUnique({
         where: { id },
+        include: {
+          issuingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
+          receivingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any transfer is found
@@ -492,22 +566,61 @@ export class TransfersService {
   async remove({ id }: { id: number }): Promise<TransferEntity> {
     try {
       // fetch transfer with the provided ID
-      const transferWith = await this.prisma.transfer.findUnique({
+      const transferWithID = await this.prisma.transfer.findUnique({
         where: { id },
+        include: {
+          issuingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
+          receivingCard: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+              customer: {
+                include: {
+                  collector: true,
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any transfer is found
-      if (!transferWith) {
+      if (!transferWithID) {
         throw new Error(`Transfer with ID ${id} not found`);
       }
 
       // remove the specified transfer
-      const transfer = await this.prisma.transfer.delete({
+      await this.prisma.transfer.delete({
         where: { id },
       });
 
       // return removed transfer
-      return transfer;
+      return transferWithID;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

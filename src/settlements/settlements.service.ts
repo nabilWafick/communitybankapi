@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSettlementDto, UpdateSettlementDto } from './dto';
+import {
+  CreateSettlementDto,
+  UpdateSettlementDto,
+  CreateMultipleSettlementsDto,
+} from './dto';
 import { Prisma, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SettlementEntity, SettlementCountEntity } from './entities';
@@ -8,6 +12,82 @@ import { transformWhereInput } from 'src/common/transformer/transformer.service'
 @Injectable()
 export class SettlementsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async isSettlementDtoDataValid({
+    createSettlementDto,
+  }: {
+    createSettlementDto: CreateSettlementDto;
+  }): Promise<boolean> {
+    // check if the settlement is validated
+    if (!createSettlementDto.isValidated) {
+      throw Error('Unvalidated settlement');
+    }
+
+    // check if the provided agent ID exist
+    const agent = await this.prisma.agent.findUnique({
+      where: { id: createSettlementDto.agentId },
+    });
+
+    // throw an error if not
+    if (!agent) {
+      throw Error(`Agent not found`);
+    }
+
+    // check if the provided card ID exist
+    const card = await this.prisma.card.findUnique({
+      where: { id: createSettlementDto.cardId },
+      include: {
+        settlements: true,
+        type: true,
+      },
+    });
+
+    // throw an error if not
+    if (!card) {
+      throw Error(`Card not found`);
+    }
+
+    // check if the card is usable
+    if (card.repaidAt) {
+      throw Error(`Card already repaid`);
+    }
+
+    if (card.satisfiedAt) {
+      throw Error(`Card already satisfied`);
+    }
+
+    if (card.transferredAt) {
+      throw Error(`Card already transfered`);
+    }
+
+    // check if the provided collection ID exist
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: createSettlementDto.collectionId },
+    });
+
+    // throw an error if not
+    if (!collection) {
+      throw Error(`Collection not found`);
+    }
+
+    return true;
+  }
+
+  // will return the number of type of the card * type's stake
+  async cardTypeStake({
+    createSettlementDto,
+  }: {
+    createSettlementDto: CreateSettlementDto;
+  }): Promise<number> {
+    const card = await this.prisma.card.findUnique({
+      where: { id: createSettlementDto.cardId },
+      include: {
+        type: true,
+      },
+    });
+
+    return card.typesNumber * card.type.stake.toNumber();
+  }
 
   async create({
     createSettlementDto,
@@ -126,6 +206,82 @@ export class SettlementsService {
 
       // return created settlement
       return this.findOne({ id: settlement.id });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async createMultipleSettlement({
+    createMultipleSettlementsDto,
+  }: {
+    createMultipleSettlementsDto: CreateMultipleSettlementsDto;
+  }): Promise<SettlementEntity[]> {
+    try {
+      // check settlements data are valid
+      createMultipleSettlementsDto.settlements.every((settlementDto) =>
+        this.isSettlementDtoDataValid({ createSettlementDto: settlementDto }),
+      );
+
+      // TODO : check if all settlements will be done with a same collection
+
+      let isAllForSameCollection =
+        createMultipleSettlementsDto.settlements.every(
+          (settlementDto) =>
+            settlementDto.collectionId ===
+            createMultipleSettlementsDto.settlements[0].collectionId,
+        );
+
+      // TODO: if yes, then, check if the amount will be sufficient for making them
+
+      if (isAllForSameCollection === true) {
+        // calculate the total amount of all settlements
+        let settlementsTotalAmount = 0;
+
+        for (const settlementDto of createMultipleSettlementsDto.settlements) {
+          const cardTypeValue = await this.cardTypeStake({
+            createSettlementDto: settlementDto,
+          });
+
+          settlementsTotalAmount += settlementDto.number * cardTypeValue;
+        }
+
+        // get collection data
+        // check if the provided collection ID exist
+        const collection = await this.prisma.collection.findUnique({
+          where: {
+            id: createMultipleSettlementsDto.settlements[0].collectionId,
+          },
+        });
+
+        // check if the rest of collection is sufficient for making all
+        // the settlements
+        if (collection.rest.minus(settlementsTotalAmount).toNumber() < 0) {
+          throw Error('Insufficient amount of collection for group');
+        }
+      }
+
+      // make the multiple settlements if amount will be sufficient or if they are for different collection
+      let settlements: SettlementEntity[] = [];
+
+      for (const settlementDto of createMultipleSettlementsDto.settlements) {
+        const settlement = await this.create({
+          createSettlementDto: settlementDto,
+        });
+
+        settlements.push(settlement);
+      }
+
+      // return created settlements
+      return settlements;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

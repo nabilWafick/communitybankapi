@@ -12,7 +12,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { SettlementsService } from './settlements.service';
-import { CreateSettlementDto, UpdateSettlementDto } from './dto';
+import {
+  CreateSettlementDto,
+  UpdateSettlementDto,
+  CreateMultipleSettlementsDto,
+} from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { SettlementEntity, SettlementCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
@@ -150,6 +154,235 @@ export class SettlementsController {
             message: {
               en: 'The remaining amount of the collection is insufficient',
               fr: 'Le montant restant de la collecte est insuffisant',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Insufficient amount of collection for group') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The remaining amount of the collection is insufficient for making all settlements together',
+              fr: 'Le montant restant de la collecte est insuffisant pour effectuer tous les règlements',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Invalid query or request') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Invalid request or data',
+              fr: 'Données ou Requête invalide(s)',
+            },
+            error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message === 'Internal Prisma client error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to a service',
+              fr: "Une erreur s'est settlemente sur le serveur. Erreur liée à un service",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      if (error.message === 'Prisma client initialization error') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'An error occurred on the server. Error related to the database connection',
+              fr: "Une erreur s'est settlemente sur le serveur. Erreur liée à la connection avec la base de données",
+            },
+            error: {
+              en: 'Internal Serveur Error',
+              fr: 'Erreur Interne du Serveur',
+            },
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est settlemente sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('multiple/addition')
+  @ApiCreatedResponse({ type: SettlementEntity })
+  async createMultiple(
+    @Body() createMultipleSettlementsDto: CreateMultipleSettlementsDto,
+  ): Promise<SettlementEntity[]> {
+    try {
+      return await this.settlementsService.createMultipleSettlement({
+        createMultipleSettlementsDto: createMultipleSettlementsDto,
+      });
+    } catch (error) {
+      if (error.message === 'Unvalidated settlement') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of the settlements is not validated',
+              fr: "Un des règlements n'est pas validé",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Agent not found') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of specified agents is not found',
+              fr: 'Un des agents spécifiés est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Card not found') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of specified card is not found',
+              fr: 'Une des cartes spécifiées est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Card already repaid') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of the cards have been already repaid',
+              fr: 'Une des cartes a été déjà remboursée',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Card already satisfied') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of the cards have been already satisfied',
+              fr: 'Une des cartes a été déjà satisfaite',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Card already transfered') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of the cards have been already transfered',
+              fr: 'Une des cartes a été déjà transférée',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Collection not found') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'One of the specified collections is not found',
+              fr: 'Une des collectes spécifiées est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'Risk of over settlement') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The number of remaining settlements of one of the cards is less than provided',
+              fr: "Le nombre de règlements restants d'une des cartes est inférieur à celui fourni",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Insufficient amount of collection') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The remaining amount of one the collections is insufficient',
+              fr: "Le montant restant d'une des collectes est insuffisant",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (error.message === 'Insufficient amount of collection for group') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'The remaining amount of the collection is insufficient for making all settlements',
+              fr: 'Le montant restant de la collecte est insuffisant pour effectuer tous les règlements',
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -400,7 +633,6 @@ export class SettlementsController {
       );
     }
   }
-
 
   @Get()
   @ApiOkResponse({ type: SettlementEntity, isArray: true })

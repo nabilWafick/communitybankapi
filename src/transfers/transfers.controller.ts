@@ -17,7 +17,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TransferEntity, TransferCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
 
-@Controller('Transfers')
+@Controller('transfers')
 @ApiTags('Transfers')
 export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
