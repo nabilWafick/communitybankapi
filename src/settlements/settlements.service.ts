@@ -7,7 +7,10 @@ import {
 import { Prisma, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SettlementEntity, SettlementCountEntity } from './entities';
-import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import {
+  transformWhereInput,
+  transformQueryParams,
+} from 'src/common/transformer/transformer.service';
 
 @Injectable()
 export class SettlementsService {
@@ -310,12 +313,37 @@ export class SettlementsService {
     orderBy?: Prisma.SettlementOrderByWithRelationInput;
   }): Promise<SettlementEntity[]> {
     try {
+      /*    console.log('AND');
+      if (where['AND']) {
+        console.log(where['AND']);
+        if (where['AND'][2]) {
+          console.log('AND last');
+          console.log(where['AND'][2]);
+          console.log('Collection');
+          console.log(where['AND'][2]['card']);
+        }
+      }
+
+      console.log('after parsing');
+
+      const w = transformQueryParams(where);
+
+      console.log('============== AFTER TRANSFORMATION =================');
+      if (w['AND']) {
+        console.log(w['AND']);
+        if (w['AND'][2]) {
+          console.log('AND last');
+          console.log(w['AND'][2]);
+          console.log('Collection');
+          console.log(w['AND'][2]['card']);
+        }
+      }
+*/
       // fetch all settlements with the specified parameters
       return await this.prisma.settlement.findMany({
         skip,
         take,
         cursor,
-
         where: transformWhereInput(where),
         orderBy,
         include: {

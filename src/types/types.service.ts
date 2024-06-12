@@ -405,4 +405,49 @@ export class TypesService {
       throw error;
     }
   }
+
+  async test({
+    skip,
+    take,
+    //  cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    //  cursor?: Prisma.TypeWhereUniqueInput;
+    where?: Prisma.TypeWhereInput;
+    orderBy?: Prisma.TypeOrderByWithRelationInput;
+  }) {
+    try {
+      // fetch all types with the specified parameters
+      return await this.prisma.type.findMany({
+        where: transformWhereInput(where),
+        orderBy,
+        include: {
+          typeProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
 }

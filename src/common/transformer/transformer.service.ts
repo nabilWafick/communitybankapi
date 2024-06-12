@@ -1,5 +1,46 @@
-import { Prisma } from '@prisma/client';
-import { debugPort } from 'process';
+export function transformQueryParams(queryParams: { [key: string]: any }): {
+  [key: string]: any;
+} {
+  // Deep copy the input object
+  const copiedParams = queryParams;
+  //JSON.parse(JSON.stringify(queryParams));
+  const result: { [key: string]: any } = {};
+
+  for (const key in copiedParams) {
+    if (key.includes('[')) {
+      // Nested key
+      const parts = key.split('[');
+
+      let currentDict = result;
+
+      for (let i = 0; i < parts.length - 1; i++) {
+        const innerKey = parts[i].slice(0, -1); // Remove trailing bracket
+        // Directly assign empty object if inner key doesn't exist (modifying copy)
+        if (!currentDict[innerKey]) {
+          currentDict[innerKey] = {};
+        }
+        currentDict = currentDict[innerKey];
+      }
+      currentDict[parts[parts.length - 1].slice(0, -1)] =
+        convertValueToCorrectType(copiedParams[key]);
+    } else {
+      // Top-level key
+      result[key] = copiedParams[key];
+    }
+  }
+  return result[''];
+}
+
+function checkQueryParams(queryParams: { [key: string]: any }): boolean {
+  const copiedParams = JSON.parse(JSON.stringify(queryParams));
+
+  for (const key in copiedParams) {
+    if (key.includes('[')) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function transformWhereInput(where: any): Object {
   const transformedWhere: Object = {};
@@ -17,15 +58,21 @@ export function transformWhereInput(where: any): Object {
             transformWhereInput(andCondition),
           );
         }
-        // trannsform 'in' and 'not in' keys values to list
-        else if (key === 'in' || (key == 'notIn' && !Array.isArray(value))) {
+        // transform 'in' and 'not in' keys values to list
+        else if ((key === 'in' || key == 'notIn') && !Array.isArray(value)) {
           transformedWhere[key] = [convertValueToCorrectType(value)];
         } else if (Array.isArray(value)) {
           transformedWhere[key] = value.map((data) =>
             convertValueToCorrectType(data),
           );
         } else if (typeof value === 'object') {
-          transformedWhere[key] = transformWhereInput(value);
+          if (checkQueryParams(value)) {
+            transformedWhere[key] = transformQueryParams(value);
+          } else {
+            {
+              transformedWhere[key] = transformWhereInput(value);
+            }
+          }
         } else {
           transformedWhere[key] = convertValueToCorrectType(value);
         }
