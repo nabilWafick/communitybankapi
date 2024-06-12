@@ -200,10 +200,12 @@ model Settlement {
   updatedAt    DateTime    @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
   cardId       Int         @map("card_id")
   collectionId Int?        @map("collection_id")
+  transferId   Int?        @map("transfer_id")
   isValidated  Boolean     @map("is_validated")
   agent        Agent       @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_agent_fkey")
   card         Card        @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_carte_fkey")
   collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reglements_id_collecte_fkey")
+  transfer     Transfer?   @relation(fields: [transferId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "settlements_id_collection_fkey")
 
   @@map("settlements")
 }
@@ -218,7 +220,7 @@ model Stock {
   inputQuantity   Int?     @map("input_quantity")
   outputQuantity  Int?     @map("output_quantity")
   stockQuantity   Int      @map("stock_quantity")
-  movementType    String   @map("movement_type") @db.VarChar
+  movementType    String?  @map("movement_type") @db.VarChar
   cardId          Int?     @map("card_id")
   agentId         Int      @map("agent_id")
   agent           Agent    @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_stock_id_agent_fkey")
@@ -230,17 +232,18 @@ model Stock {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model Transfer {
-  id              Int       @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
-  issuingCardId   Int       @map("issuing_card_id")
-  receivingCardId Int       @map("receiving_card_id")
-  agentId         Int       @map("agent_id")
-  validatedAt     DateTime? @map("validated_at") @db.Timestamptz(6)
-  createdAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
-  rejectedAt      DateTime? @map("rejected_at") @db.Timestamptz(6)
-  agent           Agent     @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_agent_fkey")
-  issuingCard     Card      @relation("transfers_issuing_card_idTocards", fields: [issuingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_emettrice_fkey")
-  receivingCard   Card      @relation("transfers_receiving_card_idTocards", fields: [receivingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_receptrice_fkey")
+  id              Int          @id(map: "transferts_pkey") @unique(map: "transferts_id_key") @default(autoincrement())
+  issuingCardId   Int          @map("issuing_card_id")
+  receivingCardId Int          @map("receiving_card_id")
+  agentId         Int          @map("agent_id")
+  validatedAt     DateTime?    @map("validated_at") @db.Timestamptz(6)
+  createdAt       DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
+  rejectedAt      DateTime?    @map("rejected_at") @db.Timestamptz(6)
+  agent           Agent        @relation(fields: [agentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_agent_fkey")
+  issuingCard     Card         @relation("transfers_issuing_card_idTocards", fields: [issuingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_emettrice_fkey")
+  receivingCard   Card         @relation("transfers_receiving_card_idTocards", fields: [receivingCardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_transferts_id_carte_receptrice_fkey")
+  settlements     Settlement[]
 
   @@map("transfers")
 }

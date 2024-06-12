@@ -319,6 +319,47 @@ export class SettlementsService {
         where: transformWhereInput(where),
         orderBy,
         include: {
+          transfer: {
+            include: {
+              issuingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              receivingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              agent: true,
+            },
+          },
           collection: {
             include: {
               collector: true,
@@ -468,6 +509,47 @@ export class SettlementsService {
           id,
         },
         include: {
+          transfer: {
+            include: {
+              issuingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              receivingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              agent: true,
+            },
+          },
           collection: {
             include: {
               collector: true,
@@ -854,6 +936,47 @@ export class SettlementsService {
           id,
         },
         include: {
+          transfer: {
+            include: {
+              issuingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              receivingCard: {
+                include: {
+                  type: {
+                    include: {
+                      typeProducts: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                  customer: {
+                    include: {
+                      collector: true,
+                    },
+                  },
+                },
+              },
+              agent: true,
+            },
+          },
           collection: {
             include: {
               collector: true,

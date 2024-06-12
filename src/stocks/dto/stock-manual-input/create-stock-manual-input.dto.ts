@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsPositive, NotEquals } from 'class-validator';
 
-export class CreateStockInputDto {
+export class CreateStockManualInputDto {
   @IsInt({ message: 'Product ID must be an integer' })
   @NotEquals(0, { message: 'Product ID must not be equal to 0' })
   @IsPositive({ message: 'Product ID must be positive' })

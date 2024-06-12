@@ -4,11 +4,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { StockInputType, StockOutputType } from './class';
 import {
   CreateStockConstrainedOutputDto,
-  CreateStockInputDto,
+  CreateStockManualInputDto,
   CreateStockManualOutputDto,
   CreateStockNormalOutputDto,
   CreateStockRetrocessionDto,
-  UpdateStockInputDto,
+  UpdateStockManualInputDto,
   UpdateStockManualOutputDto,
 } from './dto';
 import { StockEntity, StockCountEntity } from './entities';
@@ -108,6 +108,23 @@ export class StocksService {
           movementType: outputType,
           agentId: agentId,
         },
+        include: {
+          product: true,
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
     }
 
@@ -205,6 +222,23 @@ export class StocksService {
               productLastStock.stockQuantity + productLastStock.outputQuantity,
             movementType: StockInputType.retrocession,
             agentId: agentId,
+          },
+          include: {
+            product: true,
+            card: {
+              include: {
+                type: {
+                  include: {
+                    typeProducts: {
+                      include: {
+                        product: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            agent: true,
           },
         });
       }
@@ -321,15 +355,17 @@ export class StocksService {
     return newStocks;
   }
 
-  async createStockInput({
-    createStockInputDto,
+  /// ******* MAIN FUNCTIONS ******* ///
+
+  async createStockManualInput({
+    createStockManualInputDto,
   }: {
-    createStockInputDto: CreateStockInputDto;
+    createStockManualInputDto: CreateStockManualInputDto;
   }): Promise<StockEntity> {
     try {
       // check if the provided agent ID exist
       const agent = await this.prisma.agent.findUnique({
-        where: { id: createStockInputDto.agentId },
+        where: { id: createStockManualInputDto.agentId },
       });
 
       // throw an error if not
@@ -339,7 +375,7 @@ export class StocksService {
 
       // check if the provided product ID exist
       const product = await this.prisma.product.findUnique({
-        where: { id: createStockInputDto.productId },
+        where: { id: createStockManualInputDto.productId },
         include: {
           stocks: true,
         },
@@ -362,26 +398,29 @@ export class StocksService {
       if (!lastProductStock) {
         // add the first stock
         newStock = {
-          ...createStockInputDto,
+          ...createStockManualInputDto,
           initialQuantity: 0,
-          stockQuantity: createStockInputDto.inputQuantity,
+          stockQuantity: createStockManualInputDto.inputQuantity,
           movementType: StockInputType.manual,
         };
       } else {
         // complete the stock
         newStock = {
-          ...createStockInputDto,
+          ...createStockManualInputDto,
           initialQuantity: lastProductStock.stockQuantity,
           stockQuantity:
-            lastProductStock.stockQuantity + createStockInputDto.inputQuantity,
+            lastProductStock.stockQuantity +
+            createStockManualInputDto.inputQuantity,
           movementType: StockInputType.manual,
         };
       }
 
       // create a new stock
-      return this.prisma.stock.create({
+      const stock = await this.prisma.stock.create({
         data: newStock,
       });
+
+      return this.findOne({ id: stock.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -496,7 +535,7 @@ export class StocksService {
       }
 
       // create a new stock
-      return this.prisma.stock.create({
+      const stock = await this.prisma.stock.create({
         data: {
           ...createStockManualOutputDto,
           initialQuantity: lastProductStock.stockQuantity,
@@ -506,6 +545,8 @@ export class StocksService {
           movementType: StockOutputType.manual,
         },
       });
+
+      return this.findOne({ id: stock.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -695,7 +736,19 @@ export class StocksService {
         orderBy,
         include: {
           product: true,
-          card: true,
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           agent: true,
         },
       });
@@ -783,6 +836,23 @@ export class StocksService {
       // fetch stock with the provided ID
       const stock = await this.prisma.stock.findUnique({
         where: { id },
+        include: {
+          product: true,
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any stock is found
@@ -806,12 +876,12 @@ export class StocksService {
     }
   }
 
-  async updateStockInput({
+  async updateStockManualInput({
     id,
-    updateStockInputDto,
+    updateStockManualInputDto,
   }: {
     id: number;
-    updateStockInputDto: UpdateStockInputDto;
+    updateStockManualInputDto: UpdateStockManualInputDto;
   }): Promise<StockEntity> {
     try {
       // fetch stock with the provided ID
@@ -834,7 +904,7 @@ export class StocksService {
 
       // check if the provided agent ID exist
       const agent = await this.prisma.agent.findUnique({
-        where: { id: updateStockInputDto.agentId },
+        where: { id: updateStockManualInputDto.agentId },
       });
 
       // throw an error if not
@@ -856,17 +926,19 @@ export class StocksService {
       }
 
       // update the stock data
-      return await this.prisma.stock.update({
+      await this.prisma.stock.update({
         where: { id },
         data: {
-          ...updateStockInputDto,
+          ...updateStockManualInputDto,
           stockQuantity:
             stock.stockQuantity -
             stock.inputQuantity +
-            updateStockInputDto.inputQuantity,
+            updateStockManualInputDto.inputQuantity,
           updatedAt: new Date().toISOString(),
         },
       });
+
+      return this.findOne({ id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -941,7 +1013,7 @@ export class StocksService {
       }
 
       // update the stock data
-      return await this.prisma.stock.update({
+      await this.prisma.stock.update({
         where: { id },
         data: {
           ...updateStockManualOutputDto,
@@ -952,6 +1024,8 @@ export class StocksService {
           updatedAt: new Date().toISOString(),
         },
       });
+
+      return this.findOne({ id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -971,6 +1045,23 @@ export class StocksService {
       // fetch stock with the provided ID
       const stockWithID = await this.prisma.stock.findUnique({
         where: { id },
+        include: {
+          product: true,
+          card: {
+            include: {
+              type: {
+                include: {
+                  typeProducts: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          agent: true,
+        },
       });
 
       // throw an error if any stock is found
@@ -982,13 +1073,27 @@ export class StocksService {
       if (stockWithID.movementType !== StockInputType.manual) {
         throw Error('Deletion impossible');
       }
+
+      // check if the stock(movement) is the last of the product
+      const lastStock = (
+        await this.prisma.stock.findMany({
+          where: {
+            productId: stockWithID.productId,
+          },
+        })
+      ).pop();
+
+      if (lastStock.id !== stockWithID.id) {
+        throw Error('Deletion impossible');
+      }
+
       // remove the specified stock
-      const stock = await this.prisma.stock.delete({
+      await this.prisma.stock.delete({
         where: { id },
       });
 
       // return removed stock
-      return stock;
+      return stockWithID;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

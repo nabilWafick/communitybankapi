@@ -5,8 +5,8 @@ export class CreateStockNormalOutputDto {
   @IsInt({ message: 'Card ID must be an integer' })
   @NotEquals(0, { message: 'Card ID must not be equal to 0' })
   @IsPositive({ message: 'Card ID must be positive' })
-  @ApiProperty({ nullable: true })
-  cardId: number | null;
+  @ApiProperty()
+  cardId: number;
 
   @IsInt({ message: 'Agent ID must be an integer' })
   @NotEquals(0, { message: 'Agent ID must not be equal to 0' })

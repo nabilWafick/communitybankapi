@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import {
-  CreateStockInputDto,
-  UpdateStockInputDto,
+  CreateStockManualInputDto,
+  UpdateStockManualInputDto,
   CreateStockRetrocessionDto,
   CreateStockManualOutputDto,
   CreateStockNormalOutputDto,
@@ -30,14 +30,14 @@ import { Prisma } from '@prisma/client';
 export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
 
-  @Post()
+  @Post('/manual/input')
   @ApiCreatedResponse({ type: StockEntity })
-  async createStockInput(
-    @Body() createStockInputDto: CreateStockInputDto,
+  async createStockManualInput(
+    @Body() createStockManualInputDto: CreateStockManualInputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stocksService.createStockInput({
-        createStockInputDto: createStockInputDto,
+      return await this.stocksService.createStockManualInput({
+        createStockManualInputDto: createStockManualInputDto,
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -133,6 +133,8 @@ export class StocksController {
     }
   }
 
+  @Post('/card/retrocession')
+  @ApiCreatedResponse({ type: StockEntity })
   async createStockRetrocession(
     @Body() createStockRetrocessionDto: CreateStockRetrocessionDto,
   ): Promise<StockEntity[]> {
@@ -290,6 +292,8 @@ export class StocksController {
     }
   }
 
+  @Post('/manual/output')
+  @ApiCreatedResponse({ type: StockEntity })
   async createStockManualOutput(
     @Body() createStockManualOutputDto: CreateStockManualOutputDto,
   ): Promise<StockEntity> {
@@ -419,6 +423,8 @@ export class StocksController {
     }
   }
 
+  @Post('/card/normal/satisfaction')
+  @ApiCreatedResponse({ type: StockEntity })
   async createStockNormalOutput(
     @Body() createStockNormalOutputDto: CreateStockNormalOutputDto,
   ): Promise<StockEntity[]> {
@@ -534,6 +540,8 @@ export class StocksController {
     }
   }
 
+  @Post('/card/constrained/satisfaction')
+  @ApiCreatedResponse({ type: StockEntity })
   async createStockConstrainedOutput(
     @Body() createStockConstrainedOutputDto: CreateStockConstrainedOutputDto,
   ): Promise<StockEntity[]> {
@@ -1002,16 +1010,16 @@ export class StocksController {
     }
   }
 
-  @Patch('/input/:id')
+  @Patch('/manual/input/:id')
   @ApiOkResponse({ type: StockEntity })
-  async updateStockInput(
+  async updateStockManualInput(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateStockInputDto: UpdateStockInputDto,
+    @Body() updateStockManualInputDto: UpdateStockManualInputDto,
   ): Promise<StockEntity> {
     try {
-      return await this.stocksService.updateStockInput({
+      return await this.stocksService.updateStockManualInput({
         id: +id,
-        updateStockInputDto: updateStockInputDto,
+        updateStockManualInputDto: updateStockManualInputDto,
       });
     } catch (error) {
       if (error.message === `Stock with ID ${id} not found`) {
@@ -1149,7 +1157,7 @@ export class StocksController {
     }
   }
 
-  @Patch('/output/:id')
+  @Patch('/manual/output/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualOutput(
     @Param('id', ParseIntPipe) id: number,

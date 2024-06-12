@@ -538,6 +538,7 @@ export class TransfersService {
             number: settlementsTransfer,
             cardId: receivingCard.id,
             collectionId: null,
+            transferId: transfer.id,
             agentId: transfer.agentId,
             isValidated: true,
           },
@@ -615,6 +616,25 @@ export class TransfersService {
       // throw an error if any transfer is found
       if (!transferWithID) {
         throw new Error(`Transfer with ID ${id} not found`);
+      }
+
+      if (transferWithID.validatedAt != null) {
+        // update issuing card, mark it as not transfered
+        await this.prisma.card.update({
+          where: {
+            id: transferWithID.issuingCardId,
+          },
+          data: {
+            transferredAt: null,
+          },
+        });
+
+        // remove settlement added to receiving card
+        await this.prisma.settlement.deleteMany({
+          where: {
+            transferId: transferWithID.id,
+          },
+        });
       }
 
       // remove the specified transfer

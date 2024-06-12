@@ -14,8 +14,11 @@ export class SettlementEntity implements Settlement {
   @ApiProperty()
   cardId: number;
 
-  @ApiProperty()
-  collectionId: number;
+  @ApiProperty({ nullable: true })
+  collectionId: number | null;
+
+  @ApiProperty({ nullable: true })
+  transferId: number | null;
 
   @ApiProperty()
   isValidated: boolean;
