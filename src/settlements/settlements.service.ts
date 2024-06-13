@@ -508,7 +508,10 @@ export class SettlementsService {
       }
 
       const sum = await this.prisma.settlement.aggregate({
-        where: { cardId },
+        where: {
+          cardId,
+          isValidated: true,
+        },
         _sum: {
           number: true,
         },

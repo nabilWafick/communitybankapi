@@ -724,14 +724,15 @@ export class TypesController {
     }
   }
 
-  async test(
+  @Get('/global/stats')
+  async stats(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.TypeWhereInput,
     @Query('orderBy') orderBy?: Prisma.TypeOrderByWithRelationInput,
   ) {
     try {
-      return await this.typesService.test({
+      return await this.typesService.stats({
         skip,
         take,
         where,

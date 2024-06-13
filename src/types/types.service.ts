@@ -406,7 +406,7 @@ export class TypesService {
     }
   }
 
-  async test({
+  async stats({
     skip,
     take,
     //  cursor,
@@ -421,17 +421,47 @@ export class TypesService {
   }) {
     try {
       // fetch all types with the specified parameters
-      return await this.prisma.type.findMany({
-        where: transformWhereInput(where),
-        orderBy,
+      const types = await this.prisma.type.findMany({
+        skip,
+        take,
         include: {
-          typeProducts: {
+          cards: {
             include: {
-              product: true,
+              customer: {
+                include: {
+                  category: true,
+                  economicalActivity: true,
+                  locality: true,
+                  personalStatus: true,
+                  collector: true,
+                },
+              },
+              settlements: {
+                where: {
+                  isValidated: true,
+                },
+                select: {
+                  id: true,
+                  number: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
             },
           },
         },
+        where: transformWhereInput(where),
+        orderBy,
       });
+
+      for (const type of types) {
+        type.cards.sort(
+          (card1, card2) =>
+            card1.customer.collector.id - card2.customer.collector.id,
+        );
+      }
+
+      return types;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
