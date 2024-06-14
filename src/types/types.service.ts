@@ -426,13 +426,14 @@ export class TypesService {
         take,
         include: {
           cards: {
+            where: {
+              repaidAt: null,
+              satisfiedAt: null,
+              transferredAt: null,
+            },
             include: {
               customer: {
                 include: {
-                  category: true,
-                  economicalActivity: true,
-                  locality: true,
-                  personalStatus: true,
                   collector: true,
                 },
               },
@@ -443,8 +444,6 @@ export class TypesService {
                 select: {
                   id: true,
                   number: true,
-                  createdAt: true,
-                  updatedAt: true,
                 },
               },
             },

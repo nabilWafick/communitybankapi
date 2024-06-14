@@ -248,4 +248,67 @@ export class CollectorsService {
       throw error;
     }
   }
+
+  async stats({
+    skip,
+    take,
+
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }) {
+    try {
+      const collectionSumPerCollector = await this.prisma.collector.findMany({
+        select: {
+          id: true,
+          name: true,
+          firstnames: true,
+          phoneNumber: true,
+          collections: {
+            select: {
+              amount: true,
+            },
+          },
+          _count: {
+            select: { collections: true },
+          },
+        },
+      });
+
+      const result = collectionSumPerCollector.map((collector) => ({
+        id: collector.id,
+        name: collector.name,
+        firstnames: collector.firstnames,
+        phoneNumber: collector.phoneNumber,
+        totalCollections: collector._count.collections,
+        totalAmount: collector.collections.reduce(
+          (sum, collection) => sum + collection.amount.toNumber(),
+          0,
+        ),
+      }));
+
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
 }
