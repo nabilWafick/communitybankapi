@@ -209,7 +209,7 @@ from
           produits.nom asc,
           details_types.id_type,
           charges_compte.id,
-          comptes_clients.id,
+          comptes_clients.id, 
           clients.id
       ) as subquery4
     group by

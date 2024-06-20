@@ -249,21 +249,23 @@ export class CollectorsService {
     }
   }
 
-  async stats({
+  async getGlobalCollections({
     skip,
     take,
-
     where,
     orderBy,
   }: {
     skip?: number;
     take?: number;
-
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
   }) {
     try {
       const collectionSumPerCollector = await this.prisma.collector.findMany({
+        skip,
+        take,
+        where,
+        orderBy,
         select: {
           id: true,
           name: true,
@@ -274,6 +276,7 @@ export class CollectorsService {
               amount: true,
             },
           },
+
           _count: {
             select: { collections: true },
           },
@@ -287,6 +290,363 @@ export class CollectorsService {
         phoneNumber: collector.phoneNumber,
         totalCollections: collector._count.collections,
         totalAmount: collector.collections.reduce(
+          (sum, collection) => sum + collection.amount.toNumber(),
+          0,
+        ),
+      }));
+
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getDayCollections({
+    skip,
+    take,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }) {
+    try {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      startOfDay.setDate(startOfDay.getDate() - startOfDay.getDay());
+
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 6);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const collectionSumPerCollectorThisDay =
+        await this.prisma.collector.findMany({
+          skip,
+          take,
+          where,
+          orderBy,
+          select: {
+            id: true,
+            name: true,
+            firstnames: true,
+            phoneNumber: true,
+            collections: {
+              where: {
+                collectedAt: {
+                  gte: startOfDay,
+                  lte: endOfDay,
+                },
+              },
+              select: {
+                amount: true,
+              },
+            },
+            _count: {
+              select: {
+                collections: {
+                  where: {
+                    collectedAt: {
+                      gte: startOfDay,
+                      lte: endOfDay,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      const result = collectionSumPerCollectorThisDay.map((collector) => ({
+        id: collector.id,
+        name: collector.name,
+        firstnames: collector.firstnames,
+        phoneNumber: collector.phoneNumber,
+        totalCollectionsThisWeek: collector._count.collections,
+        totalAmountThisWeek: collector.collections.reduce(
+          (sum, collection) => sum + collection.amount.toNumber(),
+          0,
+        ),
+      }));
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getWeekCollections({
+    skip,
+    take,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }) {
+    try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      const collectionSumPerCollectorThisWeek =
+        await this.prisma.collector.findMany({
+          skip,
+          take,
+          where,
+          orderBy,
+          select: {
+            id: true,
+            name: true,
+            firstnames: true,
+            phoneNumber: true,
+            collections: {
+              where: {
+                collectedAt: {
+                  gte: startOfWeek,
+                  lte: endOfWeek,
+                },
+              },
+              select: {
+                amount: true,
+              },
+            },
+            _count: {
+              select: {
+                collections: {
+                  where: {
+                    collectedAt: {
+                      gte: startOfWeek,
+                      lte: endOfWeek,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      const result = collectionSumPerCollectorThisWeek.map((collector) => ({
+        id: collector.id,
+        name: collector.name,
+        firstnames: collector.firstnames,
+        phoneNumber: collector.phoneNumber,
+        totalCollectionsThisWeek: collector._count.collections,
+        totalAmountThisWeek: collector.collections.reduce(
+          (sum, collection) => sum + collection.amount.toNumber(),
+          0,
+        ),
+      }));
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getMonthCollections({
+    skip,
+    take,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }) {
+    try {
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const collectionSumPerCollectorThisMonth =
+        await this.prisma.collector.findMany({
+          skip,
+          take,
+          where,
+          orderBy,
+          select: {
+            id: true,
+            name: true,
+            firstnames: true,
+            phoneNumber: true,
+            collections: {
+              where: {
+                collectedAt: {
+                  gte: startOfMonth,
+                  lte: endOfMonth,
+                },
+              },
+              select: {
+                amount: true,
+              },
+            },
+            _count: {
+              select: {
+                collections: {
+                  where: {
+                    collectedAt: {
+                      gte: startOfMonth,
+                      lte: endOfMonth,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      const result = collectionSumPerCollectorThisMonth.map((collector) => ({
+        id: collector.id,
+        name: collector.name,
+        firstnames: collector.firstnames,
+        phoneNumber: collector.phoneNumber,
+        totalCollectionsThisMonth: collector._count.collections,
+        totalAmountThisMonth: collector.collections.reduce(
+          (sum, collection) => sum + collection.amount.toNumber(),
+          0,
+        ),
+      }));
+
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getYearCollections({
+    skip,
+    take,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.CollectorWhereInput;
+    orderBy?: Prisma.CollectorOrderByWithRelationInput;
+  }) {
+    try {
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+      const endOfYear = new Date(
+        new Date().getFullYear(),
+        11,
+        31,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const collectionSumPerCollectorThisYear =
+        await this.prisma.collector.findMany({
+          select: {
+            id: true,
+            name: true,
+            firstnames: true,
+            phoneNumber: true,
+            collections: {
+              where: {
+                collectedAt: {
+                  gte: startOfYear,
+                  lte: endOfYear,
+                },
+              },
+              select: {
+                amount: true,
+              },
+            },
+            _count: {
+              select: {
+                collections: {
+                  where: {
+                    collectedAt: {
+                      gte: startOfYear,
+                      lte: endOfYear,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      const result = collectionSumPerCollectorThisYear.map((collector) => ({
+        id: collector.id,
+        name: collector.name,
+        firstnames: collector.firstnames,
+        phoneNumber: collector.phoneNumber,
+        totalCollectionsThisYear: collector._count.collections,
+        totalAmountThisYear: collector.collections.reduce(
           (sum, collection) => sum + collection.amount.toNumber(),
           0,
         ),

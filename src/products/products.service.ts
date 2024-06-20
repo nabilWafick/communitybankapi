@@ -316,4 +316,52 @@ export class ProductsService {
       throw error;
     }
   }
+
+  private validateParam(value: any): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  async getProductsForecasts({
+    productId,
+    customerId,
+    collectorId,
+    cardId,
+    typeId,
+    totalSettlementNumber,
+  }: {
+    productId?: number;
+    customerId?: number;
+    collectorId?: number;
+    cardId?: number;
+    typeId?: number;
+    totalSettlementNumber?: number;
+  }) {
+    try {
+      const params = [
+        { name: 'p_product_id', value: productId },
+        { name: 'p_customer_id', value: customerId },
+        { name: 'p_collector_id', value: collectorId },
+        { name: 'p_card_id', value: cardId },
+        { name: 'p_type_id', value: typeId },
+        { name: 'p_total_settlement_number', value: totalSettlementNumber },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_forecasts(${paramString})`;
+
+      const result = await this.prisma.$queryRawUnsafe(query);
+      console.log('### RESULT ###');
+
+      console.log(result);
+
+      return result
+    } catch (error) {
+      console.error('Error calling get_product_forecast:', error);
+      throw error;
+    }
+  }
 }

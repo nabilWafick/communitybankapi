@@ -471,6 +471,7 @@ export class ProductsController {
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
           {
+
             message: {
               en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
@@ -708,4 +709,43 @@ export class ProductsController {
       );
     }
   }
+
+  @Get('/stats/forecasts')
+  async getProductForecast(
+    @Query('productId') productId?: number,
+    @Query('customerId') customerId?: number,
+    @Query('collectorId') collectorId?: number,
+    @Query('cardId') cardId?: number,
+    @Query('typeId') typeId?: number,
+    @Query('totalSettlementNumber') totalSettlementNumber?: number,
+  ) {
+
+    try {
+      return this.productsService.getProductsForecasts({
+        productId: 50,
+        customerId,
+        collectorId,
+        cardId,
+        typeId,
+        totalSettlementNumber,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+   
+  }
 }
+ 
