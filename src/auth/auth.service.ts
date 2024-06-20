@@ -97,7 +97,13 @@ export class AuthService {
         throw new Error('Invalid credentials');
       }
 
-      const agentPermissions = JSON.parse(agent.permissions.toString());
+      // check if user is not already online
+      if (user.onlineStatus === 'online') {
+        throw new Error('User online');
+      }
+
+      const agentPermissions = JSON.parse(JSON.stringify(agent.permissions));
+
       const grantedPermissions = Object.keys(agentPermissions).filter(
         (key) => agentPermissions[key] === true,
       );
@@ -123,6 +129,9 @@ export class AuthService {
           onlineStatus: 'online',
           lastLoginAt: new Date(),
           updatedAt: new Date(),
+        },
+        include: {
+          agent: true,
         },
       });
 
@@ -159,11 +168,16 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: { agentId: agent.id },
       });
+
       if (!user) {
-        throw new Error('Invalid credentials');
+        throw new Error('Account not found');
       }
 
-      // Update the user's last logout time and access token
+      if (user.onlineStatus === 'offline') {
+        throw new Error('User offline');
+      }
+
+      // Update the user's last logout time and reset access token
       const newUser = await this.prisma.user.update({
         where: {
           id: user.id,
@@ -173,6 +187,9 @@ export class AuthService {
           onlineStatus: 'offline',
           lastLogoutAt: new Date(),
           updatedAt: new Date(),
+        },
+        include: {
+          agent: true,
         },
       });
 

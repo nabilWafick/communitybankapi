@@ -7,12 +7,16 @@ import {
 } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { error } from 'console';
+import { UnauthorizedExceptionFilter } from './auth/exceptions_filters/unauthorized.exception';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // set global prefix for all routes
   app.setGlobalPrefix('api/v1');
+
+  // define custom unauthorized exception
+  app.useGlobalFilters(new UnauthorizedExceptionFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({

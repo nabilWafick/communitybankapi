@@ -173,17 +173,17 @@ export class AuthController {
         );
       }
 
-      if (error.message === 'Invalid credentials') {
+      if (error.message === 'User online') {
         throw new HttpException(
           {
             message: {
-              en: 'Incorrect Email or Password',
-              fr: 'Email ou Mot de passe incorrecte',
+              en: 'Agent already online',
+              fr: 'Agent déjà connecté',
             },
-            error: { en: 'Unauthorized', fr: 'Non Autorisé' },
-            statusCode: HttpStatus.UNAUTHORIZED,
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
           },
-          HttpStatus.UNAUTHORIZED,
+          HttpStatus.CONFLICT,
         );
       }
 
@@ -252,19 +252,18 @@ export class AuthController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ type: UserEntity })
   @Patch('logout')
   async logout(@Body() logoutAuthDto: LogoutAuthDto): Promise<UserEntity> {
     try {
       return await this.authService.logout({ logoutAuthDto });
     } catch (error) {
-      if (error.message === `Agent not found`) {
+      if (error.message === 'Agent not found') {
         throw new HttpException(
           {
             message: {
-              en: 'The specified agent is not found',
-              fr: "L'agent spécifié est introuvable",
+              en: 'No agents found for this email',
+              fr: 'Aucun agent trouvé pour cet e-mail',
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,
@@ -273,17 +272,30 @@ export class AuthController {
         );
       }
 
-      if (error.message === 'Invalid credentials') {
+      if (error.message === 'Account not found') {
         throw new HttpException(
           {
             message: {
-              en: 'Incorrect Email',
-              fr: 'Email incorrecte',
+              en: 'No account found for this email',
+              fr: 'Aucun compte trouvé pour cet e-mail',
             },
-            error: { en: 'Unauthorized', fr: 'Non Autorisé' },
-            statusCode: HttpStatus.UNAUTHORIZED,
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
           },
-          HttpStatus.UNAUTHORIZED,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      if (error.message === 'User offline') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Agent not online',
+              fr: 'Agent non connecté',
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
         );
       }
 
@@ -356,11 +368,6 @@ export class AuthController {
   @Permissions('admin')
   @Get('protected-route')
   async protectedRoute(@Req() req) {
-    // Access the authenticated user's data
-    const { userId, agentId, permissions } = req.user;
-
-    console.log({ userId: userId, agentId: agentId, permissions: permissions });
-
     // Your protected route logic here
     return { message: 'This is a protected resource' };
   }
