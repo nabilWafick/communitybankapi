@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateCollectorDto, UpdateCollectorDto } from './dto';
 import { Prisma, PrismaClient, Collector } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CollectorEntity, CollectorCountEntity } from './entities';
+import {
+  CollectorEntity,
+  CollectorCountEntity,
+  CollectorCollection,
+} from './entities';
 
 @Injectable()
 export class CollectorsService {
@@ -259,7 +263,7 @@ export class CollectorsService {
     take?: number;
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
-  }) {
+  }): Promise<CollectorCollection[]> {
     try {
       const collectionSumPerCollector = await this.prisma.collector.findMany({
         skip,
@@ -274,6 +278,7 @@ export class CollectorsService {
           collections: {
             select: {
               amount: true,
+              collectedAt: true,
             },
           },
 
@@ -283,17 +288,24 @@ export class CollectorsService {
         },
       });
 
-      const result = collectionSumPerCollector.map((collector) => ({
-        id: collector.id,
-        name: collector.name,
-        firstnames: collector.firstnames,
-        phoneNumber: collector.phoneNumber,
-        totalCollections: collector._count.collections,
-        totalAmount: collector.collections.reduce(
-          (sum, collection) => sum + collection.amount.toNumber(),
-          0,
-        ),
-      }));
+      const result = collectionSumPerCollector.map(
+        (collector) =>
+          new CollectorCollection(
+            collector.id,
+            collector.name,
+            collector.firstnames,
+            collector.phoneNumber,
+            collector._count.collections,
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.length > 0
+              ? collector.collections[collector.collections.length - 1]
+                  .collectedAt
+              : new Date(),
+          ),
+      );
 
       return result;
     } catch (error) {
@@ -325,7 +337,7 @@ export class CollectorsService {
     take?: number;
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
-  }) {
+  }): Promise<CollectorCollection[]> {
     try {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -355,6 +367,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                collectedAt: true,
               },
             },
             _count: {
@@ -372,17 +385,24 @@ export class CollectorsService {
           },
         });
 
-      const result = collectionSumPerCollectorThisDay.map((collector) => ({
-        id: collector.id,
-        name: collector.name,
-        firstnames: collector.firstnames,
-        phoneNumber: collector.phoneNumber,
-        totalCollectionsThisWeek: collector._count.collections,
-        totalAmountThisWeek: collector.collections.reduce(
-          (sum, collection) => sum + collection.amount.toNumber(),
-          0,
-        ),
-      }));
+      const result = collectionSumPerCollectorThisDay.map(
+        (collector) =>
+          new CollectorCollection(
+            collector.id,
+            collector.name,
+            collector.firstnames,
+            collector.phoneNumber,
+            collector._count.collections,
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.length > 0
+              ? collector.collections[collector.collections.length - 1]
+                  .collectedAt
+              : new Date(),
+          ),
+      );
       return result;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -413,7 +433,7 @@ export class CollectorsService {
     take?: number;
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
-  }) {
+  }): Promise<CollectorCollection[]> {
     try {
       const startOfWeek = new Date();
       startOfWeek.setHours(0, 0, 0, 0);
@@ -443,6 +463,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                collectedAt: true,
               },
             },
             _count: {
@@ -460,17 +481,24 @@ export class CollectorsService {
           },
         });
 
-      const result = collectionSumPerCollectorThisWeek.map((collector) => ({
-        id: collector.id,
-        name: collector.name,
-        firstnames: collector.firstnames,
-        phoneNumber: collector.phoneNumber,
-        totalCollectionsThisWeek: collector._count.collections,
-        totalAmountThisWeek: collector.collections.reduce(
-          (sum, collection) => sum + collection.amount.toNumber(),
-          0,
-        ),
-      }));
+      const result = collectionSumPerCollectorThisWeek.map(
+        (collector) =>
+          new CollectorCollection(
+            collector.id,
+            collector.name,
+            collector.firstnames,
+            collector.phoneNumber,
+            collector._count.collections,
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.length > 0
+              ? collector.collections[collector.collections.length - 1]
+                  .collectedAt
+              : new Date(),
+          ),
+      );
       return result;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -501,7 +529,7 @@ export class CollectorsService {
     take?: number;
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
-  }) {
+  }): Promise<CollectorCollection[]> {
     try {
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -535,6 +563,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                collectedAt: true,
               },
             },
             _count: {
@@ -552,17 +581,24 @@ export class CollectorsService {
           },
         });
 
-      const result = collectionSumPerCollectorThisMonth.map((collector) => ({
-        id: collector.id,
-        name: collector.name,
-        firstnames: collector.firstnames,
-        phoneNumber: collector.phoneNumber,
-        totalCollectionsThisMonth: collector._count.collections,
-        totalAmountThisMonth: collector.collections.reduce(
-          (sum, collection) => sum + collection.amount.toNumber(),
-          0,
-        ),
-      }));
+      const result = collectionSumPerCollectorThisMonth.map(
+        (collector) =>
+          new CollectorCollection(
+            collector.id,
+            collector.name,
+            collector.firstnames,
+            collector.phoneNumber,
+            collector._count.collections,
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.length > 0
+              ? collector.collections[collector.collections.length - 1]
+                  .collectedAt
+              : new Date(),
+          ),
+      );
 
       return result;
     } catch (error) {
@@ -594,7 +630,7 @@ export class CollectorsService {
     take?: number;
     where?: Prisma.CollectorWhereInput;
     orderBy?: Prisma.CollectorOrderByWithRelationInput;
-  }) {
+  }): Promise<CollectorCollection[]> {
     try {
       const startOfYear = new Date(new Date().getFullYear(), 0, 1);
       const endOfYear = new Date(
@@ -609,6 +645,10 @@ export class CollectorsService {
 
       const collectionSumPerCollectorThisYear =
         await this.prisma.collector.findMany({
+          skip,
+          take,
+          where,
+          orderBy,
           select: {
             id: true,
             name: true,
@@ -623,6 +663,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                collectedAt: true,
               },
             },
             _count: {
@@ -640,17 +681,24 @@ export class CollectorsService {
           },
         });
 
-      const result = collectionSumPerCollectorThisYear.map((collector) => ({
-        id: collector.id,
-        name: collector.name,
-        firstnames: collector.firstnames,
-        phoneNumber: collector.phoneNumber,
-        totalCollectionsThisYear: collector._count.collections,
-        totalAmountThisYear: collector.collections.reduce(
-          (sum, collection) => sum + collection.amount.toNumber(),
-          0,
-        ),
-      }));
+      const result = collectionSumPerCollectorThisYear.map(
+        (collector) =>
+          new CollectorCollection(
+            collector.id,
+            collector.name,
+            collector.firstnames,
+            collector.phoneNumber,
+            collector._count.collections,
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.length > 0
+              ? collector.collections[collector.collections.length - 1]
+                  .collectedAt
+              : new Date(),
+          ),
+      );
 
       return result;
     } catch (error) {

@@ -10,6 +10,7 @@ import {
   CreateStockRetrocessionDto,
   UpdateStockManualInputDto,
   UpdateStockManualOutputDto,
+  CheckCardProductsAvailabilityDto,
 } from './dto';
 import { StockEntity, StockCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
@@ -144,7 +145,6 @@ export class StocksService {
 
   async retrocedeProducts({
     cardId,
-
     agentId,
   }: {
     // the card to satisfied by normal or constrained outpu
@@ -356,6 +356,44 @@ export class StocksService {
   }
 
   /// ******* MAIN FUNCTIONS ******* ///
+
+  async checkCardsProductsAvailibility({
+    checkCardProductsAvailabilityDto,
+  }: {
+    checkCardProductsAvailabilityDto: CheckCardProductsAvailabilityDto;
+  }): Promise<StockCountEntity> {
+    // check if the provided card ID exist
+    const card = await this.prisma.card.findUnique({
+      where: { id: checkCardProductsAvailabilityDto.cardId },
+      include: {
+        type: {
+          include: {
+            typeProducts: true,
+          },
+        },
+      },
+    });
+
+    // throw an error if not
+    if (!card) {
+      throw Error(`Card not found`);
+    }
+
+    const productsIds = card.type.typeProducts.map(
+      (typeProduct) => typeProduct.productId,
+    );
+
+    const productsNumbers = card.type.typeProducts.map(
+      (typeProduct) => card.typesNumber * typeProduct.productNumber,
+    );
+
+    const areProductsAvailable = await this.checkProductsStocksAvailability({
+      productsIds: productsIds,
+      productsOutputQuantities: productsNumbers,
+    });
+
+    return { count: areProductsAvailable ? 1 : 0 };
+  }
 
   async createStockManualInput({
     createStockManualInputDto,
@@ -600,7 +638,7 @@ export class StocksService {
           (productType) => productType.productId,
         ),
         productsOutputQuantities: card.type.typeProducts.map(
-          (productType) => productType.productNumber,
+          (productType) => card.typesNumber * productType.productNumber,
         ),
       });
 

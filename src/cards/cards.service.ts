@@ -244,6 +244,8 @@ export class CardsService {
       const cardWithID = await this.prisma.card.findUnique({
         where: { id },
         include: {
+          type: true,
+
           settlements: true,
         },
       });
@@ -299,8 +301,8 @@ export class CardsService {
       // check if the type would be update
       if (updateCardDto.typeId) {
         if (cardWithID.typeId != updateCardDto.typeId) {
-          // check if a settlement have be done on customer card
-          if (cardWithID.settlements.length > 0) {
+          // check if the provided type stake is different to the stake of the provided type
+          if (cardWithID.type.stake != type.stake) {
             throw 'Type Immutable';
           }
         }
@@ -311,16 +313,16 @@ export class CardsService {
         where: { id: updateCardDto.customerId },
       });
 
+      // throw an error if not
+      if (!customer) {
+        throw Error(`Customer not found`);
+      }
+
       if (cardWithID.customerId != updateCardDto.customerId) {
         // check if a settlement have be done on customer card
         if (cardWithID.settlements.length > 0) {
           throw 'Customer Immutable';
         }
-      }
-
-      // throw an error if not
-      if (!customer) {
-        throw Error(`Customer not found`);
       }
 
       // check if repaid date if provided is valid

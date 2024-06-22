@@ -14,7 +14,11 @@ import {
 import { CollectorsService } from './collectors.service';
 import { CreateCollectorDto, UpdateCollectorDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { CollectorEntity, CollectorCountEntity } from './entities';
+import {
+  CollectorEntity,
+  CollectorCountEntity,
+  CollectorCollection,
+} from './entities';
 import { Prisma } from '@prisma/client';
 
 @Controller('collectors')
@@ -647,7 +651,7 @@ export class CollectorsController {
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.CollectorWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
-  ) {
+  ): Promise<CollectorCollection[]> {
     try {
       return await this.collectorsService.getGlobalCollections({
         skip,
@@ -741,7 +745,7 @@ export class CollectorsController {
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.CollectorWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
-  ) {
+  ): Promise<CollectorCollection[]> {
     try {
       return await this.collectorsService.getDayCollections({
         skip,
@@ -835,7 +839,7 @@ export class CollectorsController {
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.CollectorWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
-  ) {
+  ): Promise<CollectorCollection[]> {
     try {
       return await this.collectorsService.getWeekCollections({
         skip,
@@ -929,7 +933,7 @@ export class CollectorsController {
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.CollectorWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
-  ) {
+  ): Promise<CollectorCollection[]> {
     try {
       return await this.collectorsService.getMonthCollections({
         skip,
@@ -1023,7 +1027,7 @@ export class CollectorsController {
     @Query('take', ParseIntPipe) take?: number,
     @Query('where') where?: Prisma.CollectorWhereInput,
     @Query('orderBy') orderBy?: Prisma.CollectorOrderByWithRelationInput,
-  ) {
+  ): Promise<CollectorCollection[]> {
     try {
       return await this.collectorsService.getYearCollections({
         skip,

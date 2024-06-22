@@ -7,6 +7,7 @@ import { isDateString } from 'class-validator';
 import { equal } from 'assert';
 import { AjustCollectionAmount } from './dto/ajust-collection-amount.dto';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { CollectorCountEntity } from 'src/collectors/entities';
 
 @Injectable()
 export class CollectionsService {
@@ -155,6 +156,56 @@ export class CollectionsService {
     }
   }
 
+  async sumAll(): Promise<CollectionCountEntity> {
+    try {
+      // find all collections
+      const collectionsSum = await this.prisma.collection.aggregate({
+        _sum: {
+          amount: true,
+        },
+      });
+
+      // return collections count
+      return { count: collectionsSum._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async sumAllRest(): Promise<CollectionCountEntity> {
+    try {
+      // find all collections
+      const collectionsRestSum = await this.prisma.collection.aggregate({
+        _sum: {
+          rest: true,
+        },
+      });
+
+      // return collections count
+      return { count: collectionsRestSum._sum.rest.toNumber() };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
   async countSpecific({
     skip,
     take,
@@ -180,6 +231,92 @@ export class CollectionsService {
 
       // return collections count
       return { count: specificCollectionsCount };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async sumSpecific({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.CollectionWhereUniqueInput;
+    where?: Prisma.CollectionWhereInput;
+    orderBy?: Prisma.CollectionOrderByWithRelationInput;
+  }): Promise<CollectionCountEntity> {
+    try {
+      // find specific collections
+      const specificCollectionsSum = await this.prisma.collection.aggregate({
+        skip: 0,
+        take: (await this.countAll()).count,
+        cursor,
+        where: transformWhereInput(where),
+        orderBy,
+        _sum: {
+          amount: true,
+        },
+      });
+
+      // return collections count
+      return { count: specificCollectionsSum._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async sumSpecificRest({
+    skip,
+    take,
+    cursor,
+    where,
+    orderBy,
+  }: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.CollectionWhereUniqueInput;
+    where?: Prisma.CollectionWhereInput;
+    orderBy?: Prisma.CollectionOrderByWithRelationInput;
+  }): Promise<CollectionCountEntity> {
+    try {
+      // find specific collections
+      const specificCollectionsRestSum = await this.prisma.collection.aggregate(
+        {
+          skip: 0,
+          take: (await this.countAll()).count,
+          cursor,
+          where: transformWhereInput(where),
+          orderBy,
+          _sum: {
+            rest: true,
+          },
+        },
+      );
+
+      // return collections count
+      return { count: specificCollectionsRestSum._sum.rest.toNumber() };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -486,6 +623,181 @@ export class CollectionsService {
       // return removed collection
       return collectionWithID;
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getDayCollection(): Promise<CollectorCountEntity> {
+    try {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      startOfDay.setDate(startOfDay.getDate() - startOfDay.getDay());
+
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 6);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const collectionSumDay = await this.prisma.collection.aggregate({
+        where: {
+          collectedAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      });
+
+      return { count: collectionSumDay._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getWeekCollection(): Promise<CollectorCountEntity> {
+    try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      const collectionSumWeek = await this.prisma.collection.aggregate({
+        where: {
+          collectedAt: {
+            gte: startOfWeek,
+            lte: endOfWeek,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      });
+
+      return { count: collectionSumWeek._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getMonthCollection(): Promise<CollectorCountEntity> {
+    try {
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const collectionSumMonth = await this.prisma.collection.aggregate({
+        where: {
+          collectedAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      });
+
+      return { count: collectionSumMonth._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async getYearCollection(): Promise<CollectorCountEntity> {
+    try {
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+      const endOfYear = new Date(
+        new Date().getFullYear(),
+        11,
+        31,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const collectionSumYear = await this.prisma.collection.aggregate({
+        where: {
+          collectedAt: {
+            gte: startOfYear,
+            lte: endOfYear,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      });
+
+      return { count: collectionSumYear._sum.amount.toNumber() ?? 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Records not found');
+        }
+      }
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
       }
