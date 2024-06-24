@@ -17,6 +17,7 @@ import { CollectionsModule } from './collections/collections.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { StocksModule } from './stocks/stocks.module';
 import { CustomersModule } from './customers/customers.module';
+import { SocketGateway } from './common/socket/socket.gateway';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,5 +41,6 @@ import { CustomersModule } from './customers/customers.module';
     TransfersModule,
     TypesModule,
   ],
+  providers: [SocketGateway],
 })
 export class AppModule {}

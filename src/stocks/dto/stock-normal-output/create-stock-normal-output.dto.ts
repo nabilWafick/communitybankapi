@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsPositive, NotEquals } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsPositive,
+  NotEquals,
+} from 'class-validator';
 
 export class CreateStockNormalOutputDto {
   @IsInt({ message: 'Card ID must be an integer' })
@@ -13,4 +19,9 @@ export class CreateStockNormalOutputDto {
   @IsPositive({ message: 'Agent ID must be positive' })
   @ApiProperty()
   agentId: number;
+
+  @IsDateString({}, { message: 'Satisfaction Date must be a ISO8601String' })
+  @IsNotEmpty({ message: 'Satisfaction Date must not be empty' })
+  @ApiProperty()
+  satisfiedAt: string;
 }

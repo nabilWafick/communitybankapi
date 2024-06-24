@@ -33,7 +33,7 @@ export class StocksController {
 
   @Get('card/products/availability')
   @ApiOkResponse({ type: StockCountEntity })
-  async chec(
+  async checkCardsProductsAvailibility(
     @Body() checkCardProductsAvailabilityDto: CheckCardProductsAvailabilityDto,
   ): Promise<StockCountEntity> {
     try {
@@ -74,7 +74,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -91,7 +91,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -107,7 +107,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -120,7 +120,7 @@ export class StocksController {
     }
   }
 
-  @Post('/manual/input')
+  @Post('manual/input')
   @ApiCreatedResponse({ type: StockEntity })
   async createStockManualInput(
     @Body() createStockManualInputDto: CreateStockManualInputDto,
@@ -177,7 +177,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -194,7 +194,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -210,7 +210,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -223,8 +223,8 @@ export class StocksController {
     }
   }
 
-  @Post('/card/retrocession')
-  @ApiCreatedResponse({ type: StockEntity })
+  @Post('card/retrocession')
+  @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockRetrocession(
     @Body() createStockRetrocessionDto: CreateStockRetrocessionDto,
   ): Promise<StockEntity[]> {
@@ -251,8 +251,8 @@ export class StocksController {
         throw new HttpException(
           {
             message: {
-              en: 'It is not possible to make more than one transfer to the same card in one hour',
-              fr: "Il n'est pas possible d'effectuer plus d'un virement vers la même carte en une heure.",
+              en: 'It is not possible to make more than one retrocession from the same card in one hour',
+              fr: "Il n'est pas possible d'effectuer plus d'une retrocession de la même carte en une heure.",
             },
             error: { en: 'Conflict', fr: 'Conflit' },
             statusCode: HttpStatus.CONFLICT,
@@ -336,7 +336,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -353,7 +353,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -369,7 +369,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -382,7 +382,7 @@ export class StocksController {
     }
   }
 
-  @Post('/manual/output')
+  @Post('manual/output')
   @ApiCreatedResponse({ type: StockEntity })
   async createStockManualOutput(
     @Body() createStockManualOutputDto: CreateStockManualOutputDto,
@@ -467,7 +467,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -484,7 +484,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -500,7 +500,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -513,8 +513,8 @@ export class StocksController {
     }
   }
 
-  @Post('/card/normal/satisfaction')
-  @ApiCreatedResponse({ type: StockEntity })
+  @Post('card/normal/satisfaction')
+  @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockNormalOutput(
     @Body() createStockNormalOutputDto: CreateStockNormalOutputDto,
   ): Promise<StockEntity[]> {
@@ -565,6 +565,20 @@ export class StocksController {
         );
       }
 
+      if (error.message === 'All settlements not done') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'All settlements of the card have not be done',
+              fr: "Tous les règlements de la carte n'ont pas été éffectués",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {
@@ -584,7 +598,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -601,7 +615,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -617,7 +631,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -630,8 +644,8 @@ export class StocksController {
     }
   }
 
-  @Post('/card/constrained/satisfaction')
-  @ApiCreatedResponse({ type: StockEntity })
+  @Post('card/constrained/satisfaction')
+  @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockConstrainedOutput(
     @Body() createStockConstrainedOutputDto: CreateStockConstrainedOutputDto,
   ): Promise<StockEntity[]> {
@@ -699,6 +713,20 @@ export class StocksController {
         );
       }
 
+      if (error.message === 'All settlements not done') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'All settlements of the card have not be done',
+              fr: "Tous les règlements de la carte n'ont pas été éffectués",
+            },
+            error: { en: 'Conflict', fr: 'Conflit' },
+            statusCode: HttpStatus.CONFLICT,
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
           {
@@ -718,7 +746,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -735,7 +763,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -751,7 +779,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -803,7 +831,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -820,7 +848,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -836,7 +864,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -900,7 +928,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -917,7 +945,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -933,7 +961,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -1100,7 +1128,7 @@ export class StocksController {
     }
   }
 
-  @Patch('/manual/input/:id')
+  @Patch('manual/input/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualInput(
     @Param('id', ParseIntPipe) id: number,
@@ -1201,7 +1229,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1218,7 +1246,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1234,7 +1262,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -1247,7 +1275,7 @@ export class StocksController {
     }
   }
 
-  @Patch('/manual/output/:id')
+  @Patch('manual/output/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualOutput(
     @Param('id', ParseIntPipe) id: number,
@@ -1390,7 +1418,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1407,7 +1435,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1423,7 +1451,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -1489,7 +1517,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1506,7 +1534,7 @@ export class StocksController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est stocke sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -1522,7 +1550,7 @@ export class StocksController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est stocke sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',

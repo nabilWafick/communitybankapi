@@ -6,7 +6,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { error } from 'console';
+import { WsAdapter } from '@nestjs/platform-ws';
+
 import { UnauthorizedExceptionFilter } from './auth/exceptions_filters/unauthorized.exception';
 
 async function bootstrap() {
@@ -35,6 +36,8 @@ async function bootstrap() {
       stopAtFirstError: true,
     }),
   );
+
+  app.useWebSocketAdapter(new WsAdapter(app));
 
   const config = new DocumentBuilder()
     .setTitle('Community Bank')

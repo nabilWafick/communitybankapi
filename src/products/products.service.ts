@@ -4,10 +4,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { ProductCountEntity, ProductEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createProductDto,
@@ -33,9 +37,17 @@ export class ProductsService {
       }
 
       // create a new product
-      return this.prisma.product.create({
+      const newProduct = await this.prisma.product.create({
         data: createProductDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'addition',
+        data: newProduct,
+      });
+
+      return newProduct;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -358,7 +370,7 @@ export class ProductsService {
 
       console.log(result);
 
-      return result
+      return result;
     } catch (error) {
       console.error('Error calling get_product_forecast:', error);
       throw error;

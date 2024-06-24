@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMinSize,
   IsArray,
+  IsDateString,
   IsInt,
+  IsNotEmpty,
   IsPositive,
   NotEquals,
 } from 'class-validator';
@@ -10,14 +12,14 @@ import {
 export class CreateStockConstrainedOutputDto {
   @IsArray({ message: 'Products Ids must be an array' })
   @IsInt({ each: true, message: 'Products Ids must contain only integer' })
-  @ArrayMinSize(1, { message: 'Produsts Ids must contain a least 1 ID' })
+  @ArrayMinSize(1, { message: 'Products Ids must contain a least 1 ID' })
   @ApiProperty()
   productsIds: number[];
 
   @IsArray({ message: 'Products Numbers must be an array' })
   @IsInt({ each: true, message: 'Products Numbers must contain only integer' })
   @ArrayMinSize(1, {
-    message: 'Produsts Numbers must contain a least 1 number',
+    message: 'Products Numbers must contain a least 1 number',
   })
   @ApiProperty()
   productsOutputQuantities: number[];
@@ -33,4 +35,9 @@ export class CreateStockConstrainedOutputDto {
   @IsPositive({ message: 'Agent ID must be positive' })
   @ApiProperty()
   agentId: number;
+
+  @IsDateString({}, { message: 'Satisfaction Date must be a ISO8601String' })
+  @IsNotEmpty({ message: 'Satisfaction Date must not be empty' })
+  @ApiProperty()
+  satisfiedAt: string;
 }

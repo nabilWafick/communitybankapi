@@ -72,6 +72,7 @@ export class StocksService {
     productsOutputQuantities,
     outputType,
     agentId,
+    satisfiedAt,
   }: {
     // the card to satisfied by normal or constrained outpu
     card: Card;
@@ -83,8 +84,13 @@ export class StocksService {
     outputType: string;
     // agent Id (necessary for creating new stocks)
     agentId: number;
+    // satisfaction date
+    satisfiedAt: string;
   }): Promise<StockEntity[]> {
-    let newStocks: StockEntity[];
+    // TODO
+    // fix errors
+
+    let newStocks: StockEntity[] = [];
     for (let i = 0; i < productsIds.length; i++) {
       // get the last product stock
       const productStocks = await this.prisma.stock.findMany({
@@ -94,6 +100,8 @@ export class StocksService {
         },
         take: 1,
       });
+
+      // console.log({ productStocks: productStocks });
 
       const lastProductStock = productStocks[0];
 
@@ -108,18 +116,16 @@ export class StocksService {
             lastProductStock.stockQuantity - productsOutputQuantities[i],
           movementType: outputType,
           agentId: agentId,
+          createdAt: new Date(satisfiedAt),
         },
         include: {
           product: true,
           card: {
             include: {
-              type: {
+              type: true,
+              customer: {
                 include: {
-                  typeProducts: {
-                    include: {
-                      product: true,
-                    },
-                  },
+                  collector: true,
                 },
               },
             },
@@ -135,7 +141,7 @@ export class StocksService {
         id: card.id,
       },
       data: {
-        satisfiedAt: new Date().toISOString(),
+        satisfiedAt: new Date(satisfiedAt),
         updatedAt: new Date().toISOString(),
       },
     });
@@ -153,7 +159,7 @@ export class StocksService {
     // agent Id (necessary for creating new input)
     agentId: number;
   }): Promise<StockEntity[]> {
-    let newStocks: StockEntity[];
+    let newStocks: StockEntity[] = [];
 
     // get the corresponding card
     let card = await this.prisma.card.findUnique({
@@ -171,7 +177,7 @@ export class StocksService {
 
     // get the last output done for the card
     // so as to know if it is a normal ou constrained output
-    const lastCardStockOutputs = await this.prisma.stock.findMany({
+    const cardStockOutputs = await this.prisma.stock.findMany({
       where: {
         cardId: card.id,
         outputQuantity: {
@@ -185,7 +191,7 @@ export class StocksService {
 
     // get the last
     const lastCardStockOutput =
-      lastCardStockOutputs.length > 0 ? lastCardStockOutputs[0] : null;
+      cardStockOutputs.length > 0 ? cardStockOutputs[0] : null;
 
     // check if it is a normal or constrained output
     if (lastCardStockOutput.movementType === StockOutputType.normal) {
@@ -216,10 +222,14 @@ export class StocksService {
         newStocks[i] = await this.prisma.stock.create({
           data: {
             productId: productLastStock.productId,
+            cardId: cardId,
             initialQuantity: productLastStock.stockQuantity,
-            inputQuantity: productLastStock.outputQuantity,
+            // input quantity is the number of product defined for the card
+            inputQuantity:
+              card.typesNumber * card.type.typeProducts[i].productNumber,
             stockQuantity:
-              productLastStock.stockQuantity + productLastStock.outputQuantity,
+              productLastStock.stockQuantity +
+              card.typesNumber * card.type.typeProducts[i].productNumber,
             movementType: StockInputType.retrocession,
             agentId: agentId,
           },
@@ -227,7 +237,7 @@ export class StocksService {
             product: true,
             card: {
               include: {
-                type: {
+                type: true /*{
                   include: {
                     typeProducts: {
                       include: {
@@ -235,7 +245,8 @@ export class StocksService {
                       },
                     },
                   },
-                },
+                },*/,
+                customer: true,
               },
             },
             agent: true,
@@ -252,25 +263,48 @@ export class StocksService {
       // output, in case of constrained output, any product can be outputed
       // for satisfying the card, it will be very difficult to identify
       // the products outputed for satisfying the card if multiple retrocession
-      // are make the same hour
+      // are made the same hour
+      // For exemple, it will be difficult to make a retrocession in mutiple constrained satisfaction trying, discarding
+
+      // check if one retrocession have done from the card in the current hour
+
+      // get the last retrocession done for the card
+      // so as to know if it have done in this hour
+      const cardStockRetrocessions = await this.prisma.stock.findMany({
+        where: {
+          cardId: card.id,
+          movementType: StockInputType.retrocession,
+        },
+        orderBy: {
+          id: 'desc',
+        },
+      });
+
+      const lastCardStockRetrocession =
+        cardStockRetrocessions.length > 0 ? cardStockRetrocessions[0] : null;
+
       if (
-        lastCardStockOutput.createdAt.getFullYear() ===
+        lastCardStockRetrocession &&
+        lastCardStockRetrocession.createdAt.getFullYear() ===
           new Date().getFullYear() &&
-        lastCardStockOutput.createdAt.getMonth() === new Date().getMonth() &&
-        lastCardStockOutput.createdAt.getDate() === new Date().getDate() &&
-        lastCardStockOutput.createdAt.getHours() === new Date().getHours()
+        lastCardStockRetrocession.createdAt.getMonth() ===
+          new Date().getMonth() &&
+        lastCardStockRetrocession.createdAt.getDate() ===
+          new Date().getDate() &&
+        lastCardStockRetrocession.createdAt.getHours() === new Date().getHours()
       ) {
         throw Error('Multiple retrocession per hour impossible');
       } else {
         // last retrocession done is not at this hours
 
-        // fetch all products outputed for the card that hours
+        // fetch all products outputed for the card at the hour of satisfaction date
         const productsOutputedStock = await this.prisma.stock.findMany({
           where: {
             cardId: card.id,
             outputQuantity: {
               not: null,
             },
+
             movementType: StockOutputType.constraint,
             createdAt: {
               gte: new Date(
@@ -280,7 +314,7 @@ export class StocksService {
                 card.satisfiedAt.getHours(),
                 0,
                 0,
-              ).toISOString(),
+              ),
               lt: new Date(
                 card.satisfiedAt.getFullYear(),
                 card.satisfiedAt.getMonth(),
@@ -288,7 +322,7 @@ export class StocksService {
                 card.satisfiedAt.getHours() + 1,
                 0,
                 0,
-              ).toISOString(),
+              ),
             },
           },
         });
@@ -303,6 +337,8 @@ export class StocksService {
           // product exists
 
           // for each product stock, make a retrocession,
+
+          /// *** TESTING *** ///
 
           for (let i = 0; i < productsOutputedStock.length; i++) {
             const productOutputedStock = productsOutputedStock[i];
@@ -327,6 +363,7 @@ export class StocksService {
             newStocks[i] = await this.prisma.stock.create({
               data: {
                 productId: productLastStock.productId,
+                cardId: cardId,
                 initialQuantity: productLastStock.stockQuantity,
                 inputQuantity: productOutputedStock.outputQuantity,
                 stockQuantity:
@@ -334,6 +371,20 @@ export class StocksService {
                   productOutputedStock.outputQuantity,
                 movementType: StockInputType.retrocession,
                 agentId: agentId,
+              },
+              include: {
+                product: true,
+                card: {
+                  include: {
+                    type: true,
+                    customer: {
+                      include: {
+                        collector: true,
+                      },
+                    },
+                  },
+                },
+                agent: true,
               },
             });
           }
@@ -624,6 +675,7 @@ export class StocksService {
               typeProducts: true,
             },
           },
+          settlements: true,
         },
       });
 
@@ -632,7 +684,22 @@ export class StocksService {
         throw Error(`Card not found`);
       }
 
-      // check all the product availability
+      // fetch all validated settlements of the card
+      const cardValidatedSettlements = card.settlements.filter(
+        (settlement) => settlement.isValidated,
+      );
+
+      // calculate the total of validated settlements
+      const cardValidatedSettlementsTotal = cardValidatedSettlements.reduce(
+        (total, settlement) => total + settlement.number,
+        0,
+      );
+
+      if (cardValidatedSettlementsTotal != 372) {
+        throw new Error('All settlements not done');
+      }
+
+      // check if all the product availability
       const isAllProductsAvailable = this.checkProductsStocksAvailability({
         productsIds: card.type.typeProducts.map(
           (productType) => productType.productId,
@@ -655,10 +722,11 @@ export class StocksService {
           (productType) => productType.productId,
         ),
         productsOutputQuantities: card.type.typeProducts.map(
-          (productType) => productType.productNumber,
+          (productType) => card.typesNumber * productType.productNumber,
         ),
         outputType: StockOutputType.normal,
         agentId: createStockNormalOutputDto.agentId,
+        satisfiedAt: createStockNormalOutputDto.satisfiedAt,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -680,6 +748,10 @@ export class StocksService {
     createStockConstrainedOutputDto: CreateStockConstrainedOutputDto;
   }): Promise<StockEntity[]> {
     try {
+      /*console.log({
+        dto: createStockConstrainedOutputDto,
+      });*/
+
       // check if the provided agent ID exist
       const agent = await this.prisma.agent.findUnique({
         where: { id: createStockConstrainedOutputDto.agentId },
@@ -695,6 +767,7 @@ export class StocksService {
         where: { id: createStockConstrainedOutputDto.cardId },
         include: {
           type: true,
+          settlements: true,
         },
       });
 
@@ -702,6 +775,23 @@ export class StocksService {
       if (!card) {
         throw Error(`Card not found`);
       }
+
+      // fetch all validated settlements of the card
+      const cardValidatedSettlements = card.settlements.filter(
+        (settlement) => settlement.isValidated,
+      );
+
+      // calculate the total of validated settlements
+      const cardValidatedSettlementsTotal = cardValidatedSettlements.reduce(
+        (total, settlement) => total + settlement.number,
+        0,
+      );
+
+      if (cardValidatedSettlementsTotal != 372) {
+        throw new Error('All settlements not done');
+      }
+
+      //  console.log('All settlements have been done');
 
       // check if prducts Ids and products outputed quantity
       // arrays have same size
@@ -716,17 +806,21 @@ export class StocksService {
       }
 
       // check all the product availability
-      const isAllProductsAvailable = this.checkProductsStocksAvailability({
-        productsIds: createStockConstrainedOutputDto.productsIds,
-        productsOutputQuantities:
-          createStockConstrainedOutputDto.productsOutputQuantities,
-      });
+      const isAllProductsAvailable = await this.checkProductsStocksAvailability(
+        {
+          productsIds: createStockConstrainedOutputDto.productsIds,
+          productsOutputQuantities:
+            createStockConstrainedOutputDto.productsOutputQuantities,
+        },
+      );
 
       // throw error, if one of products are not available in stock
       // or it astock quantity is not sufficient
       if (!isAllProductsAvailable) {
         throw Error('Products not available');
       }
+
+      //  console.log('All products are available');
 
       // make outputs
       return await this.outputProducts({
@@ -736,6 +830,7 @@ export class StocksService {
           createStockConstrainedOutputDto.productsOutputQuantities,
         outputType: StockOutputType.constraint,
         agentId: createStockConstrainedOutputDto.agentId,
+        satisfiedAt: createStockConstrainedOutputDto.satisfiedAt,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -776,13 +871,10 @@ export class StocksService {
           product: true,
           card: {
             include: {
-              type: {
+              type: true,
+              customer: {
                 include: {
-                  typeProducts: {
-                    include: {
-                      product: true,
-                    },
-                  },
+                  collector: true,
                 },
               },
             },
@@ -878,13 +970,10 @@ export class StocksService {
           product: true,
           card: {
             include: {
-              type: {
+              type: true,
+              customer: {
                 include: {
-                  typeProducts: {
-                    include: {
-                      product: true,
-                    },
-                  },
+                  collector: true,
                 },
               },
             },
