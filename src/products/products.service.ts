@@ -43,7 +43,7 @@ export class ProductsService {
 
       // emit addition event
       this.socketGateway.emitProductEvent({
-        event: 'addition',
+        event: 'product-addition',
         data: newProduct,
       });
 
@@ -278,10 +278,18 @@ export class ProductsService {
       }
 
       // update the product data
-      return await this.prisma.product.update({
+      const updatedProduct = await this.prisma.product.update({
         where: { id },
         data: { ...updateProductDto, updatedAt: new Date().toISOString() },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'product-update',
+        data: updatedProduct,
+      });
+
+      return updatedProduct;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -311,6 +319,12 @@ export class ProductsService {
       // remove the specified product
       const product = await this.prisma.product.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'product-deletion',
+        data: product,
       });
 
       // return removed product

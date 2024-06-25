@@ -6,10 +6,14 @@ import { CustomerEntity, CustomerCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 import { CardsService } from 'src/cards/cards.service';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createCustomerDto,
@@ -112,15 +116,27 @@ export class CustomersService {
         },
       });
 
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'customer-addition',
+        data: customer,
+      });
+
       // add customer cards
       for (const cardDto of createCustomerDto.cards) {
-        await this.prisma.card.create({
+        const newCard = await this.prisma.card.create({
           data: {
             label: cardDto.label,
             typesNumber: cardDto.typesNumber,
             typeId: cardDto.typeId,
             customerId: customer.id,
           },
+        });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'card-addition',
+          data: newCard,
         });
       }
 
@@ -424,10 +440,16 @@ export class CustomersService {
         },
       });
 
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'customer-update',
+        data: customer,
+      });
+
       // add new customer cards
       for (const cardDto of updateCustomerDto.cards) {
-        if (cardDto.id == null || cardDto.id == undefined)
-          await this.prisma.card.create({
+        if (cardDto.id == null || cardDto.id == undefined) {
+          const newCard = await this.prisma.card.create({
             data: {
               label: cardDto.label,
               typesNumber: cardDto.typesNumber,
@@ -435,6 +457,13 @@ export class CustomersService {
               customerId: customer.id,
             },
           });
+
+          // emit addition event
+          this.socketGateway.emitProductEvent({
+            event: 'card-addition',
+            data: newCard,
+          });
+        }
       }
 
       // return customer added
@@ -468,6 +497,12 @@ export class CustomersService {
       // remove the specified customer
       const customer = await this.prisma.customer.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'customer-deletion',
+        data: customer,
       });
 
       // return removed customer

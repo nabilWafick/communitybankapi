@@ -7,10 +7,14 @@ import {
   CollectorCountEntity,
   CollectorCollection,
 } from './entities';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class CollectorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createCollectorDto,
@@ -29,9 +33,17 @@ export class CollectorsService {
       }
 
       // create a new collector
-      return this.prisma.collector.create({
+      const newCollector = await this.prisma.collector.create({
         data: createCollectorDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'collector-addition',
+        data: newCollector,
+      });
+
+      return newCollector;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -204,10 +216,18 @@ export class CollectorsService {
       }
 
       // update the collector data
-      return await this.prisma.collector.update({
+      const updatedCollector = await this.prisma.collector.update({
         where: { id },
         data: { ...updateCollectorDto, updatedAt: new Date().toISOString() },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'collector-update',
+        data: updatedCollector,
+      });
+
+      return updatedCollector;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -236,6 +256,12 @@ export class CollectorsService {
 
       // remove the specified collector
       const collector = await this.prisma.collector.delete({ where: { id } });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'collector-deletion',
+        data: collector,
+      });
 
       // return removed collector
       return collector;

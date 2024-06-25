@@ -3,10 +3,14 @@ import { CreateModificationDto, UpdateModificationDto } from './dto';
 import { Prisma, PrismaClient, Modification } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ModificationEntity, ModificationCountEntity } from './entities';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class ModificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createModificationDto,
@@ -27,9 +31,17 @@ export class ModificationsService {
       }
 
       // create a new modification
-      return this.prisma.modification.create({
+      const newModification = await this.prisma.modification.create({
         data: createModificationDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'modification-addition',
+        data: newModification,
+      });
+
+      return newModification;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -206,10 +218,18 @@ export class ModificationsService {
       }
 
       // update the modification data
-      return await this.prisma.modification.update({
+      const updatedModification = await this.prisma.modification.update({
         where: { id },
         data: { ...updateModificationDto, updatedAt: new Date().toISOString() },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'modification-update',
+        data: updatedModification,
+      });
+
+      return updatedModification;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -239,6 +259,12 @@ export class ModificationsService {
       // remove the specified modification
       const modification = await this.prisma.modification.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'modification-deletion',
+        data: modification,
       });
 
       // return removed modification

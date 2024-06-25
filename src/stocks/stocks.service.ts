@@ -14,10 +14,14 @@ import {
 } from './dto';
 import { StockEntity, StockCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class StocksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async checkProductsStocksAvailability({
     productsIds,
@@ -133,10 +137,16 @@ export class StocksService {
           agent: true,
         },
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-addition',
+        data: newStocks[i],
+      });
     }
 
     // mark the card as satisfied
-    await this.prisma.card.update({
+    const updatedCard = await this.prisma.card.update({
       where: {
         id: card.id,
       },
@@ -144,6 +154,12 @@ export class StocksService {
         satisfiedAt: new Date(satisfiedAt),
         updatedAt: new Date().toISOString(),
       },
+    });
+
+    // emit update event
+    this.socketGateway.emitProductEvent({
+      event: 'card-update',
+      data: updatedCard,
     });
 
     return newStocks;
@@ -251,6 +267,12 @@ export class StocksService {
             },
             agent: true,
           },
+        });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'stock-addition',
+          data: newStocks[i],
         });
       }
     } else {
@@ -387,13 +409,19 @@ export class StocksService {
                 agent: true,
               },
             });
+
+            // emit addition event
+            this.socketGateway.emitProductEvent({
+              event: 'stock-addition',
+              data: newStocks[i],
+            });
           }
         }
       }
     }
 
     // pass satisfied at date to null
-    await this.prisma.card.update({
+    const updatedCard = await this.prisma.card.update({
       where: {
         id: card.id,
       },
@@ -401,6 +429,12 @@ export class StocksService {
         satisfiedAt: null,
         updatedAt: new Date().toISOString(),
       },
+    });
+
+    // emit update event
+    this.socketGateway.emitProductEvent({
+      event: 'card-update',
+      data: updatedCard,
     });
 
     return newStocks;
@@ -507,6 +541,12 @@ export class StocksService {
       // create a new stock
       const stock = await this.prisma.stock.create({
         data: newStock,
+      });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-addition',
+        data: stock,
       });
 
       return this.findOne({ id: stock.id });
@@ -633,6 +673,12 @@ export class StocksService {
             createStockManualOutputDto.outputQuantity,
           movementType: StockOutputType.manual,
         },
+      });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-addition',
+        data: stock,
       });
 
       return this.findOne({ id: stock.id });
@@ -1053,7 +1099,7 @@ export class StocksService {
       }
 
       // update the stock data
-      await this.prisma.stock.update({
+      const updatedStock = await this.prisma.stock.update({
         where: { id },
         data: {
           ...updateStockManualInputDto,
@@ -1063,6 +1109,12 @@ export class StocksService {
             updateStockManualInputDto.inputQuantity,
           updatedAt: new Date().toISOString(),
         },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-update',
+        data: updatedStock,
       });
 
       return this.findOne({ id });
@@ -1140,7 +1192,7 @@ export class StocksService {
       }
 
       // update the stock data
-      await this.prisma.stock.update({
+      const updatedStock = await this.prisma.stock.update({
         where: { id },
         data: {
           ...updateStockManualOutputDto,
@@ -1150,6 +1202,12 @@ export class StocksService {
             updateStockManualOutputDto.outputQuantity,
           updatedAt: new Date().toISOString(),
         },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-update',
+        data: updatedStock,
       });
 
       return this.findOne({ id });
@@ -1217,6 +1275,12 @@ export class StocksService {
       // remove the specified stock
       await this.prisma.stock.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'stock-deletion',
+        data: stockWithID,
       });
 
       // return removed stock

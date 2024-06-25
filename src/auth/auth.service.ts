@@ -5,12 +5,15 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Prisma } from '@prisma/client';
 import { UserEntity } from './entities/auth.entity';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+
+    private readonly socketGateway: SocketGateway,
   ) {}
 
   async register({
@@ -49,6 +52,12 @@ export class AuthService {
         include: {
           agent: true,
         },
+      });
+
+      // emit registration event
+      this.socketGateway.emitProductEvent({
+        event: 'auth-registration',
+        data: { ...user, password: '' },
       });
 
       return { ...user, password: '' };
@@ -135,6 +144,12 @@ export class AuthService {
         },
       });
 
+      // emit login event
+      this.socketGateway.emitProductEvent({
+        event: 'auth-login',
+        data: { ...user, password: '' },
+      });
+
       return { ...newUser, password: '' };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -191,6 +206,12 @@ export class AuthService {
         include: {
           agent: true,
         },
+      });
+
+      // emit logout event
+      this.socketGateway.emitProductEvent({
+        event: 'auth-logout',
+        data: { ...user, password: '' },
       });
 
       return { ...newUser, password: '' };

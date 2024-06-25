@@ -4,10 +4,14 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TypeEntity, TypeCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class TypesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createTypeDto,
@@ -68,18 +72,30 @@ export class TypesService {
         },
       });
 
+      // emit type event
+      this.socketGateway.emitProductEvent({
+        event: 'type-addition',
+        data: type,
+      });
+
       // create typeProducts
 
       for (let index = 0; index < createTypeDto.productsIds.length; index++) {
         const productId = createTypeDto.productsIds[index];
         const productNumber = createTypeDto.productsNumbers[index];
 
-        await this.prisma.typeProduct.create({
+        const newTypeProduct = await this.prisma.typeProduct.create({
           data: {
             typeId: type.id,
             productId,
             productNumber,
           },
+        });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'typeProduct-addition',
+          data: newTypeProduct,
         });
       }
 
@@ -318,6 +334,12 @@ export class TypesService {
         },
       });
 
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'type-update',
+        data: type,
+      });
+
       // remove all typeProducts added
       // remove instead of update because when a type is update a product of the
       // type can be remove (in front), so product passed to the api
@@ -331,29 +353,41 @@ export class TypesService {
         },
       });
 
-      // add new typeProducts
-      for (let index = 0; index < updateTypeDto.productsIds.length; index++) {
-        const productId = updateTypeDto.productsIds[index];
-        const productNumber = updateTypeDto.productsNumbers[index];
-
-        await this.prisma.typeProduct.create({
-          data: {
-            typeId: type.id,
-            productId,
-            productNumber,
-          },
-        });
-      }
-
       // delete every typeProducts records
       for (const typeProduct of typeProducts) {
-        await this.prisma.typeProduct.delete({
+        const typeProductDeleted = await this.prisma.typeProduct.delete({
           where: {
             typeId_productId: {
               typeId: typeProduct.typeId,
               productId: typeProduct.productId,
             },
           },
+        });
+
+        // emit deletion event
+        this.socketGateway.emitProductEvent({
+          event: 'typeProduct-deletion',
+          data: typeProductDeleted,
+        });
+      }
+
+      // add new typeProducts
+      for (let index = 0; index < updateTypeDto.productsIds.length; index++) {
+        const productId = updateTypeDto.productsIds[index];
+        const productNumber = updateTypeDto.productsNumbers[index];
+
+        const typeProduct = await this.prisma.typeProduct.create({
+          data: {
+            typeId: type.id,
+            productId,
+            productNumber,
+          },
+        });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'typeProduct-addition',
+          data: typeProduct,
         });
       }
 
@@ -385,9 +419,42 @@ export class TypesService {
         throw new Error(`Type with ID ${id} not found`);
       }
 
+      // remove all typeProducts related to that type
+
+      // get all typeProducts
+      const typeProducts = await this.prisma.typeProduct.findMany({
+        where: {
+          typeId: typeWithID.id,
+        },
+      });
+
+      // delete every typeProducts records
+      for (const typeProduct of typeProducts) {
+        const typeProductDeleted = await this.prisma.typeProduct.delete({
+          where: {
+            typeId_productId: {
+              typeId: typeProduct.typeId,
+              productId: typeProduct.productId,
+            },
+          },
+        });
+
+        // emit deletion event
+        this.socketGateway.emitProductEvent({
+          event: 'typeProduct-deletion',
+          data: typeProductDeleted,
+        });
+      }
+
       // remove the specified type
       const type = await this.prisma.type.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'type-deletion',
+        data: type,
       });
 
       // return removed type

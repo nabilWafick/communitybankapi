@@ -4,10 +4,15 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PersonalStatusEntity, PersonalStatusCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
+import { retry } from 'rxjs';
 
 @Injectable()
 export class PersonalStatusService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createPersonalStatusDto,
@@ -34,9 +39,17 @@ export class PersonalStatusService {
       }
 
       // create a new personalStatus
-      return this.prisma.personalStatus.create({
+      const newPersonalStatus = await this.prisma.personalStatus.create({
         data: createPersonalStatusDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'personalStatus-addition',
+        data: newPersonalStatus,
+      });
+
+      return newPersonalStatus;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -219,13 +232,21 @@ export class PersonalStatusService {
       }
 
       // update the personalStatus data
-      return await this.prisma.personalStatus.update({
+      const updatedPersonalStatus = await this.prisma.personalStatus.update({
         where: { id },
         data: {
           ...updatePersonalStatusDto,
           updatedAt: new Date().toISOString(),
         },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'personalStatus-update',
+        data: updatedPersonalStatus,
+      });
+
+      return updatedPersonalStatus;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -255,6 +276,12 @@ export class PersonalStatusService {
       // remove the specified personalStatus
       const personalStatus = await this.prisma.personalStatus.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'personalStatus-deletion',
+        data: personalStatus,
       });
 
       // return removed personalStatus

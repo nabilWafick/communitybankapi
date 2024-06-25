@@ -5,10 +5,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { TransferEntity, TransferCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class TransfersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createTransferDto,
@@ -139,6 +143,13 @@ export class TransfersService {
       const newTransfer = await this.prisma.transfer.create({
         data: createTransferDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'transfer-addition',
+        data: newTransfer,
+      });
+
       return this.findOne({ id: newTransfer.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -522,7 +533,7 @@ export class TransfersService {
         }
 
         // update issuing card, mark it as transfered
-        await this.prisma.card.update({
+        const issuingCardUpdated = await this.prisma.card.update({
           where: {
             id: issuingCard.id,
           },
@@ -532,8 +543,14 @@ export class TransfersService {
           },
         });
 
+        // emit update event
+        this.socketGateway.emitProductEvent({
+          event: 'card-update',
+          data: issuingCardUpdated,
+        });
+
         // add settlement to receiving card
-        await this.prisma.settlement.create({
+        const newSettlement = await this.prisma.settlement.create({
           data: {
             number: settlementsTransfer,
             cardId: receivingCard.id,
@@ -543,12 +560,24 @@ export class TransfersService {
             isValidated: true,
           },
         });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'settlement-addition',
+          data: newSettlement,
+        });
       }
 
       // update the transfer data
-      await this.prisma.transfer.update({
+      const updatedTransfer = await this.prisma.transfer.update({
         where: { id },
         data: { ...updateTransferDto, updatedAt: new Date().toISOString() },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'transfer-update',
+        data: updatedTransfer,
       });
 
       // return the updated transfer
@@ -620,7 +649,7 @@ export class TransfersService {
 
       if (transferWithID.validatedAt != null) {
         // update issuing card, mark it as not transfered
-        await this.prisma.card.update({
+        const issuingCardUpdated = await this.prisma.card.update({
           where: {
             id: transferWithID.issuingCardId,
           },
@@ -629,17 +658,35 @@ export class TransfersService {
           },
         });
 
+        // emit update event
+        this.socketGateway.emitProductEvent({
+          event: 'card-update',
+          data: issuingCardUpdated,
+        });
+
         // remove settlement added to receiving card
-        await this.prisma.settlement.deleteMany({
+        const settlementDeleted = await this.prisma.settlement.deleteMany({
           where: {
             transferId: transferWithID.id,
           },
         });
+
+        // emit deletion event
+        this.socketGateway.emitProductEvent({
+          event: 'settlement-deletion',
+          data: settlementDeleted,
+        });
       }
 
       // remove the specified transfer
-      await this.prisma.transfer.delete({
+      const transferDeleted = await this.prisma.transfer.delete({
         where: { id },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'transfer-deletion',
+        data: transferDeleted,
       });
 
       // return removed transfer

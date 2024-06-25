@@ -4,10 +4,14 @@ import { Prisma, PrismaClient, Category } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CategoryEntity, CategoryCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createCategoryDto,
@@ -33,9 +37,17 @@ export class CategoriesService {
       }
 
       // create a new Category
-      return this.prisma.category.create({
+      const newCategory = await this.prisma.category.create({
         data: createCategoryDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'category-addition',
+        data: newCategory,
+      });
+
+      return newCategory;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -217,10 +229,18 @@ export class CategoriesService {
       }
 
       // update the Category data
-      return await this.prisma.category.update({
+      const updatedCategory = await this.prisma.category.update({
         where: { id },
         data: { ...updateCategoryDto, updatedAt: new Date().toISOString() },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'category-update',
+        data: updatedCategory,
+      });
+
+      return updatedCategory;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -249,6 +269,12 @@ export class CategoriesService {
 
       // remove the specified Category
       const category = await this.prisma.category.delete({ where: { id } });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'category-deletion',
+        data: category,
+      });
 
       // return removed Category
       return category;

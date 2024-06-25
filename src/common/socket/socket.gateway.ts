@@ -12,11 +12,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('Client connected');
+    // console.log('Client connected');
   }
 
   handleDisconnect(client: any) {
-    console.log('Client disconnected');
+    //  console.log('Client disconnected');
   }
 
   emitProductEvent({ event, data }: { event: string; data: any }): void {

@@ -4,9 +4,13 @@ import { Prisma, PrismaClient, Agent } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgentEntity, AgentCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 @Injectable()
 export class AgentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createAgentDto,
@@ -35,13 +39,21 @@ export class AgentsService {
       }
 
       // create a new agent
-      return this.prisma.agent.create({
+      const newAgent = await this.prisma.agent.create({
         data: {
           ...createAgentDto,
           permissions: JSON.parse(createAgentDto.permissions.toString()),
           views: JSON.parse(createAgentDto.views.toString()),
         },
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'agent-addition',
+        data: newAgent,
+      });
+
+      return newAgent;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -224,7 +236,7 @@ export class AgentsService {
       }
 
       // update the agent data
-      return await this.prisma.agent.update({
+      const updatedAgent = await this.prisma.agent.update({
         where: { id },
         data: {
           ...updateAgentDto,
@@ -233,6 +245,14 @@ export class AgentsService {
           updatedAt: new Date().toISOString(),
         },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'agent-update',
+        data: updatedAgent,
+      });
+
+      return updatedAgent;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -261,6 +281,12 @@ export class AgentsService {
 
       // remove the specified agent
       const agent = await this.prisma.agent.delete({ where: { id } });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'agent-deletion',
+        data: agent,
+      });
 
       // return removed agent
       return agent;

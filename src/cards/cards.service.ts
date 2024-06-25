@@ -5,10 +5,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CardEntity, CardCountEntity } from './entities';
 import { isDateString } from 'class-validator';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class CardsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createCardDto,
@@ -52,9 +56,17 @@ export class CardsService {
       }
 
       // create a new card
-      return this.prisma.card.create({
+      const newCard = await this.prisma.card.create({
         data: createCardDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'card-addition',
+        data: newCard,
+      });
+
+      return newCard;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -335,7 +347,7 @@ export class CardsService {
       }
 
       // update the card data
-      await this.prisma.card.update({
+      const updatedCard = await this.prisma.card.update({
         where: { id },
         data: {
           label: updateCardDto.label,
@@ -345,6 +357,12 @@ export class CardsService {
           repaidAt: updateCardDto.repaidAt,
           updatedAt: new Date().toISOString(),
         },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'card-update',
+        data: updatedCard,
       });
 
       return this.findOne({ id: id });
@@ -377,6 +395,12 @@ export class CardsService {
       // remove the specified card
       const card = await this.prisma.card.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'card-deletion',
+        data: card,
       });
 
       // return removed card

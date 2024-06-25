@@ -11,10 +11,14 @@ import {
   transformWhereInput,
   transformQueryParams,
 } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class SettlementsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async isSettlementDtoDataValid({
     createSettlementDto,
@@ -44,6 +48,22 @@ export class SettlementsService {
         type: true,
       },
     });
+
+    // fetch all validated settlements of the customer card
+    const validatedSettlements = card.settlements.filter(
+      (settlement) => settlement.isValidated,
+    );
+
+    // calculate the total of validated settlements
+    const validatedSettlementsTotal = validatedSettlements.reduce(
+      (total, settlement) => total + settlement.number,
+      0,
+    );
+
+    // throw an error if this could lead to excessive settlement
+    if (validatedSettlementsTotal + createSettlementDto.number > 372) {
+      throw Error('Risk of over settlement');
+    }
 
     // throw an error if not
     if (!card) {
@@ -195,16 +215,28 @@ export class SettlementsService {
       );
 
       // update the collection
-      await this.prisma.collection.update({
+      const updatedCollection = await this.prisma.collection.update({
         where: {
           id: collection.id,
         },
         data: { rest: collectionRest, updatedAt: new Date() },
       });
 
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'collection-update',
+        data: updatedCollection,
+      });
+
       // create a new settlement
       const settlement = await this.prisma.settlement.create({
         data: createSettlementDto,
+      });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'settlement-addition',
+        data: settlement,
       });
 
       // return created settlement
@@ -258,7 +290,6 @@ export class SettlementsService {
         }
 
         // get collection data
-        // check if the provided collection ID exist
         const collection = await this.prisma.collection.findUnique({
           where: {
             id: createMultipleSettlementsDto.settlements[0].collectionId,
@@ -276,8 +307,53 @@ export class SettlementsService {
       let settlements: SettlementEntity[] = [];
 
       for (const settlementDto of createMultipleSettlementsDto.settlements) {
+        // check before create a settlement if rest of collection is sufficient
+        // necessary in case of settlements different collection
+
+        // get typesNumber * typeStake
+        const cardTypeValue = await this.cardTypeStake({
+          createSettlementDto: settlementDto,
+        });
+
+        // get settlement amount
+        const settlementAmount = settlementDto.number * cardTypeValue;
+
+        const settlementCollection = await this.prisma.collection.findUnique({
+          where: { id: settlementDto.collectionId },
+        });
+
+        // throw an error if the remain amount is not enough
+        if (settlementCollection.rest.minus(settlementAmount).toNumber() < 0) {
+          throw Error('Insufficient amount of collection');
+        }
+
+        // substract settlement amount from
+        // the remaining amount of the collection
+        const collectionRest =
+          settlementCollection.rest.minus(settlementAmount);
+
+        // update the collection
+        const updatedCollection = await this.prisma.collection.update({
+          where: {
+            id: settlementCollection.id,
+          },
+          data: { rest: collectionRest, updatedAt: new Date() },
+        });
+
+        // emit update event
+        this.socketGateway.emitProductEvent({
+          event: 'collection-update',
+          data: updatedCollection,
+        });
+
         const settlement = await this.create({
           createSettlementDto: settlementDto,
+        });
+
+        // emit addition event
+        this.socketGateway.emitProductEvent({
+          event: 'settlement-addition',
+          data: settlement,
         });
 
         settlements.push(settlement);
@@ -724,7 +800,7 @@ export class SettlementsService {
           const collectionRest =
             settlement.collection.rest.add(settlementAmount);
 
-          await this.prisma.collection.update({
+          const updatedCollection = await this.prisma.collection.update({
             where: {
               id: settlement.collection.id,
             },
@@ -732,6 +808,12 @@ export class SettlementsService {
               rest: collectionRest,
               updatedAt: new Date().toISOString(),
             },
+          });
+
+          // emit update event
+          this.socketGateway.emitProductEvent({
+            event: 'collection-update',
+            data: updatedCollection,
           });
         } else {
           // validation status passed is true or null
@@ -796,7 +878,7 @@ export class SettlementsService {
               previousCollectionAmount.toNumber() - newSettlementAmount;
 
             // update the collection
-            this.prisma.collection.update({
+            await this.prisma.collection.update({
               where: { id: settlement.collection.id },
               data: {
                 rest: newCollectionAmount,
@@ -871,7 +953,7 @@ export class SettlementsService {
               settlement.collection.rest.minus(newSettlementAmount);
 
             // update the collection
-            await this.prisma.collection.update({
+            const updatedCollection = await this.prisma.collection.update({
               where: {
                 id: settlement.collection.id,
               },
@@ -879,6 +961,12 @@ export class SettlementsService {
                 rest: newCollectionAmount,
                 updatedAt: new Date(),
               },
+            });
+
+            // emit update event
+            this.socketGateway.emitProductEvent({
+              event: 'collection-update',
+              data: updatedCollection,
             });
           } else {
             // number would not be updated
@@ -923,7 +1011,7 @@ export class SettlementsService {
               settlement.collection.rest.minus(settlementAmount);
 
             // update the collection
-            await this.prisma.collection.update({
+            const updatedCollection = await this.prisma.collection.update({
               where: {
                 id: settlement.collection.id,
               },
@@ -932,16 +1020,28 @@ export class SettlementsService {
                 updatedAt: new Date().toISOString(),
               },
             });
+
+            // emit update event
+            this.socketGateway.emitProductEvent({
+              event: 'collection-update',
+              data: updatedCollection,
+            });
           }
         }
       }
 
       // update the settlement data
-      await this.prisma.settlement.update({
+      const updatedSettlement = await this.prisma.settlement.update({
         where: {
           id,
         },
         data: { ...updateSettlementDto, updatedAt: new Date().toISOString() },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'settlement-update',
+        data: updatedSettlement,
       });
 
       return this.findOne({ id: id });
@@ -1060,7 +1160,7 @@ export class SettlementsService {
         );
 
         // update collection amount
-        await this.prisma.collection.update({
+        const updatedCollection = await this.prisma.collection.update({
           where: {
             id: settlementWithID.collection.id,
           },
@@ -1069,15 +1169,26 @@ export class SettlementsService {
             updatedAt: new Date().toISOString(),
           },
         });
+
+        // emit update event
+        this.socketGateway.emitProductEvent({
+          event: 'collection-update',
+          data: updatedCollection,
+        });
       }
 
       // remove the specified settlement
-      await this.prisma.settlement.delete({
+      const deletedSettlement = await this.prisma.settlement.delete({
         where: {
           id,
         },
       });
 
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'settlement-deletion',
+        data: deletedSettlement,
+      });
       // return removed settlement
       return settlementWithID;
     } catch (error) {

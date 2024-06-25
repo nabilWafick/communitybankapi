@@ -8,10 +8,14 @@ import { equal } from 'assert';
 import { AjustCollectionAmount } from './dto/ajust-collection-amount.dto';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
 import { CollectorCountEntity } from 'src/collectors/entities';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class CollectionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createCollectionDto,
@@ -71,11 +75,17 @@ export class CollectionsService {
       }
 
       // create a new collection
-      const collection = await this.prisma.collection.create({
+      const newCollection = await this.prisma.collection.create({
         data: { ...createCollectionDto, rest: createCollectionDto.amount },
       });
 
-      return this.findOne({ id: collection.id });
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'collection-addition',
+        data: newCollection,
+      });
+
+      return this.findOne({ id: newCollection.id });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -479,13 +489,19 @@ export class CollectionsService {
       }
 
       // update the collection data
-      await this.prisma.collection.update({
+      const updatedCollection = await this.prisma.collection.update({
         where: { id },
         data: {
           ...updateCollectionDto,
           rest: updateCollectionDto.amount,
           updatedAt: new Date().toISOString(),
         },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'collection-update',
+        data: updatedCollection,
       });
 
       return this.findOne({ id: id });
@@ -618,6 +634,12 @@ export class CollectionsService {
       // remove the specified collection
       await this.prisma.collection.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'collection-deletion',
+        data: collectionWithID,
       });
 
       // return removed collection

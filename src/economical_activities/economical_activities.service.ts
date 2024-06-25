@@ -10,10 +10,14 @@ import {
   EconomicalActivityCountEntity,
 } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class EconomicalActivitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createEconomicalActivityDto,
@@ -44,9 +48,19 @@ export class EconomicalActivitiesService {
       }
 
       // create a new economicalActivity
-      return this.prisma.economicalActivity.create({
-        data: createEconomicalActivityDto,
+      const newEconomicalActivity = await this.prisma.economicalActivity.create(
+        {
+          data: createEconomicalActivityDto,
+        },
+      );
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'economicalActivity-addition',
+        data: newEconomicalActivity,
       });
+
+      return newEconomicalActivity;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -236,13 +250,22 @@ export class EconomicalActivitiesService {
       }
 
       // update the economicalActivity data
-      return await this.prisma.economicalActivity.update({
-        where: { id },
-        data: {
-          ...updateEconomicalActivityDto,
-          updatedAt: new Date().toISOString(),
-        },
+      const updatedEconomiclActivity =
+        await this.prisma.economicalActivity.update({
+          where: { id },
+          data: {
+            ...updateEconomicalActivityDto,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'economicalActivity-update',
+        data: updatedEconomiclActivity,
       });
+
+      return updatedEconomiclActivity;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -273,6 +296,12 @@ export class EconomicalActivitiesService {
       // remove the specified economicalActivity
       const economicalActivity = await this.prisma.economicalActivity.delete({
         where: { id },
+      });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'economicalActivity-deletion',
+        data: economicalActivity,
       });
 
       // return removed economicalActivity

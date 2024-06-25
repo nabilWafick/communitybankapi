@@ -4,10 +4,14 @@ import { Prisma, PrismaClient, Locality } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocalityEntity, LocalityCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
+import { SocketGateway } from 'src/common/socket/socket.gateway';
 
 @Injectable()
 export class LocalitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   async create({
     createLocalityDto,
@@ -33,9 +37,17 @@ export class LocalitiesService {
       }
 
       // create a new locality
-      return this.prisma.locality.create({
+      const newLocality = await this.prisma.locality.create({
         data: createLocalityDto,
       });
+
+      // emit addition event
+      this.socketGateway.emitProductEvent({
+        event: 'locality-addition',
+        data: newLocality,
+      });
+
+      return newLocality;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -217,10 +229,18 @@ export class LocalitiesService {
       }
 
       // update the locality data
-      return await this.prisma.locality.update({
+      const updatedLocality = await this.prisma.locality.update({
         where: { id },
         data: { ...updateLocalityDto, updatedAt: new Date().toISOString() },
       });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'locality-update',
+        data: updatedLocality,
+      });
+
+      return updatedLocality;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -249,6 +269,12 @@ export class LocalitiesService {
 
       // remove the specified locality
       const locality = await this.prisma.locality.delete({ where: { id } });
+
+      // emit deletion event
+      this.socketGateway.emitProductEvent({
+        event: 'locality-deletion',
+        data: locality,
+      });
 
       // return removed locality
       return locality;
