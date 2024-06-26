@@ -31,6 +31,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
 
+  @Permissions('add-collector')
   @Post()
   @ApiCreatedResponse({ type: CollectorEntity })
   async create(
@@ -120,6 +121,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get(':id')
   @ApiOkResponse({ type: CollectorEntity })
   async findOne(
@@ -207,6 +209,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get()
   @ApiOkResponse({ type: CollectorEntity, isArray: true })
   async findAll(
@@ -304,6 +307,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('count/all')
   @ApiOkResponse({ type: CollectorCountEntity })
   async countAll(): Promise<CollectorCountEntity> {
@@ -375,6 +379,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('count/specific')
   @ApiOkResponse({ type: CollectorCountEntity })
   async countSpecific(
@@ -458,6 +463,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('update-collector')
   @Patch(':id')
   @ApiOkResponse({ type: CollectorEntity })
   async update(
@@ -563,6 +569,7 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('delete-collector')
   @Delete(':id')
   @ApiOkResponse({ type: CollectorEntity })
   async remove(
@@ -650,7 +657,9 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('/global/collections')
+  @ApiOkResponse({ type: CollectorCollection, isArray: true })
   async getGlobalCollections(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,
@@ -744,7 +753,9 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('/day/collections')
+  @ApiOkResponse({ type: CollectorCollection, isArray: true })
   async getDayCollections(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,
@@ -838,7 +849,9 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('/week/collections')
+  @ApiOkResponse({ type: CollectorCollection, isArray: true })
   async getWeekCollections(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,
@@ -932,7 +945,9 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('read-collector')
   @Get('/month/collections')
+  @ApiOkResponse({ type: CollectorCollection, isArray: true })
   async getMonthCollections(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,
@@ -1026,7 +1041,9 @@ export class CollectorsController {
     }
   }
 
+  @Permissions('-collector')
   @Get('/year/collections')
+  @ApiOkResponse({ type: CollectorCollection, isArray: true })
   async getYearCollections(
     @Query('skip', ParseIntPipe) skip?: number,
     @Query('take', ParseIntPipe) take?: number,

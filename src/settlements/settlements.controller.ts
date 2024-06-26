@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { SettlementsService } from './settlements.service';
 import {
@@ -31,14 +32,16 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class SettlementsController {
   constructor(private readonly settlementsService: SettlementsService) {}
 
+  @Permissions('add-settlement')
   @Post()
   @ApiCreatedResponse({ type: SettlementEntity })
   async create(
     @Body() createSettlementDto: CreateSettlementDto,
+    @Req() req,
   ): Promise<SettlementEntity> {
     try {
       return await this.settlementsService.create({
-        createSettlementDto: createSettlementDto,
+        createSettlementDto: { ...createSettlementDto, agentId: req.agentId },
       });
     } catch (error) {
       if (error.message === 'Unvalidated settlement') {
@@ -246,14 +249,23 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('add-settlement')
   @Post('multiple/addition')
   @ApiCreatedResponse({ type: SettlementEntity })
   async createMultiple(
     @Body() createMultipleSettlementsDto: CreateMultipleSettlementsDto,
+    @Req() req,
   ): Promise<SettlementEntity[]> {
     try {
+      const multipleSettlements = createMultipleSettlementsDto.settlements.map(
+        (createSettlementDto) =>
+          (createSettlementDto = {
+            ...createSettlementDto,
+            agentId: req.agentId,
+          }),
+      );
       return await this.settlementsService.createMultipleSettlement({
-        createMultipleSettlementsDto: createMultipleSettlementsDto,
+        createMultipleSettlementsDto: { settlements: multipleSettlements },
       });
     } catch (error) {
       if (error.message === 'Unvalidated settlement') {
@@ -461,6 +473,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('read-settlement')
   @Get(':id')
   @ApiOkResponse({ type: SettlementEntity })
   async findOne(
@@ -550,6 +563,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('read-settlement')
   @Get('/sum-number/card/:cardId')
   @ApiOkResponse({ type: SettlementCountEntity })
   async sumOfNumberForCard(
@@ -639,6 +653,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('read-settlement')
   @Get()
   @ApiOkResponse({ type: SettlementEntity, isArray: true })
   async findAll(
@@ -736,6 +751,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('read-settlement')
   @Get('count/all')
   @ApiOkResponse({ type: SettlementCountEntity })
   async countAll(): Promise<SettlementCountEntity> {
@@ -807,6 +823,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('read-settlement')
   @Get('count/specific')
   @ApiOkResponse({ type: SettlementCountEntity })
   async countSpecific(
@@ -890,6 +907,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('update-settlement')
   @Patch(':id')
   @ApiOkResponse({ type: SettlementEntity })
   async update(
@@ -1165,6 +1183,7 @@ export class SettlementsController {
     }
   }
 
+  @Permissions('delete-settlement')
   @Delete(':id')
   @ApiOkResponse({ type: SettlementEntity })
   async remove(

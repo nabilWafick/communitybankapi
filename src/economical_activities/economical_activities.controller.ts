@@ -35,6 +35,7 @@ export class EconomicalActivitiesController {
     private readonly economicalActivitiesService: EconomicalActivitiesService,
   ) {}
 
+  @Permissions('add-economical-activity')
   @Post()
   @ApiCreatedResponse({ type: EconomicalActivityEntity })
   async create(
@@ -124,6 +125,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('read-economical-activity')
   @Get(':id')
   @ApiOkResponse({ type: EconomicalActivityEntity })
   async findOne(
@@ -211,6 +213,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('read-economical-activity')
   @Get()
   @ApiOkResponse({ type: EconomicalActivityEntity, isArray: true })
   async findAll(
@@ -309,6 +312,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('read-economical-activity')
   @Get('count/all')
   @ApiOkResponse({ type: EconomicalActivityCountEntity })
   async countAll(): Promise<EconomicalActivityCountEntity> {
@@ -380,6 +384,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('read-economical-activity')
   @Get('count/specific')
   @ApiOkResponse({ type: EconomicalActivityCountEntity })
   async countSpecific(
@@ -464,6 +469,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('update-economical-activity')
   @Patch(':id')
   @ApiOkResponse({ type: EconomicalActivityEntity })
   async update(
@@ -569,6 +575,7 @@ export class EconomicalActivitiesController {
     }
   }
 
+  @Permissions('delete-economical-activity')
   @Delete(':id')
   @ApiOkResponse({ type: EconomicalActivityEntity })
   async remove(

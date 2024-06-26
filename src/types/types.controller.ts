@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class TypesController {
   constructor(private readonly typesService: TypesService) {}
 
+  @Permissions('add-type')
   @Post()
   @ApiCreatedResponse({ type: TypeEntity })
   async create(@Body() createTypeDto: CreateTypeDto): Promise<TypeEntity> {
@@ -159,6 +160,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('read-type')
   @Get(':id')
   @ApiOkResponse({ type: TypeEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<TypeEntity> {
@@ -244,6 +246,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('read-type')
   @Get()
   @ApiOkResponse({ type: TypeEntity, isArray: true })
   async findAll(
@@ -341,6 +344,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('read-type')
   @Get('count/all')
   @ApiOkResponse({ type: TypeCountEntity })
   async countAll(): Promise<TypeCountEntity> {
@@ -412,6 +416,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('read-type')
   @Get('count/specific')
   @ApiOkResponse({ type: TypeCountEntity })
   async countSpecific(
@@ -495,6 +500,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('update-type')
   @Patch(':id')
   @ApiOkResponse({ type: TypeEntity })
   async update(
@@ -644,6 +650,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('delete-type')
   @Delete(':id')
   @ApiOkResponse({ type: TypeEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<TypeEntity> {
@@ -729,6 +736,7 @@ export class TypesController {
     }
   }
 
+  @Permissions('admin')
   @Get('/global/stats')
   async stats(
     @Query('skip', ParseIntPipe) skip?: number,

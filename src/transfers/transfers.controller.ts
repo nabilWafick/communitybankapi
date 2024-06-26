@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { CreateTransferDto, UpdateTransferDto } from './dto';
@@ -27,14 +28,16 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 
+  @Permissions('-transfer')
   @Post()
   @ApiCreatedResponse({ type: TransferEntity })
   async create(
     @Body() createTransferDto: CreateTransferDto,
+    @Req() req,
   ): Promise<TransferEntity> {
     try {
       return await this.transfersService.create({
-        createTransferDto: createTransferDto,
+        createTransferDto: { ...createTransferDto, agentId: req.agentId },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -172,6 +175,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('read-transfer')
   @Get(':id')
   @ApiOkResponse({ type: TransferEntity })
   async findOne(
@@ -259,6 +263,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('read-transfer')
   @Get()
   @ApiOkResponse({ type: TransferEntity, isArray: true })
   async findAll(
@@ -356,6 +361,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('read-transfer')
   @Get('count/all')
   @ApiOkResponse({ type: TransferCountEntity })
   async countAll(): Promise<TransferCountEntity> {
@@ -427,6 +433,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('read-transfer')
   @Get('count/specific')
   @ApiOkResponse({ type: TransferCountEntity })
   async countSpecific(
@@ -510,6 +517,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('update-transfer')
   @Patch(':id')
   @ApiOkResponse({ type: TransferEntity })
   async update(
@@ -769,6 +777,7 @@ export class TransfersController {
     }
   }
 
+  @Permissions('delete-transfer')
   @Delete(':id')
   @ApiOkResponse({ type: TransferEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<TransferEntity> {

@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class PersonalStatusController {
   constructor(private readonly personalStatusService: PersonalStatusService) {}
 
+  @Permissions('add-personal-status')
   @Post()
   @ApiCreatedResponse({ type: PersonalStatusEntity })
   async create(
@@ -116,6 +117,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('read-personal-status')
   @Get(':id')
   @ApiOkResponse({ type: PersonalStatusEntity })
   async findOne(
@@ -203,6 +205,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('read-personal-status')
   @Get()
   @ApiOkResponse({ type: PersonalStatusEntity, isArray: true })
   async findAll(
@@ -300,6 +303,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('read-personal-status')
   @Get('count/all')
   @ApiOkResponse({ type: PersonalStatusCountEntity })
   async countAll(): Promise<PersonalStatusCountEntity> {
@@ -371,6 +375,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('read-personal-status')
   @Get('count/specific')
   @ApiOkResponse({ type: PersonalStatusCountEntity })
   async countSpecific(
@@ -454,6 +459,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('update-personal-status')
   @Patch(':id')
   @ApiOkResponse({ type: PersonalStatusEntity })
   async update(
@@ -559,6 +565,7 @@ export class PersonalStatusController {
     }
   }
 
+  @Permissions('delete-personal-status')
   @Delete(':id')
   @ApiOkResponse({ type: PersonalStatusEntity })
   async remove(

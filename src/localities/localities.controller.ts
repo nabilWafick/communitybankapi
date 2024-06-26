@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class LocalitiesController {
   constructor(private readonly localitiesService: LocalitiesService) {}
 
+  @Permissions('add-locality')
   @Post()
   @ApiCreatedResponse({ type: LocalityEntity })
   async create(
@@ -116,6 +117,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('read-locality')
   @Get(':id')
   @ApiOkResponse({ type: LocalityEntity })
   async findOne(
@@ -203,6 +205,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('read-locality')
   @Get()
   @ApiOkResponse({ type: LocalityEntity, isArray: true })
   async findAll(
@@ -300,6 +303,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('read-locality')
   @Get('count/all')
   @ApiOkResponse({ type: LocalityCountEntity })
   async countAll(): Promise<LocalityCountEntity> {
@@ -371,6 +375,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('read-locality')
   @Get('count/specific')
   @ApiOkResponse({ type: LocalityCountEntity })
   async countSpecific(
@@ -454,6 +459,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('update-locality')
   @Patch(':id')
   @ApiOkResponse({ type: LocalityEntity })
   async update(
@@ -559,6 +565,7 @@ export class LocalitiesController {
     }
   }
 
+  @Permissions('delete-locality')
   @Delete(':id')
   @ApiOkResponse({ type: LocalityEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<LocalityEntity> {

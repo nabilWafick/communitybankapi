@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @Permissions('add-category')
   @Post()
   @ApiCreatedResponse({ type: CategoryEntity })
   async create(
@@ -116,6 +117,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('read-category')
   @Get(':id')
   @ApiOkResponse({ type: CategoryEntity })
   async findOne(
@@ -203,6 +205,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('read-category')
   @Get()
   @ApiOkResponse({ type: CategoryEntity, isArray: true })
   async findAll(
@@ -300,6 +303,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('read-category')
   @Get('count/all')
   @ApiOkResponse({ type: CategoryCountEntity })
   async countAll(): Promise<CategoryCountEntity> {
@@ -371,6 +375,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('read-category')
   @Get('count/specific')
   @ApiOkResponse({ type: CategoryCountEntity })
   async countSpecific(
@@ -454,6 +459,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('update-category')
   @Patch(':id')
   @ApiOkResponse({ type: CategoryEntity })
   async update(
@@ -559,6 +565,7 @@ export class CategoriesController {
     }
   }
 
+  @Permissions('delete-category')
   @Delete(':id')
   @ApiOkResponse({ type: CategoryEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<CategoryEntity> {

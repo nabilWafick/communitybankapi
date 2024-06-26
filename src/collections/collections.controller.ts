@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import {
@@ -31,14 +32,16 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
 
+  @Permissions('add-collection')
   @Post()
   @ApiCreatedResponse({ type: CollectionEntity })
   async create(
     @Body() createCollectionDto: CreateCollectionDto,
+    @Req() req,
   ): Promise<CollectionEntity> {
     try {
       return await this.collectionsService.create({
-        createCollectionDto: createCollectionDto,
+        createCollectionDto: { ...createCollectionDto, agentId: req.agentId },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -162,6 +165,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get(':id')
   @ApiOkResponse({ type: CollectionEntity })
   async findOne(
@@ -249,6 +253,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get()
   @ApiOkResponse({ type: CollectionEntity, isArray: true })
   async findAll(
@@ -346,6 +351,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('count/all')
   @ApiOkResponse({ type: CollectionCountEntity })
   async countAll(): Promise<CollectionCountEntity> {
@@ -417,6 +423,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('sum/all')
   @ApiOkResponse({ type: CollectionCountEntity })
   async sumAll(): Promise<CollectionCountEntity> {
@@ -488,6 +495,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('sum/all/rest')
   @ApiOkResponse({ type: CollectionCountEntity })
   async sumAllRest(): Promise<CollectionCountEntity> {
@@ -559,6 +567,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('count/specific')
   @ApiOkResponse({ type: CollectionCountEntity })
   async countSpecific(
@@ -642,6 +651,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('sum/specific')
   @ApiOkResponse({ type: CollectionCountEntity })
   async sumSpecific(
@@ -725,6 +735,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('sum/specific/rest')
   @ApiOkResponse({ type: CollectionCountEntity })
   async sumSpecificRest(
@@ -808,16 +819,18 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('update-collection')
   @Patch(':id')
   @ApiOkResponse({ type: CollectionEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCollectionDto: UpdateCollectionDto,
+    @Req() req,
   ): Promise<CollectionEntity> {
     try {
       return await this.collectionsService.update({
         id: +id,
-        updateCollectionDto: updateCollectionDto,
+        updateCollectionDto: { ...updateCollectionDto, agentId: req.agentId },
       });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {
@@ -1011,6 +1024,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('update-collection')
   @Patch('amount/increase/:id')
   @ApiOkResponse({ type: CollectionEntity })
   async increaseAmount(
@@ -1102,6 +1116,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('update-collection')
   @Patch('amount/decrease/:id')
   @ApiOkResponse({ type: CollectionEntity })
   async decreaseAmount(
@@ -1207,6 +1222,7 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('delete-collection')
   @Delete(':id')
   @ApiOkResponse({ type: CollectionEntity })
   async remove(
@@ -1294,7 +1310,9 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('/day/collection')
+  @ApiOkResponse({ type: CollectionCountEntity })
   async getDayCollection(): Promise<CollectionCountEntity> {
     try {
       return await this.collectionsService.getDayCollection();
@@ -1378,7 +1396,9 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('/week/collection')
+  @ApiOkResponse({ type: CollectionCountEntity })
   async getWeekCollection(): Promise<CollectionCountEntity> {
     try {
       return await this.collectionsService.getWeekCollection();
@@ -1462,7 +1482,9 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('/month/collection')
+  @ApiOkResponse({ type: CollectionCountEntity })
   async getMonthCollection(): Promise<CollectionCountEntity> {
     try {
       return await this.collectionsService.getMonthCollection();
@@ -1546,7 +1568,9 @@ export class CollectionsController {
     }
   }
 
+  @Permissions('read-collection')
   @Get('/year/collection')
+  @ApiOkResponse({ type: CollectionCountEntity })
   async getYearCollection(): Promise<CollectionCountEntity> {
     try {
       return await this.collectionsService.getYearCollection();

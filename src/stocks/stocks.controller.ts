@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import {
@@ -36,6 +37,8 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
 
+  @Permissions('-stock')
+  @Permissions('read-stock')
   @Get('card/products/availability')
   @ApiOkResponse({ type: StockCountEntity })
   async checkCardsProductsAvailibility(
@@ -125,14 +128,19 @@ export class StocksController {
     }
   }
 
+  @Permissions('add-stock')
   @Post('manual/input')
   @ApiCreatedResponse({ type: StockEntity })
   async createStockManualInput(
     @Body() createStockManualInputDto: CreateStockManualInputDto,
+    @Req() req,
   ): Promise<StockEntity> {
     try {
       return await this.stocksService.createStockManualInput({
-        createStockManualInputDto: createStockManualInputDto,
+        createStockManualInputDto: {
+          ...createStockManualInputDto,
+          agentId: req.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -228,14 +236,19 @@ export class StocksController {
     }
   }
 
+  @Permissions('add-stock')
   @Post('card/retrocession')
   @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockRetrocession(
     @Body() createStockRetrocessionDto: CreateStockRetrocessionDto,
+    @Req() req,
   ): Promise<StockEntity[]> {
     try {
       return await this.stocksService.createStockRetrocession({
-        createStockRetrocessionDto: createStockRetrocessionDto,
+        createStockRetrocessionDto: {
+          ...createStockRetrocessionDto,
+          agentId: req.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Corrupted data') {
@@ -387,14 +400,19 @@ export class StocksController {
     }
   }
 
+  @Permissions('add-stock')
   @Post('manual/output')
   @ApiCreatedResponse({ type: StockEntity })
   async createStockManualOutput(
     @Body() createStockManualOutputDto: CreateStockManualOutputDto,
+    @Req() req,
   ): Promise<StockEntity> {
     try {
       return await this.stocksService.createStockManualOutput({
-        createStockManualOutputDto: createStockManualOutputDto,
+        createStockManualOutputDto: {
+          ...createStockManualOutputDto,
+          agentId: req.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -518,14 +536,19 @@ export class StocksController {
     }
   }
 
+  @Permissions('add-stock')
   @Post('card/normal/satisfaction')
   @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockNormalOutput(
     @Body() createStockNormalOutputDto: CreateStockNormalOutputDto,
+    @Req() req,
   ): Promise<StockEntity[]> {
     try {
       return await this.stocksService.createStockNormalOutput({
-        createStockNormalOutputDto: createStockNormalOutputDto,
+        createStockNormalOutputDto: {
+          ...createStockNormalOutputDto,
+          agentId: req.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -649,14 +672,19 @@ export class StocksController {
     }
   }
 
+  @Permissions('add-stock')
   @Post('card/constrained/satisfaction')
   @ApiCreatedResponse({ type: StockEntity, isArray: true })
   async createStockConstrainedOutput(
     @Body() createStockConstrainedOutputDto: CreateStockConstrainedOutputDto,
+    @Req() req,
   ): Promise<StockEntity[]> {
     try {
       return await this.stocksService.createStockConstrainedOutput({
-        createStockConstrainedOutputDto: createStockConstrainedOutputDto,
+        createStockConstrainedOutputDto: {
+          ...createStockConstrainedOutputDto,
+          agentId: req.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -797,6 +825,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('read-stock')
   @Get(':id')
   @ApiOkResponse({ type: StockEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<StockEntity> {
@@ -882,6 +911,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('read-stock')
   @Get()
   @ApiOkResponse({ type: StockEntity, isArray: true })
   async findAll(
@@ -979,6 +1009,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('read-stock')
   @Get('count/all')
   @ApiOkResponse({ type: StockCountEntity })
   async countAll(): Promise<StockCountEntity> {
@@ -1050,6 +1081,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('read-stock')
   @Get('count/specific')
   @ApiOkResponse({ type: StockCountEntity })
   async countSpecific(
@@ -1133,6 +1165,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('update-stock')
   @Patch('manual/input/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualInput(
@@ -1280,6 +1313,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('update-stock')
   @Patch('manual/output/:id')
   @ApiOkResponse({ type: StockEntity })
   async updateStockManualOutput(
@@ -1469,6 +1503,7 @@ export class StocksController {
     }
   }
 
+  @Permissions('delete-stock')
   @Delete(':id')
   @ApiOkResponse({ type: StockEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<StockEntity> {

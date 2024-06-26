@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @Permissions('add-product')
   @Post()
   @ApiCreatedResponse({ type: ProductEntity })
   async create(
@@ -116,6 +117,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('read-product')
   @Get(':id')
   @ApiOkResponse({ type: ProductEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
@@ -202,6 +204,7 @@ export class ProductsController {
   }
 
   /*
+   @Permissions('-product')
   @Get('populate/type-product')
   @ApiOkResponse({ type: TypeEntity })
   async poupulateTypeProduct() {
@@ -273,6 +276,8 @@ export class ProductsController {
     }
   }
 */
+
+  @Permissions('read-product')
   @Get()
   @ApiOkResponse({ type: ProductEntity, isArray: true })
   async findAll(
@@ -370,6 +375,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('read-product')
   @Get('count/all')
   @ApiOkResponse({ type: ProductCountEntity })
   async countAll(): Promise<ProductCountEntity> {
@@ -441,6 +447,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('read-product')
   @Get('count/specific')
   @ApiOkResponse({ type: ProductCountEntity })
   async countSpecific(
@@ -524,6 +531,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('update-product')
   @Patch(':id')
   @ApiOkResponse({ type: ProductEntity })
   async update(
@@ -629,6 +637,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('delete-product')
   @Delete(':id')
   @ApiOkResponse({ type: ProductEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
@@ -714,6 +723,7 @@ export class ProductsController {
     }
   }
 
+  @Permissions('admin')
   @Get('/stats/forecasts')
   async getProductForecast(
     @Query('productId') productId?: number,

@@ -27,6 +27,7 @@ import { Permissions } from '../auth/decorator/permissions.decorator';
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
+  @Permissions('add-customer')
   @Post()
   @ApiCreatedResponse({ type: CustomerEntity })
   async create(
@@ -188,6 +189,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('read-customer')
   @Get(':id')
   @ApiOkResponse({ type: CustomerEntity })
   async findOne(
@@ -275,6 +277,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('read-customer')
   @Get()
   @ApiOkResponse({ type: CustomerEntity, isArray: true })
   async findAll(
@@ -372,6 +375,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('read-customer')
   @Get('count/all')
   @ApiOkResponse({ type: CustomerCountEntity })
   async countAll(): Promise<CustomerCountEntity> {
@@ -443,6 +447,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('read-customer')
   @Get('count/specific')
   @ApiOkResponse({ type: CustomerCountEntity })
   async countSpecific(
@@ -526,6 +531,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('update-customer')
   @Patch(':id')
   @ApiOkResponse({ type: CustomerEntity })
   async update(
@@ -715,6 +721,7 @@ export class CustomersController {
     }
   }
 
+  @Permissions('delete-customer')
   @Delete(':id')
   @ApiOkResponse({ type: CustomerEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<CustomerEntity> {

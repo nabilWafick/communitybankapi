@@ -381,6 +381,9 @@ export class CollectionsService {
     updateCollectionDto: UpdateCollectionDto;
   }): Promise<CollectionEntity> {
     try {
+      // for avoiding erasing the veritable author
+      updateCollectionDto = { ...updateCollectionDto, agentId: null };
+
       // fetch collection with the provided ID
       const collection = await this.prisma.collection.findUnique({
         where: { id },
@@ -665,7 +668,6 @@ export class CollectionsService {
       startOfDay.setDate(startOfDay.getDate() - startOfDay.getDay());
 
       const endOfDay = new Date(startOfDay);
-      endOfDay.setDate(endOfDay.getDate() + 6);
       endOfDay.setHours(23, 59, 59, 999);
 
       const collectionSumDay = await this.prisma.collection.aggregate({

@@ -380,6 +380,8 @@ export class TransfersService {
     updateTransferDto: UpdateTransferDto;
   }): Promise<TransferEntity> {
     try {
+      updateTransferDto = { ...updateTransferDto, agentId: null };
+
       // fetch transfer with the provided ID
       const transfer = await this.prisma.transfer.findUnique({
         where: { id },

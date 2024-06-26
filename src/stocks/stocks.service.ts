@@ -1061,6 +1061,10 @@ export class StocksService {
     updateStockManualInputDto: UpdateStockManualInputDto;
   }): Promise<StockEntity> {
     try {
+      updateStockManualInputDto = {
+        ...updateStockManualInputDto,
+        agentId: null,
+      };
       // fetch stock with the provided ID
       const stock = await this.prisma.stock.findUnique({
         where: { id },
@@ -1144,6 +1148,11 @@ export class StocksService {
     updateStockManualOutputDto: UpdateStockManualOutputDto;
   }): Promise<StockEntity> {
     try {
+      updateStockManualOutputDto = {
+        ...updateStockManualOutputDto,
+        agentId: null,
+      };
+
       // fetch stock with the provided ID
       const stock = await this.prisma.stock.findUnique({
         where: { id },
