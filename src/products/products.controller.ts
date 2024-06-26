@@ -10,15 +10,20 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { ProductCountEntity, ProductEntity } from './entities';
 import { ProductsService } from './products.service';
-import { TypeEntity } from 'src/types/entities';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
+
 @Controller('products')
 @ApiTags('Products')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -471,7 +476,6 @@ export class ProductsController {
       if (error.message === 'Internal Prisma client error') {
         throw new HttpException(
           {
-
             message: {
               en: 'An error occurred on the server. Error related to a service',
               fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
@@ -719,7 +723,6 @@ export class ProductsController {
     @Query('typeId') typeId?: number,
     @Query('totalSettlementNumber') totalSettlementNumber?: number,
   ) {
-
     try {
       return this.productsService.getProductsForecasts({
         productId: 50,
@@ -745,7 +748,5 @@ export class ProductsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-   
   }
 }
- 

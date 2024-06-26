@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CategoryEntity, CategoryCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('categories')
 @ApiTags('Categories')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 

@@ -10,18 +10,24 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AgentsService } from './agents.service';
 import { CreateAgentDto, UpdateAgentDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AgentEntity, AgentCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('agents')
 @ApiTags('Agents')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AgentsController {
   constructor(private readonly agentsService: AgentsService) {}
 
+  @Permissions('add-agent')
   @Post()
   @ApiCreatedResponse({ type: AgentEntity })
   async create(@Body() createAgentDto: CreateAgentDto): Promise<AgentEntity> {
@@ -123,6 +129,7 @@ export class AgentsController {
     }
   }
 
+  @Permissions('read-agent')
   @Get(':id')
   @ApiOkResponse({ type: AgentEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {
@@ -208,6 +215,7 @@ export class AgentsController {
     }
   }
 
+  @Permissions('read-agent')
   @Get()
   @ApiOkResponse({ type: AgentEntity, isArray: true })
   async findAll(
@@ -304,7 +312,7 @@ export class AgentsController {
       );
     }
   }
-
+  @Permissions('read-agent')
   @Get('count/all')
   @ApiOkResponse({ type: AgentCountEntity })
   async countAll(): Promise<AgentCountEntity> {
@@ -376,6 +384,7 @@ export class AgentsController {
     }
   }
 
+  @Permissions('read-agent')
   @Get('count/specific')
   @ApiOkResponse({ type: AgentCountEntity })
   async countSpecific(
@@ -459,6 +468,7 @@ export class AgentsController {
     }
   }
 
+  @Permissions('update-agent')
   @Patch(':id')
   @ApiOkResponse({ type: AgentEntity })
   async update(
@@ -578,6 +588,7 @@ export class AgentsController {
     }
   }
 
+  @Permissions('delete-agent')
   @Delete(':id')
   @ApiOkResponse({ type: AgentEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<AgentEntity> {

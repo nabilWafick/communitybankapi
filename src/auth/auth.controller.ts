@@ -369,6 +369,7 @@ export class AuthController {
   @Get('protected-route')
   async protectedRoute(@Req() req) {
     // Your protected route logic here
+    console.log({ req: req.user });
     return { message: 'This is a protected resource' };
   }
 }

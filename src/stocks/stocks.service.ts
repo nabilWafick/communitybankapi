@@ -16,6 +16,10 @@ import { StockEntity, StockCountEntity } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
 import { SocketGateway } from 'src/common/socket/socket.gateway';
 
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
+
 @Injectable()
 export class StocksService {
   constructor(

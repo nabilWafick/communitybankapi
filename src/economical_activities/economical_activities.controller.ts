@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { EconomicalActivitiesService } from './economical_activities.service';
 import {
@@ -22,9 +23,13 @@ import {
   EconomicalActivityCountEntity,
 } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('economical-activities')
 @ApiTags('Economical Activities')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class EconomicalActivitiesController {
   constructor(
     private readonly economicalActivitiesService: EconomicalActivitiesService,

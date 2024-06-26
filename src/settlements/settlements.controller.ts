@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { SettlementsService } from './settlements.service';
 import {
@@ -20,9 +21,13 @@ import {
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { SettlementEntity, SettlementCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('settlements')
 @ApiTags('Settlements')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class SettlementsController {
   constructor(private readonly settlementsService: SettlementsService) {}
 

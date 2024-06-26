@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { LocalitiesService } from './localities.service';
 import { CreateLocalityDto, UpdateLocalityDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LocalityEntity, LocalityCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('localities')
 @ApiTags('Localities')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class LocalitiesController {
   constructor(private readonly localitiesService: LocalitiesService) {}
 

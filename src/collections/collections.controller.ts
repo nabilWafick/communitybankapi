@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import {
@@ -20,9 +21,13 @@ import {
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CollectionEntity, CollectionCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('collections')
 @ApiTags('Collections')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
 

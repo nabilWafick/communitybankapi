@@ -10,18 +10,24 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto, UpdateCardDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CardEntity, CardCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('cards')
 @ApiTags('Cards')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
+  @Permissions('add-card')
   @Post()
   @ApiCreatedResponse({ type: CardEntity })
   async create(@Body() createCardDto: CreateCardDto): Promise<CardEntity> {
@@ -137,6 +143,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('read-card')
   @Get(':id')
   @ApiOkResponse({ type: CardEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<CardEntity> {
@@ -222,6 +229,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('read-card')
   @Get()
   @ApiOkResponse({ type: CardEntity, isArray: true })
   async findAll(
@@ -319,6 +327,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('read-card')
   @Get('count/all')
   @ApiOkResponse({ type: CardCountEntity })
   async countAll(): Promise<CardCountEntity> {
@@ -390,6 +399,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('read-card')
   @Get('count/specific')
   @ApiOkResponse({ type: CardCountEntity })
   async countSpecific(
@@ -473,6 +483,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('update-card')
   @Patch(':id')
   @ApiOkResponse({ type: CardEntity })
   async update(
@@ -690,6 +701,7 @@ export class CardsController {
     }
   }
 
+  @Permissions('delete-card')
   @Delete(':id')
   @ApiOkResponse({ type: CardEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<CardEntity> {

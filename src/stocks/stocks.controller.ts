@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import {
@@ -25,9 +26,13 @@ import {
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { StockEntity, StockCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('stocks')
 @ApiTags('Stocks')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
 

@@ -24,9 +24,11 @@ export class PermissionsGuard implements CanActivate {
     const agentPermissions =
       context.switchToHttp().getRequest().user.permissions || [];
 
-    const hasPermissions = requiredPermissions.every((permission) =>
-      agentPermissions.includes(permission),
-    );
+    const hasPermissions =
+      agentPermissions.includes('admin') ||
+      requiredPermissions.every((permission) =>
+        agentPermissions.includes(permission),
+      );
 
     if (!hasPermissions) {
       throw new HttpException(

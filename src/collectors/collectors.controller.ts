@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
 import { CreateCollectorDto, UpdateCollectorDto } from './dto';
@@ -20,9 +21,13 @@ import {
   CollectorCollection,
 } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('collectors')
 @ApiTags('Collectors')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
 

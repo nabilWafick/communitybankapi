@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { CreateTransferDto, UpdateTransferDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TransferEntity, TransferCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('transfers')
 @ApiTags('Transfers')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 

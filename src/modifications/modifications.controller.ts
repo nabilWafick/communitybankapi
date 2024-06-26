@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ModificationsService } from './modifications.service';
 import { CreateModificationDto, UpdateModificationDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ModificationEntity, ModificationCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('modifications')
 @ApiTags('Modifications')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ModificationsController {
   constructor(private readonly modificationsService: ModificationsService) {}
 

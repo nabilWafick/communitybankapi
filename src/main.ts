@@ -8,7 +8,10 @@ import {
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { WsAdapter } from '@nestjs/platform-ws';
 
-import { UnauthorizedExceptionFilter } from './auth/exceptions_filters/unauthorized.exception';
+import {
+  UnauthorizedExceptionFilter,
+  ForbiddenExceptionFilter,
+} from './auth/exceptions_filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,19 +19,26 @@ async function bootstrap() {
   // set global prefix for all routes
   app.setGlobalPrefix('api/v1');
 
-  // define custom unauthorized exception
-  app.useGlobalFilters(new UnauthorizedExceptionFilter());
+  // define custom exception
+  app.useGlobalFilters(
+    new UnauthorizedExceptionFilter(),
+    new ForbiddenExceptionFilter(),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       exceptionFactory: (errors) => {
-        const result = errors.map((error) => ({
+        /* const message = errors.map((error) => ({
           property: error.property,
           message: error.constraints[Object.keys(error.constraints)[0]],
-        }));
+        }));*/
+        const message = {
+          en: errors[0].constraints[Object.keys(errors[0].constraints)[0]],
+          fr: errors[0].constraints[Object.keys(errors[0].constraints)[0]],
+        };
         return new BadRequestException({
-          message: result,
+          message: message,
           error: { en: 'Bad Request', fr: 'Requête Incorrecte' },
           statusCode: HttpStatus.BAD_REQUEST,
         });

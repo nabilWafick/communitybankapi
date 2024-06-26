@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TypesService } from './types.service';
 import { CreateTypeDto, UpdateTypeDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TypeEntity, TypeCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('types')
 @ApiTags('Types')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TypesController {
   constructor(private readonly typesService: TypesService) {}
 

@@ -10,15 +10,20 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PersonalStatusService } from './personal_status.service';
 import { CreatePersonalStatusDto, UpdatePersonalStatusDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { PersonalStatusEntity, PersonalStatusCountEntity } from './entities';
 import { Prisma } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { Permissions } from '../auth/decorator/permissions.decorator';
 
 @Controller('personal-status')
 @ApiTags('Personal Status')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class PersonalStatusController {
   constructor(private readonly personalStatusService: PersonalStatusService) {}
 
