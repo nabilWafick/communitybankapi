@@ -13,10 +13,10 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateModificationDto {
-  @IsNumber({}, { message: 'Agent ID must be a number' })
+  /* @IsNumber({}, { message: 'Agent ID must be a number' })
   @NotEquals(0, { message: 'Agent ID must not be equal to 0' })
   @IsPositive({ message: 'Agent ID must be positive' })
-  @ApiProperty()
+  @ApiProperty()*/
   agentId: number;
 
   @IsString({ message: 'Modification must be a text' })

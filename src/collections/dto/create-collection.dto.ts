@@ -22,9 +22,9 @@ export class CreateCollectionDto {
   @ApiProperty()
   amount: Decimal;
 
-  @IsInt({ message: 'Agent ID must be an integer' })
+  /*@IsInt({ message: 'Agent ID must be an integer' })
   @NotEquals(0, { message: 'Agent ID must not be equal to 0' })
-  @IsPositive({ message: 'Agent ID must be positive' })
+  @IsPositive({ message: 'Agent ID must be positive' })*/
   @ApiProperty()
   agentId: number;
 

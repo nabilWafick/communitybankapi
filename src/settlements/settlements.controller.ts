@@ -41,7 +41,10 @@ export class SettlementsController {
   ): Promise<SettlementEntity> {
     try {
       return await this.settlementsService.create({
-        createSettlementDto: { ...createSettlementDto, agentId: req.agentId },
+        createSettlementDto: {
+          ...createSettlementDto,
+          agentId: req.user.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Unvalidated settlement') {
@@ -261,7 +264,7 @@ export class SettlementsController {
         (createSettlementDto) =>
           (createSettlementDto = {
             ...createSettlementDto,
-            agentId: req.agentId,
+            agentId: req.user.agentId,
           }),
       );
       return await this.settlementsService.createMultipleSettlement({

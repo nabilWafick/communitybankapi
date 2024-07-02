@@ -28,11 +28,11 @@ import { ProductsService } from './products.service';
 import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { Permissions } from '../auth/decorator/permissions.decorator';
-import { TypeEntity } from 'src/types/entities';
+//import { TypeEntity } from 'src/types/entities';
 
 @Controller('products')
 @ApiTags('Products')
-//@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 

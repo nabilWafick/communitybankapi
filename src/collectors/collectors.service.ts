@@ -304,6 +304,7 @@ export class CollectorsService {
           collections: {
             select: {
               amount: true,
+              rest: true,
               collectedAt: true,
             },
           },
@@ -324,6 +325,10 @@ export class CollectorsService {
             collector._count.collections,
             collector.collections.reduce(
               (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
               0,
             ),
             collector.collections.length > 0
@@ -393,6 +398,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                rest: true,
                 collectedAt: true,
               },
             },
@@ -421,6 +427,10 @@ export class CollectorsService {
             collector._count.collections,
             collector.collections.reduce(
               (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
               0,
             ),
             collector.collections.length > 0
@@ -489,6 +499,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                rest: true,
                 collectedAt: true,
               },
             },
@@ -517,6 +528,10 @@ export class CollectorsService {
             collector._count.collections,
             collector.collections.reduce(
               (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
               0,
             ),
             collector.collections.length > 0
@@ -589,6 +604,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                rest: true,
                 collectedAt: true,
               },
             },
@@ -617,6 +633,10 @@ export class CollectorsService {
             collector._count.collections,
             collector.collections.reduce(
               (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
               0,
             ),
             collector.collections.length > 0
@@ -689,6 +709,7 @@ export class CollectorsService {
               },
               select: {
                 amount: true,
+                rest: true,
                 collectedAt: true,
               },
             },
@@ -717,6 +738,10 @@ export class CollectorsService {
             collector._count.collections,
             collector.collections.reduce(
               (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              0,
+            ),
+            collector.collections.reduce(
+              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
               0,
             ),
             collector.collections.length > 0

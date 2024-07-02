@@ -37,7 +37,7 @@ export class TransfersController {
   ): Promise<TransferEntity> {
     try {
       return await this.transfersService.create({
-        createTransferDto: { ...createTransferDto, agentId: req.agentId },
+        createTransferDto: { ...createTransferDto, agentId: req.user.agentId },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {

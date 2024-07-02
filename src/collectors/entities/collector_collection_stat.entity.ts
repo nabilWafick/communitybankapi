@@ -20,6 +20,9 @@ export class CollectorCollection {
   totalAmount: number;
 
   @ApiProperty()
+  totalRest: number;
+
+  @ApiProperty()
   collectedAt: Date;
 
   constructor(
@@ -29,6 +32,7 @@ export class CollectorCollection {
     phoneNumber: string,
     totalCollections: number,
     totalAmount: number,
+    totalRest: number,
     collectedAt: Date,
   ) {
     this.id = id;
@@ -37,6 +41,7 @@ export class CollectorCollection {
     this.phoneNumber = phoneNumber;
     this.totalCollections = totalCollections;
     this.totalAmount = totalAmount;
+    this.totalRest = totalRest;
     this.collectedAt = collectedAt;
   }
 }

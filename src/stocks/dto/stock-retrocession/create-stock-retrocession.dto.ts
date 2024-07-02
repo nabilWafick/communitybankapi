@@ -8,9 +8,9 @@ export class CreateStockRetrocessionDto {
   @ApiProperty()
   cardId: number;
 
-  @IsInt({ message: 'Agent ID must be an integer' })
+  /* @IsInt({ message: 'Agent ID must be an integer' })
   @NotEquals(0, { message: 'Agent ID must not be equal to 0' })
   @IsPositive({ message: 'Agent ID must be positive' })
-  @ApiProperty()
+  @ApiProperty()*/
   agentId: number;
 }

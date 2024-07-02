@@ -139,7 +139,7 @@ export class StocksController {
       return await this.stocksService.createStockManualInput({
         createStockManualInputDto: {
           ...createStockManualInputDto,
-          agentId: req.agentId,
+          agentId: req.user.agentId,
         },
       });
     } catch (error) {
@@ -247,7 +247,7 @@ export class StocksController {
       return await this.stocksService.createStockRetrocession({
         createStockRetrocessionDto: {
           ...createStockRetrocessionDto,
-          agentId: req.agentId,
+          agentId: req.user.agentId,
         },
       });
     } catch (error) {
@@ -411,7 +411,7 @@ export class StocksController {
       return await this.stocksService.createStockManualOutput({
         createStockManualOutputDto: {
           ...createStockManualOutputDto,
-          agentId: req.agentId,
+          agentId: req.user.agentId,
         },
       });
     } catch (error) {
@@ -547,7 +547,7 @@ export class StocksController {
       return await this.stocksService.createStockNormalOutput({
         createStockNormalOutputDto: {
           ...createStockNormalOutputDto,
-          agentId: req.agentId,
+          agentId: req.user.agentId,
         },
       });
     } catch (error) {
@@ -683,7 +683,7 @@ export class StocksController {
       return await this.stocksService.createStockConstrainedOutput({
         createStockConstrainedOutputDto: {
           ...createStockConstrainedOutputDto,
-          agentId: req.agentId,
+          agentId: req.user.agentId,
         },
       });
     } catch (error) {

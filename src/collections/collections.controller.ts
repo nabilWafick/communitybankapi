@@ -41,7 +41,10 @@ export class CollectionsController {
   ): Promise<CollectionEntity> {
     try {
       return await this.collectionsService.create({
-        createCollectionDto: { ...createCollectionDto, agentId: req.agentId },
+        createCollectionDto: {
+          ...createCollectionDto,
+          agentId: req.user.agentId,
+        },
       });
     } catch (error) {
       if (error.message === 'Agent not found') {
@@ -830,7 +833,10 @@ export class CollectionsController {
     try {
       return await this.collectionsService.update({
         id: +id,
-        updateCollectionDto: { ...updateCollectionDto, agentId: req.agentId },
+        updateCollectionDto: {
+          ...updateCollectionDto,
+          agentId: req.user.agentId,
+        },
       });
     } catch (error) {
       if (error.message === `Collection with ID ${id} not found`) {
