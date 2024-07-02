@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateProductDto, UpdateProductDto } from './dto';
-import { ProductCountEntity, ProductEntity } from './entities';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  GetProductForecastDto,
+} from './dto';
+import {
+  ProductCountEntity,
+  ProductEntity,
+  ProductForecastEntity,
+} from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
 import { SocketGateway } from 'src/common/socket/socket.gateway';
 
@@ -348,28 +356,23 @@ export class ProductsService {
   }
 
   async getProductsForecasts({
-    productId,
-    customerId,
-    collectorId,
-    cardId,
-    typeId,
-    totalSettlementNumber,
+    getProductForecastDto,
   }: {
-    productId?: number;
-    customerId?: number;
-    collectorId?: number;
-    cardId?: number;
-    typeId?: number;
-    totalSettlementNumber?: number;
-  }) {
+    getProductForecastDto: GetProductForecastDto;
+  }): Promise<ProductForecastEntity[]> {
     try {
       const params = [
-        { name: 'p_product_id', value: productId },
-        { name: 'p_customer_id', value: customerId },
-        { name: 'p_collector_id', value: collectorId },
-        { name: 'p_card_id', value: cardId },
-        { name: 'p_type_id', value: typeId },
-        { name: 'p_total_settlement_number', value: totalSettlementNumber },
+        { name: 'p_product_id', value: getProductForecastDto.productId },
+        { name: 'p_customer_id', value: getProductForecastDto.customerId },
+        { name: 'p_collector_id', value: getProductForecastDto.collectorId },
+        { name: 'p_card_id', value: getProductForecastDto.cardId },
+        { name: 'p_type_id', value: getProductForecastDto.typeId },
+        {
+          name: 'p_total_settlement_number',
+          value: getProductForecastDto.totalSettlementNumber,
+        },
+        { name: 'p_offset', value: getProductForecastDto.offset },
+        { name: 'p_limit', value: getProductForecastDto.limit },
       ].filter(
         (param) => param.value !== undefined && this.validateParam(param.value),
       );
@@ -379,14 +382,144 @@ export class ProductsService {
 
       const query = `SELECT * FROM get_products_forecasts(${paramString})`;
 
-      const result = await this.prisma.$queryRawUnsafe(query);
-      console.log('### RESULT ###');
+      const results: any = await this.prisma.$queryRawUnsafe(query);
 
-      console.log(result);
+      /*
+      console.log({
+        productId: getProductForecastDto.productId,
+        customerId: getProductForecastDto.customerId,
+        collectorId: getProductForecastDto.collectorId,
+        cardId: getProductForecastDto.cardId,
+        typeId: getProductForecastDto.typeId,
+        totalSettlementNumber: getProductForecastDto.totalSettlementNumber,
+        offset: getProductForecastDto.offset,
+        limit: getProductForecastDto.limit,
+      });
 
-      return result;
+      console.log({ resultsLength: results.length });
+
+      */
+
+      const productsForecasts = results.map(
+        (result: {
+          product_id: number;
+          product_name: string;
+          forecast_number: number;
+          forecast_amount: number;
+          customers_ids: number[];
+          customers_names: string[];
+          customers_firstnames: string[];
+          collectors_ids: number[];
+          collectors_names: string[];
+          collectors_firstnames: string[];
+          cards_ids: number[];
+          cards_labels: string[];
+          cards_types_numbers: number[];
+          types_ids: number[];
+          types_names: string[];
+          totals_settlements_numbers: number[];
+          totals_settlements_amounts: number[];
+          forecasts_numbers: number[];
+          forecasts_amounts: number[];
+        }) =>
+          new ProductForecastEntity(
+            result.product_id,
+            result.product_name,
+            result.forecast_number,
+            result.forecast_amount,
+            result.customers_ids,
+            result.customers_names,
+            result.customers_firstnames,
+            result.collectors_ids,
+            result.collectors_names,
+            result.collectors_firstnames,
+            result.cards_ids,
+            result.cards_labels,
+            result.cards_types_numbers,
+            result.types_ids,
+            result.types_names,
+            result.totals_settlements_numbers,
+            result.totals_settlements_amounts,
+            result.forecasts_numbers,
+            result.forecasts_amounts,
+          ),
+      );
+
+      return productsForecasts;
     } catch (error) {
-      console.error('Error calling get_product_forecast:', error);
+      console.error('Error calling get_product_forecast: ', error);
+      throw error;
+    }
+  }
+
+  async getProductsForecastsCount(): Promise<ProductCountEntity> {
+    try {
+      const params = [
+        { name: 'p_product_id', value: undefined },
+        { name: 'p_customer_id', value: undefined },
+        { name: 'p_collector_id', value: undefined },
+        { name: 'p_card_id', value: undefined },
+        { name: 'p_type_id', value: undefined },
+        {
+          name: 'p_total_settlement_number',
+          value: undefined,
+        },
+        { name: 'p_offset', value: undefined },
+        { name: 'p_limit', value: undefined },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_forecasts(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      return { count: results.length };
+    } catch (error) {
+      console.error('Error calling get_product_forecast: ', error);
+      throw error;
+    }
+  }
+
+  async getProductsForecastsCountSpecific({
+    getProductForecastDto,
+  }: {
+    getProductForecastDto: GetProductForecastDto;
+  }): Promise<ProductCountEntity> {
+    try {
+      getProductForecastDto.limit = (
+        await this.getProductsForecastsCount()
+      ).count;
+
+      const params = [
+        { name: 'p_product_id', value: getProductForecastDto.productId },
+        { name: 'p_customer_id', value: getProductForecastDto.customerId },
+        { name: 'p_collector_id', value: getProductForecastDto.collectorId },
+        { name: 'p_card_id', value: getProductForecastDto.cardId },
+        { name: 'p_type_id', value: getProductForecastDto.typeId },
+        {
+          name: 'p_total_settlement_number',
+          value: getProductForecastDto.totalSettlementNumber,
+        },
+        { name: 'p_offset', value: 0 },
+        { name: 'p_limit', value: getProductForecastDto.limit },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_forecasts(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      return { count: results.length };
+    } catch (error) {
+      console.error('Error calling get_product_forecast: ', error);
       throw error;
     }
   }

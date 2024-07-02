@@ -665,7 +665,7 @@ export class CollectionsService {
     try {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      startOfDay.setDate(startOfDay.getDate() - startOfDay.getDay());
+      //  startOfDay.setDate(startOfDay.getDate() - startOfDay.getDay());
 
       const endOfDay = new Date(startOfDay);
       endOfDay.setHours(23, 59, 59, 999);

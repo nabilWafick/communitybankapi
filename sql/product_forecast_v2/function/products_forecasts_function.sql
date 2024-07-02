@@ -1,59 +1,61 @@
 CREATE OR REPLACE FUNCTION get_products_forecasts(
-    p_product_id BIGINT DEFAULT NULL,
-    p_customer_id BIGINT DEFAULT NULL,
-    p_collector_id BIGINT DEFAULT NULL,
-    p_card_id BIGINT DEFAULT NULL,
-    p_type_id BIGINT DEFAULT NULL,
-    p_total_settlement_number INT DEFAULT NULL
+    p_product_id INTEGER DEFAULT NULL,
+    p_customer_id INTEGER DEFAULT NULL,
+    p_collector_id INTEGER DEFAULT NULL,
+    p_card_id INTEGER DEFAULT NULL,
+    p_type_id INTEGER DEFAULT NULL,
+    p_total_settlement_number INTEGER DEFAULT NULL,
+    p_offset INTEGER DEFAULT 0,
+    p_limit INTEGER DEFAULT NULL
 )
 RETURNS TABLE (
-    product_id BIGINT,
+    product_id INTEGER,
     product_name TEXT,
     forecast_number INTEGER,
     forecast_amount NUMERIC,
-    customers_ids BIGINT[],
+    customers_ids INTEGER[],
     customers_names TEXT[],
     customers_firstnames TEXT[],
-    collectors_ids BIGINT[],
+    collectors_ids INTEGER[],
     collectors_names TEXT[],
     collectors_firstnames TEXT[],
-    cards_ids BIGINT[],
+    cards_ids INTEGER[],
     cards_labels TEXT[],
-    cards_types_numbers INT[],
-    types_ids BIGINT[],
+    cards_types_numbers INTEGER[],
+    types_ids INTEGER[],
     types_names TEXT[],
-    totals_settlements_numbers INT[],
+    totals_settlements_numbers INTEGER[],
     totals_settlements_amounts NUMERIC[],
-    forecast_numbers INT[],
-    forecast_amounts NUMERIC[]
+    forecasts_numbers INTEGER[],
+    forecasts_amounts NUMERIC[]
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        subquery1.product_id,
-        subquery1.product_name,
-        subquery1.forecast_number::INT,
-        subquery1.forecast_amount,
-        COALESCE(ARRAY_AGG(subquery2.customer_id), ARRAY[]::BIGINT[]) AS customers_ids,
+        subquery1.product_id AS product_id,
+        subquery1.product_name AS product_name,
+        subquery1.forecast_number AS forecast_number,
+        subquery1.forecast_amount AS forecast_amount,
+        COALESCE(ARRAY_AGG(subquery2.customer_id), ARRAY[]::INTEGER[]) AS customers_ids,
         COALESCE(ARRAY_AGG(subquery2.customer_name), ARRAY[]::TEXT[]) AS customers_names,
         COALESCE(ARRAY_AGG(subquery2.customer_firstname), ARRAY[]::TEXT[]) AS customers_firstnames,
-        COALESCE(ARRAY_AGG(subquery2.collector_id), ARRAY[]::BIGINT[]) AS collectors_ids,
+        COALESCE(ARRAY_AGG(subquery2.collector_id), ARRAY[]::INTEGER[]) AS collectors_ids,
         COALESCE(ARRAY_AGG(subquery2.collector_name), ARRAY[]::TEXT[]) AS collectors_names,
         COALESCE(ARRAY_AGG(subquery2.collector_firstname), ARRAY[]::TEXT[]) AS collectors_firstnames,
-        COALESCE(ARRAY_AGG(subquery2.card_id), ARRAY[]::BIGINT[]) AS cards_ids,
+        COALESCE(ARRAY_AGG(subquery2.card_id), ARRAY[]::INTEGER[]) AS cards_ids,
         COALESCE(ARRAY_AGG(subquery2.card_label), ARRAY[]::TEXT[]) AS cards_labels,
-        COALESCE(ARRAY_AGG(subquery2.card_type_number), ARRAY[]::INT[]) AS cards_types_numbers,
-        COALESCE(ARRAY_AGG(subquery2.type_id), ARRAY[]::BIGINT[]) AS types_ids,
+        COALESCE(ARRAY_AGG(subquery2.card_type_number), ARRAY[]::INTEGER[]) AS cards_types_numbers,
+        COALESCE(ARRAY_AGG(subquery2.type_id), ARRAY[]::INTEGER[]) AS types_ids,
         COALESCE(ARRAY_AGG(subquery2.type_name), ARRAY[]::TEXT[]) AS types_names,
-        COALESCE(ARRAY_AGG(subquery2.total_settlement_number), ARRAY[]::INT[])::INT[] AS totals_settlements_numbers,
-        COALESCE(ARRAY_AGG(subquery2.total_settlement_amount), ARRAY[]::NUMERIC[])::NUMERIC[] AS totals_settlements_amounts,
-        COALESCE(ARRAY_AGG(subquery2.forecast_number), ARRAY[]::INT[])::INT[] AS forecast_numbers,
-        COALESCE(ARRAY_AGG(subquery2.forecast_amount), ARRAY[]::NUMERIC[])::NUMERIC[] AS forecast_amounts
+        COALESCE(ARRAY_AGG(subquery2.total_settlement_number), ARRAY[]::INTEGER[]) AS totals_settlements_numbers,
+        COALESCE(ARRAY_AGG(subquery2.total_settlement_amount), ARRAY[]::NUMERIC[]) AS totals_settlements_amounts,
+        COALESCE(ARRAY_AGG(subquery2.forecast_number), ARRAY[]::INTEGER[]) AS forecasts_numbers,
+        COALESCE(ARRAY_AGG(subquery2.forecast_amount), ARRAY[]::NUMERIC[]) AS forecasts_amounts
     FROM 
         (SELECT
             pdt_tp.pdt_id AS product_id,
             pdt_tp.pdt_nm AS product_name,
-            SUM(COALESCE(pdt_tp.pdt_nb * c_cd_stt.cd_tn, 0)) AS forecast_number,
+            SUM(COALESCE(pdt_tp.pdt_nb * c_cd_stt.cd_tn, 0))::INTEGER AS forecast_number,
             SUM(COALESCE(pdt_tp.pdt_nb * pdt_tp.pdt_p_p * c_cd_stt.cd_tn, 0)) AS forecast_amount
         FROM
             (SELECT
@@ -135,9 +137,9 @@ BEGIN
             c_cd_stt.cd_tn AS card_type_number,
             pdt_tp.tp_id AS type_id,
             pdt_tp.tp_nm AS type_name,
-            c_cd_stt.tt_stt_nb AS total_settlement_number,
+            c_cd_stt.tt_stt_nb::INTEGER AS total_settlement_number,
             c_cd_stt.tt_stt_amt AS total_settlement_amount,
-            COALESCE(pdt_tp.pdt_nb * c_cd_stt.cd_tn, 0)  AS forecast_number,
+            COALESCE(pdt_tp.pdt_nb * c_cd_stt.cd_tn, 0)::INTEGER AS forecast_number,
             COALESCE(pdt_tp.pdt_nb * pdt_tp.pdt_p_p * c_cd_stt.cd_tn, 0) AS forecast_amount  
         FROM
             (SELECT
@@ -207,6 +209,10 @@ BEGIN
         subquery1.product_id,
         subquery1.product_name,
         subquery1.forecast_number,
-        subquery1.forecast_amount;
+        subquery1.forecast_amount
+    ORDER BY 
+        subquery1.product_id
+    OFFSET p_offset
+    LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;

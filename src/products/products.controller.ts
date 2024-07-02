@@ -14,16 +14,25 @@ import {
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
-import { CreateProductDto, UpdateProductDto } from './dto';
-import { ProductCountEntity, ProductEntity } from './entities';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  GetProductForecastDto,
+} from './dto';
+import {
+  ProductCountEntity,
+  ProductEntity,
+  ProductForecastEntity,
+} from './entities';
 import { ProductsService } from './products.service';
 import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { Permissions } from '../auth/decorator/permissions.decorator';
+import { TypeEntity } from 'src/types/entities';
 
 @Controller('products')
 @ApiTags('Products')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+//@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -203,8 +212,7 @@ export class ProductsController {
     }
   }
 
-  /*
-   @Permissions('-product')
+  /* // @Permissions('-product')
   @Get('populate/type-product')
   @ApiOkResponse({ type: TypeEntity })
   async poupulateTypeProduct() {
@@ -275,7 +283,7 @@ export class ProductsController {
       );
     }
   }
-*/
+  */
 
   @Permissions('read-product')
   @Get()
@@ -724,30 +732,75 @@ export class ProductsController {
   }
 
   @Permissions('admin')
-  @Get('/stats/forecasts')
+  @Post('/stats/forecasts')
+  @ApiOkResponse({ type: ProductForecastEntity, isArray: true })
   async getProductForecast(
-    @Query('productId') productId?: number,
-    @Query('customerId') customerId?: number,
-    @Query('collectorId') collectorId?: number,
-    @Query('cardId') cardId?: number,
-    @Query('typeId') typeId?: number,
-    @Query('totalSettlementNumber') totalSettlementNumber?: number,
-  ) {
+    @Body() getProductForecastDto: GetProductForecastDto,
+  ): Promise<ProductForecastEntity[]> {
     try {
       return this.productsService.getProductsForecasts({
-        productId: 50,
-        customerId,
-        collectorId,
-        cardId,
-        typeId,
-        totalSettlementNumber,
+        getProductForecastDto: getProductForecastDto,
       });
     } catch (error) {
       throw new HttpException(
         {
           message: {
-            en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Post('/stats/forecasts/count')
+  @ApiOkResponse({
+    type: ProductCountEntity,
+  })
+  async getProductForecastCount(): Promise<ProductCountEntity> {
+    try {
+      return this.productsService.getProductsForecastsCount();
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Post('/stats/forecasts/count/specific')
+  @ApiOkResponse({ type: ProductCountEntity })
+  async getProductForecastCountSpecific(
+    @Body() getProductForecastDto: GetProductForecastDto,
+  ): Promise<ProductCountEntity> {
+    try {
+      return this.productsService.getProductsForecastsCountSpecific({
+        getProductForecastDto: getProductForecastDto,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',

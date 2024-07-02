@@ -19,7 +19,6 @@ model Agent {
   updatedAt     DateTime       @default(dbgenerated("(now() AT TIME ZONE 'utc-1'::text)")) @map("updated_at") @db.Timestamptz(6)
   email         String         @unique
   permissions   Json
-  views         Json
   collections   Collection[]
   modifications Modification[]
   settlements   Settlement[]
@@ -278,7 +277,7 @@ model User {
   password          String
   accessToken       String    @map("access_token")
   securityQuestions Json      @map("security_questions")
-  onlineStatus     String    @map("online_status")  @default("offline") @db.VarChar(10)
+  onlineStatus      String    @default("offline") @map("online_status") @db.VarChar(10)
   lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
   lastLogoutAt      DateTime? @map("last_logout_at") @db.Timestamptz(6)
   passwordResetedAt DateTime? @map("password_reseted_at") @db.Timestamptz(6)
