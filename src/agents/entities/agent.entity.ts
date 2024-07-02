@@ -28,9 +28,6 @@ export class AgentEntity implements Agent {
   permissions: JsonValue;
 
   @ApiProperty()
-  views: JsonValue;
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

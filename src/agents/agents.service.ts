@@ -43,7 +43,6 @@ export class AgentsService {
         data: {
           ...createAgentDto,
           permissions: JSON.parse(createAgentDto.permissions.toString()),
-          views: JSON.parse(createAgentDto.views.toString()),
         },
       });
 
@@ -241,7 +240,6 @@ export class AgentsService {
         data: {
           ...updateAgentDto,
           permissions: JSON.parse(updateAgentDto.permissions.toString()),
-          views: JSON.parse(updateAgentDto.views.toString()),
           updatedAt: new Date().toISOString(),
         },
       });

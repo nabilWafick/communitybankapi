@@ -23,7 +23,6 @@ export class CreateAgentDto {
   @ApiProperty()
   firstnames: string;
 
- 
   @Matches(/^(\+229|00229)[4569]\d{7}$/, {
     message:
       'Phone number must be like +229XXXXXXXX or 00229XXXXXXXX and must match r^/^(+229|00229)[4569]d{7}$/',
@@ -50,9 +49,4 @@ export class CreateAgentDto {
   @IsNotEmpty({ message: 'Permissions must not be empty' })
   @ApiProperty()
   permissions: JsonValue;
-
-  @IsJSON({ message: 'Views must be JSON' })
-  @IsNotEmpty({ message: 'Views must not be empty' })
-  @ApiProperty()
-  views: JsonValue;
 }
