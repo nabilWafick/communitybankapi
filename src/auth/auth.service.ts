@@ -6,7 +6,7 @@ import * as argon2 from 'argon2';
 import { Prisma } from '@prisma/client';
 import { UserEntity } from './entities/auth.entity';
 import { SocketGateway } from 'src/common/socket/socket.gateway';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Injectable()

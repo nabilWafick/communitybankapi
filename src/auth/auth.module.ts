@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PermissionsGuard } from './guard/permissions.guard';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { SocketGateway } from 'src/common/socket/socket.gateway';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Module({
