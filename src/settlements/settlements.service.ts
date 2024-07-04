@@ -269,10 +269,14 @@ export class SettlementsService {
     createMultipleSettlementsDto: CreateMultipleSettlementsDto;
   }): Promise<SettlementEntity[]> {
     try {
-      // check settlements data are valid
-      createMultipleSettlementsDto.settlements.every((settlementDto) =>
-        this.isSettlementDtoDataValid({ createSettlementDto: settlementDto }),
-      );
+      try {
+        // check settlements data are valid
+        createMultipleSettlementsDto.settlements.every((settlementDto) =>
+          this.isSettlementDtoDataValid({ createSettlementDto: settlementDto }),
+        );
+      } catch (error) {
+        throw error;
+      }
 
       // TODO : check if all settlements will be done with a same collection
 
@@ -290,9 +294,15 @@ export class SettlementsService {
         let settlementsTotalAmount = 0;
 
         for (const settlementDto of createMultipleSettlementsDto.settlements) {
-          const cardTypeValue = await this.cardTypeStake({
-            createSettlementDto: settlementDto,
-          });
+          let cardTypeValue = 0;
+
+          try {
+            cardTypeValue = await this.cardTypeStake({
+              createSettlementDto: settlementDto,
+            });
+          } catch (error) {
+            throw error;
+          }
 
           settlementsTotalAmount += settlementDto.number * cardTypeValue;
         }
