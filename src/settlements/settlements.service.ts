@@ -25,75 +25,79 @@ export class SettlementsService {
   }: {
     createSettlementDto: CreateSettlementDto;
   }): Promise<boolean> {
-    // check if the settlement is validated
-    if (!createSettlementDto.isValidated) {
-      throw Error('Unvalidated settlement');
+    try {
+      // check if the settlement is validated
+      if (!createSettlementDto.isValidated) {
+        throw Error('Unvalidated settlement');
+      }
+
+      // check if the provided agent ID exist
+      const agent = await this.prisma.agent.findUnique({
+        where: { id: createSettlementDto.agentId },
+      });
+
+      // throw an error if not
+      if (!agent) {
+        throw Error(`Agent not found`);
+      }
+
+      // check if the provided card ID exist
+      const card = await this.prisma.card.findUnique({
+        where: { id: createSettlementDto.cardId },
+        include: {
+          settlements: true,
+          type: true,
+        },
+      });
+
+      // fetch all validated settlements of the customer card
+      const validatedSettlements = card.settlements.filter(
+        (settlement) => settlement.isValidated,
+      );
+
+      // calculate the total of validated settlements
+      const validatedSettlementsTotal = validatedSettlements.reduce(
+        (total, settlement) => total + settlement.number,
+        0,
+      );
+
+      // throw an error if this could lead to excessive settlement
+      if (validatedSettlementsTotal + createSettlementDto.number > 372) {
+        throw Error('Risk of over settlement');
+      }
+
+      // throw an error if not
+      if (!card) {
+        throw Error(`Card not found`);
+      }
+
+      // check if the card is usable
+      if (card.repaidAt) {
+        throw Error(`Card already repaid`);
+      }
+
+      if (card.satisfiedAt) {
+        throw Error(`Card already satisfied`);
+      }
+
+      if (card.transferredAt) {
+        throw Error(`Card already transfered`);
+      }
+
+      // check if the provided collection ID exist
+      const collection = await this.prisma.collection.findUnique({
+        where: { id: createSettlementDto.collectionId },
+      });
+
+      // throw an error if not
+      if (!collection) {
+        throw Error(`Collection not found`);
+      }
+
+      return true;
+    } catch (error) {
+      throw error;
     }
-
-    // check if the provided agent ID exist
-    const agent = await this.prisma.agent.findUnique({
-      where: { id: createSettlementDto.agentId },
-    });
-
-    // throw an error if not
-    if (!agent) {
-      throw Error(`Agent not found`);
-    }
-
-    // check if the provided card ID exist
-    const card = await this.prisma.card.findUnique({
-      where: { id: createSettlementDto.cardId },
-      include: {
-        settlements: true,
-        type: true,
-      },
-    });
-
-    // fetch all validated settlements of the customer card
-    const validatedSettlements = card.settlements.filter(
-      (settlement) => settlement.isValidated,
-    );
-
-    // calculate the total of validated settlements
-    const validatedSettlementsTotal = validatedSettlements.reduce(
-      (total, settlement) => total + settlement.number,
-      0,
-    );
-
-    // throw an error if this could lead to excessive settlement
-    if (validatedSettlementsTotal + createSettlementDto.number > 372) {
-      throw Error('Risk of over settlement');
-    }
-
-    // throw an error if not
-    if (!card) {
-      throw Error(`Card not found`);
-    }
-
-    // check if the card is usable
-    if (card.repaidAt) {
-      throw Error(`Card already repaid`);
-    }
-
-    if (card.satisfiedAt) {
-      throw Error(`Card already satisfied`);
-    }
-
-    if (card.transferredAt) {
-      throw Error(`Card already transfered`);
-    }
-
-    // check if the provided collection ID exist
-    const collection = await this.prisma.collection.findUnique({
-      where: { id: createSettlementDto.collectionId },
-    });
-
-    // throw an error if not
-    if (!collection) {
-      throw Error(`Collection not found`);
-    }
-
-    return true;
   }
 
   // will return the number of type of the card * type's stake
@@ -102,14 +106,18 @@ export class SettlementsService {
   }: {
     createSettlementDto: CreateSettlementDto;
   }): Promise<number> {
-    const card = await this.prisma.card.findUnique({
-      where: { id: createSettlementDto.cardId },
-      include: {
-        type: true,
-      },
-    });
+    try {
+      const card = await this.prisma.card.findUnique({
+        where: { id: createSettlementDto.cardId },
+        include: {
+          type: true,
+        },
+      });
 
-    return card.typesNumber * card.type.stake.toNumber();
+      return card.typesNumber * card.type.stake.toNumber();
+    } catch (error) {
+      throw error;
+    }
   }
 
   async create({
@@ -346,17 +354,21 @@ export class SettlementsService {
           data: updatedCollection,
         });
 
-        const settlement = await this.create({
-          createSettlementDto: settlementDto,
+        let newSettlement = await this.prisma.settlement.create({
+          data: settlementDto,
+        });
+
+        newSettlement = await this.findOne({
+          id: newSettlement.id,
         });
 
         // emit addition event
         this.socketGateway.emitProductEvent({
           event: 'settlement-addition',
-          data: settlement,
+          data: newSettlement,
         });
 
-        settlements.push(settlement);
+        settlements.push(newSettlement);
       }
 
       // return created settlements

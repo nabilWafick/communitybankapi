@@ -34,44 +34,51 @@ export class StocksService {
     productsIds: number[];
     productsOutputQuantities: number[];
   }): Promise<boolean> {
-    // check if every product passed are availaible in stock and
-    // it stock quantity is equal or greather than the required
-    // the required for making an output
+    try {
+      // check if every product passed are availaible in stock and
+      // it stock quantity is equal or greather than the required
+      // the required for making an output
 
-    let availabilities: boolean[] = [];
+      let availabilities: boolean[] = [];
 
-    for (let i = 0; i < productsIds.length; i++) {
-      // get the last product stock
-      const productStocks = await this.prisma.stock.findMany({
-        where: { productId: productsIds[i] },
-        orderBy: {
-          id: 'desc',
-        },
-        take: 1,
-      });
+      for (let i = 0; i < productsIds.length; i++) {
+        // get the last product stock
+        const productStocks = await this.prisma.stock.findMany({
+          where: { productId: productsIds[i] },
+          orderBy: {
+            id: 'desc',
+          },
+          take: 1,
+        });
 
-      const lastProductStock =
-        productStocks.length > 0 ? productStocks[0] : null;
+        const lastProductStock =
+          productStocks.length > 0 ? productStocks[0] : null;
 
-      // if the product stock not exist
-      if (!lastProductStock) {
-        // mark as not available
-        availabilities[i] = false;
-        // continue with the next productId
-        continue;
-      } else {
-        // the product is available in stock
-
-        // check if it stock quantity is sufficient for the output
-        if (lastProductStock.stockQuantity - productsOutputQuantities[i] > 0) {
-          availabilities[i] = true;
-        } else {
+        // if the product stock not exist
+        if (!lastProductStock) {
+          // mark as not available
           availabilities[i] = false;
+          // continue with the next productId
+          continue;
+        } else {
+          // the product is available in stock
+
+          // check if it stock quantity is sufficient for the output
+          if (
+            lastProductStock.stockQuantity - productsOutputQuantities[i] >
+            0
+          ) {
+            availabilities[i] = true;
+          } else {
+            availabilities[i] = false;
+          }
         }
       }
-    }
 
-    return availabilities.every((availability) => availability);
+      return availabilities.every((availability) => availability);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async outputProducts({
@@ -95,178 +102,45 @@ export class StocksService {
     // satisfaction date
     satisfiedAt: string;
   }): Promise<StockEntity[]> {
-    // TODO
-    // fix errors
-
-    let newStocks: StockEntity[] = [];
-    for (let i = 0; i < productsIds.length; i++) {
-      // get the last product stock
-      const productStocks = await this.prisma.stock.findMany({
-        where: { productId: productsIds[i] },
-        orderBy: {
-          id: 'desc',
-        },
-        take: 1,
-      });
-
-      // console.log({ productStocks: productStocks });
-
-      const lastProductStock = productStocks[0];
-
-      // create output stock
-      newStocks[i] = await this.prisma.stock.create({
-        data: {
-          productId: productsIds[i],
-          cardId: card.id,
-          initialQuantity: lastProductStock.stockQuantity,
-          outputQuantity: productsOutputQuantities[i],
-          stockQuantity:
-            lastProductStock.stockQuantity - productsOutputQuantities[i],
-          movementType: outputType,
-          agentId: agentId,
-          createdAt: new Date(satisfiedAt),
-        },
-        include: {
-          product: true,
-          card: {
-            include: {
-              type: true,
-              customer: {
-                include: {
-                  collector: true,
-                },
-              },
-            },
-          },
-          agent: true,
-        },
-      });
-
-      // emit addition event
-      this.socketGateway.emitProductEvent({
-        event: 'stock-addition',
-        data: newStocks[i],
-      });
-    }
-
-    // mark the card as satisfied
-    const updatedCard = await this.prisma.card.update({
-      where: {
-        id: card.id,
-      },
-      data: {
-        satisfiedAt: new Date(satisfiedAt),
-        updatedAt: new Date().toISOString(),
-      },
-    });
-
-    // emit update event
-    this.socketGateway.emitProductEvent({
-      event: 'card-update',
-      data: updatedCard,
-    });
-
-    return newStocks;
-  }
-
-  async retrocedeProducts({
-    cardId,
-    agentId,
-  }: {
-    // the card to satisfied by normal or constrained outpu
-    cardId: number;
-
-    // agent Id (necessary for creating new input)
-    agentId: number;
-  }): Promise<StockEntity[]> {
-    let newStocks: StockEntity[] = [];
-
-    // get the corresponding card
-    let card = await this.prisma.card.findUnique({
-      where: {
-        id: cardId,
-      },
-      include: {
-        type: {
-          include: {
-            typeProducts: true,
-          },
-        },
-      },
-    });
-
-    // get the last output done for the card
-    // so as to know if it is a normal ou constrained output
-    const cardStockOutputs = await this.prisma.stock.findMany({
-      where: {
-        cardId: card.id,
-        outputQuantity: {
-          not: null,
-        },
-      },
-      orderBy: {
-        id: 'desc',
-      },
-    });
-
-    // get the last
-    const lastCardStockOutput =
-      cardStockOutputs.length > 0 ? cardStockOutputs[0] : null;
-
-    // check if it is a normal or constrained output
-    if (lastCardStockOutput.movementType === StockOutputType.normal) {
-      // make simple retrocession based on card types products
-
-      for (let i = 0; i < card.type.typeProducts.length; i++) {
-        const productId = card.type.typeProducts[i].productId;
-
-        // get the last stock of the product
-        const productLastStocks = await this.prisma.stock.findMany({
-          where: {
-            productId: productId,
-          },
+    try {
+      let newStocks: StockEntity[] = [];
+      for (let i = 0; i < productsIds.length; i++) {
+        // get the last product stock
+        const productStocks = await this.prisma.stock.findMany({
+          where: { productId: productsIds[i] },
           orderBy: {
             id: 'desc',
           },
+          take: 1,
         });
 
-        const productLastStock =
-          productLastStocks.length > 0 ? productLastStocks[0] : null;
+        // console.log({ productStocks: productStocks });
 
-        // throw error if last stock is not found
-        if (!productLastStock) {
-          throw Error('Corrupted data');
-        }
+        const lastProductStock = productStocks[0];
 
-        // make the retrocession
+        // create output stock
         newStocks[i] = await this.prisma.stock.create({
           data: {
-            productId: productLastStock.productId,
-            cardId: cardId,
-            initialQuantity: productLastStock.stockQuantity,
-            // input quantity is the number of product defined for the card
-            inputQuantity:
-              card.typesNumber * card.type.typeProducts[i].productNumber,
+            productId: productsIds[i],
+            cardId: card.id,
+            initialQuantity: lastProductStock.stockQuantity,
+            outputQuantity: productsOutputQuantities[i],
             stockQuantity:
-              productLastStock.stockQuantity +
-              card.typesNumber * card.type.typeProducts[i].productNumber,
-            movementType: StockInputType.retrocession,
+              lastProductStock.stockQuantity - productsOutputQuantities[i],
+            movementType: outputType,
             agentId: agentId,
+            createdAt: new Date(satisfiedAt),
           },
           include: {
             product: true,
             card: {
               include: {
-                type: true /*{
+                type: true,
+                customer: {
                   include: {
-                    typeProducts: {
-                      include: {
-                        product: true,
-                      },
-                    },
+                    collector: true,
                   },
-                },*/,
-                customer: true,
+                },
               },
             },
             agent: true,
@@ -279,169 +153,308 @@ export class StocksService {
           data: newStocks[i],
         });
       }
-    } else {
-      // it is a constrained output
 
-      // check if the output where done at this hours
-      // if true, throw an error
-      // that for avoiding data trouble
-      // it for facilitate outputed products in case of constrained
-      // output, in case of constrained output, any product can be outputed
-      // for satisfying the card, it will be very difficult to identify
-      // the products outputed for satisfying the card if multiple retrocession
-      // are made the same hour
-      // For exemple, it will be difficult to make a retrocession in mutiple constrained satisfaction trying, discarding
+      // mark the card as satisfied
+      const updatedCard = await this.prisma.card.update({
+        where: {
+          id: card.id,
+        },
+        data: {
+          satisfiedAt: new Date(satisfiedAt),
+          updatedAt: new Date().toISOString(),
+        },
+      });
 
-      // check if one retrocession have done from the card in the current hour
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'card-update',
+        data: updatedCard,
+      });
 
-      // get the last retrocession done for the card
-      // so as to know if it have done in this hour
-      const cardStockRetrocessions = await this.prisma.stock.findMany({
+      return newStocks;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async retrocedeProducts({
+    cardId,
+    agentId,
+  }: {
+    // the card to satisfied by normal or constrained outpu
+    cardId: number;
+
+    // agent Id (necessary for creating new input)
+    agentId: number;
+  }): Promise<StockEntity[]> {
+    try {
+      let newStocks: StockEntity[] = [];
+
+      // get the corresponding card
+      let card = await this.prisma.card.findUnique({
+        where: {
+          id: cardId,
+        },
+        include: {
+          type: {
+            include: {
+              typeProducts: true,
+            },
+          },
+        },
+      });
+
+      // get the last output done for the card
+      // so as to know if it is a normal ou constrained output
+      const cardStockOutputs = await this.prisma.stock.findMany({
         where: {
           cardId: card.id,
-          movementType: StockInputType.retrocession,
+          outputQuantity: {
+            not: null,
+          },
         },
         orderBy: {
           id: 'desc',
         },
       });
 
-      const lastCardStockRetrocession =
-        cardStockRetrocessions.length > 0 ? cardStockRetrocessions[0] : null;
+      // get the last
+      const lastCardStockOutput =
+        cardStockOutputs.length > 0 ? cardStockOutputs[0] : null;
 
-      if (
-        lastCardStockRetrocession &&
-        lastCardStockRetrocession.createdAt.getFullYear() ===
-          new Date().getFullYear() &&
-        lastCardStockRetrocession.createdAt.getMonth() ===
-          new Date().getMonth() &&
-        lastCardStockRetrocession.createdAt.getDate() ===
-          new Date().getDate() &&
-        lastCardStockRetrocession.createdAt.getHours() === new Date().getHours()
-      ) {
-        throw Error('Multiple retrocession per hour impossible');
-      } else {
-        // last retrocession done is not at this hours
+      // check if it is a normal or constrained output
+      if (lastCardStockOutput.movementType === StockOutputType.normal) {
+        // make simple retrocession based on card types products
 
-        // fetch all products outputed for the card at the hour of satisfaction date
-        const productsOutputedStock = await this.prisma.stock.findMany({
-          where: {
-            cardId: card.id,
-            outputQuantity: {
-              not: null,
+        for (let i = 0; i < card.type.typeProducts.length; i++) {
+          const productId = card.type.typeProducts[i].productId;
+
+          // get the last stock of the product
+          const productLastStocks = await this.prisma.stock.findMany({
+            where: {
+              productId: productId,
             },
-
-            movementType: StockOutputType.constraint,
-            createdAt: {
-              gte: new Date(
-                card.satisfiedAt.getFullYear(),
-                card.satisfiedAt.getMonth(),
-                card.satisfiedAt.getDate(),
-                card.satisfiedAt.getHours(),
-                0,
-                0,
-              ),
-              lt: new Date(
-                card.satisfiedAt.getFullYear(),
-                card.satisfiedAt.getMonth(),
-                card.satisfiedAt.getDate(),
-                card.satisfiedAt.getHours() + 1,
-                0,
-                0,
-              ),
+            orderBy: {
+              id: 'desc',
             },
-          },
-        });
+          });
 
-        // check if products stocks exist
-        // if not throw error
-        // error because if the card where satisfied
-        // stock outputs must be found
-        if (productsOutputedStock.length < 0) {
-          throw Error('Corrupted data');
-        } else {
-          // product exists
+          const productLastStock =
+            productLastStocks.length > 0 ? productLastStocks[0] : null;
 
-          // for each product stock, make a retrocession,
+          // throw error if last stock is not found
+          if (!productLastStock) {
+            throw Error('Corrupted data');
+          }
 
-          /// *** TESTING *** ///
-
-          for (let i = 0; i < productsOutputedStock.length; i++) {
-            const productOutputedStock = productsOutputedStock[i];
-
-            // get the last stock of the product
-            // this because, the outputed stock for that product may not be
-            // the last stock movemement of the product
-            // May be, an input have be done after the output
-
-            const productLastStocks = await this.prisma.stock.findMany({
-              where: {
-                productId: productOutputedStock.productId,
-              },
-              orderBy: {
-                id: 'desc',
-              },
-            });
-
-            const productLastStock = productLastStocks[0];
-
-            // make the retrocesion
-            newStocks[i] = await this.prisma.stock.create({
-              data: {
-                productId: productLastStock.productId,
-                cardId: cardId,
-                initialQuantity: productLastStock.stockQuantity,
-                inputQuantity: productOutputedStock.outputQuantity,
-                stockQuantity:
-                  productLastStock.stockQuantity +
-                  productOutputedStock.outputQuantity,
-                movementType: StockInputType.retrocession,
-                agentId: agentId,
-              },
-              include: {
-                product: true,
-                card: {
+          // make the retrocession
+          newStocks[i] = await this.prisma.stock.create({
+            data: {
+              productId: productLastStock.productId,
+              cardId: cardId,
+              initialQuantity: productLastStock.stockQuantity,
+              // input quantity is the number of product defined for the card
+              inputQuantity:
+                card.typesNumber * card.type.typeProducts[i].productNumber,
+              stockQuantity:
+                productLastStock.stockQuantity +
+                card.typesNumber * card.type.typeProducts[i].productNumber,
+              movementType: StockInputType.retrocession,
+              agentId: agentId,
+            },
+            include: {
+              product: true,
+              card: {
+                include: {
+                  type: true /*{
                   include: {
-                    type: true,
-                    customer: {
+                    typeProducts: {
                       include: {
-                        collector: true,
+                        product: true,
                       },
                     },
                   },
+                },*/,
+                  customer: true,
                 },
-                agent: true,
               },
-            });
+              agent: true,
+            },
+          });
 
-            // emit addition event
-            this.socketGateway.emitProductEvent({
-              event: 'stock-addition',
-              data: newStocks[i],
-            });
+          // emit addition event
+          this.socketGateway.emitProductEvent({
+            event: 'stock-addition',
+            data: newStocks[i],
+          });
+        }
+      } else {
+        // it is a constrained output
+
+        // check if the output where done at this hours
+        // if true, throw an error
+        // that for avoiding data trouble
+        // it for facilitate outputed products in case of constrained
+        // output, in case of constrained output, any product can be outputed
+        // for satisfying the card, it will be very difficult to identify
+        // the products outputed for satisfying the card if multiple retrocession
+        // are made the same hour
+        // For exemple, it will be difficult to make a retrocession in mutiple constrained satisfaction trying, discarding
+
+        // check if one retrocession have done from the card in the current hour
+
+        // get the last retrocession done for the card
+        // so as to know if it have done in this hour
+        const cardStockRetrocessions = await this.prisma.stock.findMany({
+          where: {
+            cardId: card.id,
+            movementType: StockInputType.retrocession,
+          },
+          orderBy: {
+            id: 'desc',
+          },
+        });
+
+        const lastCardStockRetrocession =
+          cardStockRetrocessions.length > 0 ? cardStockRetrocessions[0] : null;
+
+        if (
+          lastCardStockRetrocession &&
+          lastCardStockRetrocession.createdAt.getFullYear() ===
+            new Date().getFullYear() &&
+          lastCardStockRetrocession.createdAt.getMonth() ===
+            new Date().getMonth() &&
+          lastCardStockRetrocession.createdAt.getDate() ===
+            new Date().getDate() &&
+          lastCardStockRetrocession.createdAt.getHours() ===
+            new Date().getHours()
+        ) {
+          throw Error('Multiple retrocession per hour impossible');
+        } else {
+          // last retrocession done is not at this hours
+
+          // fetch all products outputed for the card at the hour of satisfaction date
+          const productsOutputedStock = await this.prisma.stock.findMany({
+            where: {
+              cardId: card.id,
+              outputQuantity: {
+                not: null,
+              },
+
+              movementType: StockOutputType.constraint,
+              createdAt: {
+                gte: new Date(
+                  card.satisfiedAt.getFullYear(),
+                  card.satisfiedAt.getMonth(),
+                  card.satisfiedAt.getDate(),
+                  card.satisfiedAt.getHours(),
+                  0,
+                  0,
+                ),
+                lt: new Date(
+                  card.satisfiedAt.getFullYear(),
+                  card.satisfiedAt.getMonth(),
+                  card.satisfiedAt.getDate(),
+                  card.satisfiedAt.getHours() + 1,
+                  0,
+                  0,
+                ),
+              },
+            },
+          });
+
+          // check if products stocks exist
+          // if not throw error
+          // error because if the card where satisfied
+          // stock outputs must be found
+          if (productsOutputedStock.length < 0) {
+            throw Error('Corrupted data');
+          } else {
+            // product exists
+
+            // for each product stock, make a retrocession,
+
+            /// *** TESTING *** ///
+
+            for (let i = 0; i < productsOutputedStock.length; i++) {
+              const productOutputedStock = productsOutputedStock[i];
+
+              // get the last stock of the product
+              // this because, the outputed stock for that product may not be
+              // the last stock movemement of the product
+              // May be, an input have be done after the output
+
+              const productLastStocks = await this.prisma.stock.findMany({
+                where: {
+                  productId: productOutputedStock.productId,
+                },
+                orderBy: {
+                  id: 'desc',
+                },
+              });
+
+              const productLastStock = productLastStocks[0];
+
+              // make the retrocesion
+              newStocks[i] = await this.prisma.stock.create({
+                data: {
+                  productId: productLastStock.productId,
+                  cardId: cardId,
+                  initialQuantity: productLastStock.stockQuantity,
+                  inputQuantity: productOutputedStock.outputQuantity,
+                  stockQuantity:
+                    productLastStock.stockQuantity +
+                    productOutputedStock.outputQuantity,
+                  movementType: StockInputType.retrocession,
+                  agentId: agentId,
+                },
+                include: {
+                  product: true,
+                  card: {
+                    include: {
+                      type: true,
+                      customer: {
+                        include: {
+                          collector: true,
+                        },
+                      },
+                    },
+                  },
+                  agent: true,
+                },
+              });
+
+              // emit addition event
+              this.socketGateway.emitProductEvent({
+                event: 'stock-addition',
+                data: newStocks[i],
+              });
+            }
           }
         }
       }
+
+      // pass satisfied at date to null
+      const updatedCard = await this.prisma.card.update({
+        where: {
+          id: card.id,
+        },
+        data: {
+          satisfiedAt: null,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      // emit update event
+      this.socketGateway.emitProductEvent({
+        event: 'card-update',
+        data: updatedCard,
+      });
+
+      return newStocks;
+    } catch (error) {
+      throw error;
     }
-
-    // pass satisfied at date to null
-    const updatedCard = await this.prisma.card.update({
-      where: {
-        id: card.id,
-      },
-      data: {
-        satisfiedAt: null,
-        updatedAt: new Date().toISOString(),
-      },
-    });
-
-    // emit update event
-    this.socketGateway.emitProductEvent({
-      event: 'card-update',
-      data: updatedCard,
-    });
-
-    return newStocks;
   }
 
   /// ******* MAIN FUNCTIONS ******* ///
@@ -451,37 +464,50 @@ export class StocksService {
   }: {
     checkCardProductsAvailabilityDto: CheckCardProductsAvailabilityDto;
   }): Promise<StockCountEntity> {
-    // check if the provided card ID exist
-    const card = await this.prisma.card.findUnique({
-      where: { id: checkCardProductsAvailabilityDto.cardId },
-      include: {
-        type: {
-          include: {
-            typeProducts: true,
+    try {
+      // check if the provided card ID exist
+      const card = await this.prisma.card.findUnique({
+        where: { id: checkCardProductsAvailabilityDto.cardId },
+        include: {
+          type: {
+            include: {
+              typeProducts: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // throw an error if not
-    if (!card) {
-      throw Error(`Card not found`);
+      // throw an error if not
+      if (!card) {
+        throw Error(`Card not found`);
+      }
+
+      const productsIds = card.type.typeProducts.map(
+        (typeProduct) => typeProduct.productId,
+      );
+
+      const productsNumbers = card.type.typeProducts.map(
+        (typeProduct) => card.typesNumber * typeProduct.productNumber,
+      );
+
+      const areProductsAvailable = await this.checkProductsStocksAvailability({
+        productsIds: productsIds,
+        productsOutputQuantities: productsNumbers,
+      });
+
+      return { count: areProductsAvailable ? 1 : 0 };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
     }
-
-    const productsIds = card.type.typeProducts.map(
-      (typeProduct) => typeProduct.productId,
-    );
-
-    const productsNumbers = card.type.typeProducts.map(
-      (typeProduct) => card.typesNumber * typeProduct.productNumber,
-    );
-
-    const areProductsAvailable = await this.checkProductsStocksAvailability({
-      productsIds: productsIds,
-      productsOutputQuantities: productsNumbers,
-    });
-
-    return { count: areProductsAvailable ? 1 : 0 };
   }
 
   async createStockManualInput({
