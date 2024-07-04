@@ -490,10 +490,16 @@ export class StocksService {
         (typeProduct) => card.typesNumber * typeProduct.productNumber,
       );
 
-      const areProductsAvailable = await this.checkProductsStocksAvailability({
-        productsIds: productsIds,
-        productsOutputQuantities: productsNumbers,
-      });
+      let areProductsAvailable = false;
+
+      try {
+        areProductsAvailable = await this.checkProductsStocksAvailability({
+          productsIds: productsIds,
+          productsOutputQuantities: productsNumbers,
+        });
+      } catch (error) {
+        throw error;
+      }
 
       return { count: areProductsAvailable ? 1 : 0 };
     } catch (error) {
@@ -625,11 +631,19 @@ export class StocksService {
         throw Error(`Card is not satisfied`);
       }
 
+      let stocks = [];
+
+      try {
+        stocks = await this.retrocedeProducts({
+          cardId: card.id,
+          agentId: agent.id,
+        });
+      } catch (error) {
+        throw error;
+      }
+
       // make retrocession
-      return await this.retrocedeProducts({
-        cardId: card.id,
-        agentId: agent.id,
-      });
+      return stocks;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -791,8 +805,9 @@ export class StocksService {
         throw Error('Products not available');
       }
 
-      // make outputs
-      return await this.outputProducts({
+      let stocks = [];
+
+      stocks = await this.outputProducts({
         card: card,
         productsIds: card.type.typeProducts.map(
           (productType) => productType.productId,
@@ -804,6 +819,9 @@ export class StocksService {
         agentId: createStockNormalOutputDto.agentId,
         satisfiedAt: createStockNormalOutputDto.satisfiedAt,
       });
+
+      // make outputs
+      return stocks;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -896,18 +914,24 @@ export class StocksService {
         throw Error('Products not available');
       }
 
-      //  console.log('All products are available');
+      let stocks = [];
+
+      try {
+        stocks = await this.outputProducts({
+          card: card,
+          productsIds: createStockConstrainedOutputDto.productsIds,
+          productsOutputQuantities:
+            createStockConstrainedOutputDto.productsOutputQuantities,
+          outputType: StockOutputType.constraint,
+          agentId: createStockConstrainedOutputDto.agentId,
+          satisfiedAt: createStockConstrainedOutputDto.satisfiedAt,
+        });
+      } catch (error) {
+        throw error;
+      }
 
       // make outputs
-      return await this.outputProducts({
-        card: card,
-        productsIds: createStockConstrainedOutputDto.productsIds,
-        productsOutputQuantities:
-          createStockConstrainedOutputDto.productsOutputQuantities,
-        outputType: StockOutputType.constraint,
-        agentId: createStockConstrainedOutputDto.agentId,
-        satisfiedAt: createStockConstrainedOutputDto.satisfiedAt,
-      });
+      return stocks;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
