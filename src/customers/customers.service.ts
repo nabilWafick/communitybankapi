@@ -307,6 +307,12 @@ export class CustomersService {
     updateCustomerDto: UpdateCustomerDto;
   }): Promise<CustomerEntity> {
     try {
+      const customerWithID = await this.prisma.customer.findUnique({
+        where: {
+          id,
+        },
+      });
+
       if (updateCustomerDto.phoneNumber) {
         // find Many because phoneNumber is not defined as unique
         // find any collector with the provided phone number
@@ -336,6 +342,8 @@ export class CustomersService {
           throw Error(`Collector not found`);
         }
 
+        /// * AUTORIZE CUSTOMER COLLECTOR UPDATE * ///
+        /** 
         // check if collector make a collection from the customer
         // check if a settlement have be made
 
@@ -369,6 +377,9 @@ export class CustomersService {
         if (settlements.length > 0) {
           throw Error('Immutable collector');
         }
+        */
+      } else {
+        updateCustomerDto.collectorId = customerWithID.collectorId;
       }
 
       if (updateCustomerDto.localityId) {
