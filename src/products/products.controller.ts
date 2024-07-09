@@ -731,13 +731,62 @@ export class ProductsController {
     }
   }
 
+  private parseQueryParam(
+    value: string | undefined,
+    type: 'number',
+  ): number | undefined {
+    if (value === undefined) return undefined;
+
+    if (type === 'number') {
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    }
+
+    return undefined;
+  }
+
   @Permissions('admin')
-  @Post('/stats/forecasts')
+  @Get('/stats/forecasts')
   @ApiOkResponse({ type: ProductForecastEntity, isArray: true })
   async getProductForecast(
-    @Body() getProductForecastDto: GetProductForecastDto,
+    @Query() query: Record<string, string>,
   ): Promise<ProductForecastEntity[]> {
     try {
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: this.parseQueryParam(query.offset, 'number'),
+        limit: this.parseQueryParam(query.limit, 'number'),
+      };
+
+      // Validate that required fields are present
+      if (
+        getProductForecastDto.offset === undefined ||
+        getProductForecastDto.limit === undefined
+      ) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Offset and limit are required query parameters',
+              fr: 'Les paramètres offset et limit sont requis',
+            },
+            error: {
+              en: 'Bad Request',
+              fr: 'Requête Incorrecte',
+            },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       return this.productsService.getProductsForecasts({
         getProductForecastDto: getProductForecastDto,
       });
@@ -749,7 +798,7 @@ export class ProductsController {
             fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
           },
           error: {
-            en: 'Internal Serveur Error',
+            en: 'Internal Server Error',
             fr: 'Erreur Interne du Serveur',
           },
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -760,11 +809,11 @@ export class ProductsController {
   }
 
   @Permissions('admin')
-  @Post('/stats/forecasts/count')
+  @Get('/stats/forecasts/count')
   @ApiOkResponse({
     type: ProductCountEntity,
   })
-  async getProductForecastCount(): Promise<ProductCountEntity> {
+  async getProductsForecastsCount(): Promise<ProductCountEntity> {
     try {
       return this.productsService.getProductsForecastsCount();
     } catch (error) {
@@ -786,13 +835,53 @@ export class ProductsController {
   }
 
   @Permissions('admin')
-  @Post('/stats/forecasts/count/specific')
+  @Get('/stats/forecasts/amount')
+  @ApiOkResponse({
+    type: ProductCountEntity,
+  })
+  async getProductsForecastsTotalAmount(): Promise<ProductCountEntity> {
+    try {
+      return this.productsService.getProductsForecastsTotalAmount();
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Get('/stats/forecasts/count/specific')
   @ApiOkResponse({ type: ProductCountEntity })
-  async getProductForecastCountSpecific(
-    @Body() getProductForecastDto: GetProductForecastDto,
+  async getSpecificProductsForecastsCount(
+    @Query() query: Record<string, string>,
   ): Promise<ProductCountEntity> {
     try {
-      return this.productsService.getProductsForecastsCountSpecific({
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: 0,
+        limit: 10,
+      };
+
+      return this.productsService.getSpecificProductsForecastsCount({
         getProductForecastDto: getProductForecastDto,
       });
     } catch (error) {
@@ -803,7 +892,49 @@ export class ProductsController {
             fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
           },
           error: {
-            en: 'Internal Serveur Error',
+            en: 'Internal Server Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Get('/stats/forecasts/specific/amount')
+  @ApiOkResponse({ type: ProductCountEntity })
+  async getSpecificProductsForecastsTotalAmount(
+    @Query() query: Record<string, string>,
+  ): Promise<ProductCountEntity> {
+    try {
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: 0,
+        limit: 10,
+      };
+
+      return this.productsService.getSpecificProductsForecastsTotalAmount({
+        getProductForecastDto: getProductForecastDto,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Server Error',
             fr: 'Erreur Interne du Serveur',
           },
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
