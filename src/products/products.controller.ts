@@ -923,9 +923,11 @@ export class ProductsController {
         limit: 10,
       };
 
-      return this.productsService.getSpecificProductsForecastsTotalAmount({
-        getProductForecastDto: getProductForecastDto,
-      });
+      return await this.productsService.getSpecificProductsForecastsTotalAmount(
+        {
+          getProductForecastDto: getProductForecastDto,
+        },
+      );
     } catch (error) {
       throw new HttpException(
         {
