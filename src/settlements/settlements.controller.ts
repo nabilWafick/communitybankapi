@@ -916,11 +916,15 @@ export class SettlementsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateSettlementDto: UpdateSettlementDto,
+    @Req() req,
   ): Promise<SettlementEntity> {
     try {
       return await this.settlementsService.update({
         id: +id,
-        updateSettlementDto: updateSettlementDto,
+        updateSettlementDto: {
+          ...updateSettlementDto,
+          agentId: req.user.agentId,
+        },
       });
     } catch (error) {
       if (error.message === `Settlement with ID ${id} not found`) {

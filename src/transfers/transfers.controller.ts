@@ -523,11 +523,12 @@ export class TransfersController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTransferDto: UpdateTransferDto,
+    @Req() req,
   ): Promise<TransferEntity> {
     try {
       return await this.transfersService.update({
         id: +id,
-        updateTransferDto: updateTransferDto,
+        updateTransferDto: { ...updateTransferDto, agentId: req.user.agentId },
       });
     } catch (error) {
       if (error.message === `Transfer with ID ${id} not found`) {

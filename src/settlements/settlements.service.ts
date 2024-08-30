@@ -714,8 +714,6 @@ export class SettlementsService {
     updateSettlementDto: UpdateSettlementDto;
   }): Promise<SettlementEntity> {
     try {
-      updateSettlementDto = { ...updateSettlementDto, agentId: null };
-
       // fetch settlement with the provided ID
       const settlement = await this.prisma.settlement.findUnique({
         where: {

@@ -76,6 +76,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           },
           HttpStatus.UNAUTHORIZED,
         );
+      } else if (user.onlineStatus == 'offline') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'User not logged in',
+              fr: 'Utilisateur non connecté',
+            },
+            error: { en: 'Unauthorized', fr: 'Non Autorisé' },
+            statusCode: HttpStatus.UNAUTHORIZED,
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
       return {
