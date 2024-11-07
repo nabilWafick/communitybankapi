@@ -122,6 +122,8 @@ export class CustomersService {
         data: customer,
       });
 
+      //  createCustomerDto.cards[0]
+
       // add customer cards
       for (const cardDto of createCustomerDto.cards) {
         const newCard = await this.prisma.card.create({

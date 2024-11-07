@@ -834,4 +834,94 @@ export class CollectionsService {
       throw error;
     }
   }
+
+  async profit(): Promise<CollectionCountEntity> {
+    try {
+      // sum all collections
+      const collectionsSum = await this.prisma.collection.aggregate({
+        _sum: {
+          amount: true,
+        },
+      });
+
+      // get all repaid, satisfied and transferred card
+      const satisfiedCards = await this.prisma.card.findMany({
+        where: {
+          NOT: {
+            repaidAt: null,
+          },
+        },
+        include: {
+          type: true,
+          settlements: true,
+        },
+      });
+
+      let collectionProfit = 0;
+      let amountRepaid = 0;
+
+      // calculate the amount repaid
+      for (const satisfiedCard of satisfiedCards) {
+        //  validated settlements of the settlement card
+        const validatedSettlements = satisfiedCard.settlements.filter(
+          (settlement) => settlement.isValidated,
+        );
+
+        // calculate the total of validated settlements
+        const validatedSettlementsTotal = validatedSettlements.reduce(
+          (total, settlement) => total + settlement.number,
+          0,
+        );
+
+        amountRepaid +=
+          satisfiedCard.typesNumber *
+          satisfiedCard.type.stake.toNumber() *
+          validatedSettlementsTotal;
+
+        // substract customer card fee
+        amountRepaid -= 300;
+      }
+
+      let stockProductsAmount = 0;
+      // calculate the sum of the purchase price of all product added to stock
+      // get all input without input from retrocession
+      const stockEntries = await this.prisma.stock.findMany({
+        where: {
+          AND: {
+            inputQuantity: {
+              not: null,
+            },
+            cardId: null,
+          },
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      for (const stockEntry of stockEntries) {
+        stockProductsAmount +=
+          stockEntry.inputQuantity *
+          stockEntry.product.purchasePrice.toNumber();
+      }
+
+      // return collections count
+      return {
+        count:
+          collectionsSum._sum.amount.toNumber() -
+          (amountRepaid + stockProductsAmount),
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
 }

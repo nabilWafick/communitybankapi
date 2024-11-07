@@ -98,8 +98,8 @@ export class CardsService {
       /*    console.log('check id');
       if (where['AND']) {
         console.log(where['AND'][0]);
-      }
-*/
+      }*/
+
       // fetch all cards with the specified parameters
       const cards = await this.prisma.card.findMany({
         skip,

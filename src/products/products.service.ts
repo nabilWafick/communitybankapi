@@ -10,6 +10,7 @@ import {
   ProductCountEntity,
   ProductEntity,
   ProductForecastEntity,
+  ProductImprovidenceEntity,
 } from './entities';
 import { transformWhereInput } from 'src/common/transformer/transformer.service';
 import { SocketGateway } from 'src/common/socket/socket.gateway';
@@ -590,6 +591,256 @@ export class ProductsService {
         .join(', ');
 
       const query = `SELECT * FROM get_products_forecasts(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      const totalAmount = results.reduce((total, productForecast) => {
+        const amount = parseFloat(productForecast.forecast_amount) || 0;
+        return total + amount;
+      }, 0);
+
+      return { count: totalAmount };
+    } catch (error) {
+      console.error('Error calling get_product_forecast: ', error);
+      throw error;
+    }
+  }
+
+  async getProductsImprovidence({
+    getProductForecastDto,
+  }: {
+    getProductForecastDto: GetProductForecastDto;
+  }): Promise<ProductImprovidenceEntity[]> {
+    try {
+      const params = [
+        { name: 'p_product_id', value: getProductForecastDto.productId },
+        { name: 'p_customer_id', value: getProductForecastDto.customerId },
+        { name: 'p_collector_id', value: getProductForecastDto.collectorId },
+        { name: 'p_card_id', value: getProductForecastDto.cardId },
+        { name: 'p_type_id', value: getProductForecastDto.typeId },
+        {
+          name: 'p_total_settlement_number',
+          value: getProductForecastDto.totalSettlementNumber,
+        },
+        { name: 'p_offset', value: getProductForecastDto.offset },
+        { name: 'p_limit', value: getProductForecastDto.limit },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_improvidence(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      /*
+      console.log({
+        productId: getProductForecastDto.productId,
+        customerId: getProductForecastDto.customerId,
+        collectorId: getProductForecastDto.collectorId,
+        cardId: getProductForecastDto.cardId,
+        typeId: getProductForecastDto.typeId,
+        totalSettlementNumber: getProductForecastDto.totalSettlementNumber,
+        offset: getProductForecastDto.offset,
+        limit: getProductForecastDto.limit,
+      });
+
+      console.log({ resultsLength: results.length });
+
+      */
+
+      const productsForecasts = results.map(
+        (result: {
+          product_id: number;
+          product_name: string;
+          forecast_number: number;
+          forecast_amount: number;
+          customers_ids: number[];
+          customers_names: string[];
+          customers_firstnames: string[];
+          collectors_ids: number[];
+          collectors_names: string[];
+          collectors_firstnames: string[];
+          cards_ids: number[];
+          cards_labels: string[];
+          cards_types_numbers: number[];
+          types_ids: number[];
+          types_names: string[];
+          totals_settlements_numbers: number[];
+          totals_settlements_amounts: number[];
+          forecasts_numbers: number[];
+          forecasts_amounts: number[];
+        }) =>
+          new ProductForecastEntity(
+            result.product_id,
+            result.product_name,
+            result.forecast_number,
+            result.forecast_amount,
+            result.customers_ids,
+            result.customers_names,
+            result.customers_firstnames,
+            result.collectors_ids,
+            result.collectors_names,
+            result.collectors_firstnames,
+            result.cards_ids,
+            result.cards_labels,
+            result.cards_types_numbers,
+            result.types_ids,
+            result.types_names,
+            result.totals_settlements_numbers,
+            result.totals_settlements_amounts,
+            result.forecasts_numbers,
+            result.forecasts_amounts,
+          ),
+      );
+
+      return productsForecasts;
+    } catch (error) {
+      console.error('Error calling get_product_improvidence: ', error);
+      throw error;
+    }
+  }
+
+  async getProductsImprovidenceCount(): Promise<ProductCountEntity> {
+    try {
+      const params = [
+        { name: 'p_product_id', value: undefined },
+        { name: 'p_customer_id', value: undefined },
+        { name: 'p_collector_id', value: undefined },
+        { name: 'p_card_id', value: undefined },
+        { name: 'p_type_id', value: undefined },
+        {
+          name: 'p_total_settlement_number',
+          value: undefined,
+        },
+        { name: 'p_offset', value: undefined },
+        { name: 'p_limit', value: undefined },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_improvidence(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      return { count: results.length };
+    } catch (error) {
+      console.error('Error calling get_product_improvidence: ', error);
+      throw error;
+    }
+  }
+
+  async getProductsImprovidenceTotalAmount(): Promise<ProductCountEntity> {
+    try {
+      const params = [
+        { name: 'p_product_id', value: undefined },
+        { name: 'p_customer_id', value: undefined },
+        { name: 'p_collector_id', value: undefined },
+        { name: 'p_card_id', value: undefined },
+        { name: 'p_type_id', value: undefined },
+        {
+          name: 'p_total_settlement_number',
+          value: undefined,
+        },
+        { name: 'p_offset', value: undefined },
+        { name: 'p_limit', value: undefined },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_forecasts(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      const totalAmount = results.reduce((total, productForecast) => {
+        const amount = parseFloat(productForecast.forecast_amount) || 0;
+        return total + amount;
+      }, 0);
+      return { count: totalAmount };
+    } catch (error) {
+      console.error('Error calling get_product_improvidence: ', error);
+      throw error;
+    }
+  }
+
+  async getSpecificProductsImprovidenceCount({
+    getProductForecastDto,
+  }: {
+    getProductForecastDto: GetProductForecastDto;
+  }): Promise<ProductCountEntity> {
+    try {
+      getProductForecastDto.limit = (
+        await this.getProductsForecastsCount()
+      ).count;
+
+      const params = [
+        { name: 'p_product_id', value: getProductForecastDto.productId },
+        { name: 'p_customer_id', value: getProductForecastDto.customerId },
+        { name: 'p_collector_id', value: getProductForecastDto.collectorId },
+        { name: 'p_card_id', value: getProductForecastDto.cardId },
+        { name: 'p_type_id', value: getProductForecastDto.typeId },
+        {
+          name: 'p_total_settlement_number',
+          value: getProductForecastDto.totalSettlementNumber,
+        },
+        { name: 'p_offset', value: 0 },
+        { name: 'p_limit', value: getProductForecastDto.limit },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_improvidence(${paramString})`;
+
+      const results: any = await this.prisma.$queryRawUnsafe(query);
+
+      return { count: results.length };
+    } catch (error) {
+      console.error('Error calling get_product_forecast: ', error);
+      throw error;
+    }
+  }
+
+  async getSpecificProductsImprovidenceTotalAmount({
+    getProductForecastDto,
+  }: {
+    getProductForecastDto: GetProductForecastDto;
+  }): Promise<ProductCountEntity> {
+    try {
+      getProductForecastDto.limit = (
+        await this.getProductsForecastsCount()
+      ).count;
+
+      const params = [
+        { name: 'p_product_id', value: getProductForecastDto.productId },
+        { name: 'p_customer_id', value: getProductForecastDto.customerId },
+        { name: 'p_collector_id', value: getProductForecastDto.collectorId },
+        { name: 'p_card_id', value: getProductForecastDto.cardId },
+        { name: 'p_type_id', value: getProductForecastDto.typeId },
+        {
+          name: 'p_total_settlement_number',
+          value: getProductForecastDto.totalSettlementNumber,
+        },
+        { name: 'p_offset', value: 0 },
+        { name: 'p_limit', value: getProductForecastDto.limit },
+      ].filter(
+        (param) => param.value !== undefined && this.validateParam(param.value),
+      );
+      const paramString = params
+        .map((param) => `${param.name} := ${param.value}`)
+        .join(', ');
+
+      const query = `SELECT * FROM get_products_improvidence(${paramString})`;
 
       const results: any = await this.prisma.$queryRawUnsafe(query);
 

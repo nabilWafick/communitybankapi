@@ -37,7 +37,7 @@ export class StocksService {
     try {
       // check if every product passed are availaible in stock and
       // it stock quantity is equal or greather than the required
-      // the required for making an output
+      // the required for making an output> 0
 
       let availabilities: boolean[] = [];
 
@@ -65,7 +65,7 @@ export class StocksService {
 
           // check if it stock quantity is sufficient for the output
           if (
-            lastProductStock.stockQuantity - productsOutputQuantities[i] >
+            lastProductStock.stockQuantity - productsOutputQuantities[i] >=
             0
           ) {
             availabilities[i] = true;

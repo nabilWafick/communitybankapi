@@ -23,6 +23,7 @@ import {
   ProductCountEntity,
   ProductEntity,
   ProductForecastEntity,
+  ProductImprovidenceEntity,
 } from './entities';
 import { ProductsService } from './products.service';
 import { PermissionsGuard } from '../auth/guard/permissions.guard';
@@ -924,6 +925,208 @@ export class ProductsController {
       };
 
       return await this.productsService.getSpecificProductsForecastsTotalAmount(
+        {
+          getProductForecastDto: getProductForecastDto,
+        },
+      );
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Server Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // **** IMPROVIDENCE
+
+  @Permissions('admin')
+  @Get('/stats/improvidence')
+  @ApiOkResponse({ type: ProductForecastEntity, isArray: true })
+  async getProductImprovidence(
+    @Query() query: Record<string, string>,
+  ): Promise<ProductImprovidenceEntity[]> {
+    try {
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: this.parseQueryParam(query.offset, 'number'),
+        limit: this.parseQueryParam(query.limit, 'number'),
+      };
+
+      // Validate that required fields are present
+      if (
+        getProductForecastDto.offset === undefined ||
+        getProductForecastDto.limit === undefined
+      ) {
+        throw new HttpException(
+          {
+            message: {
+              en: 'Offset and limit are required query parameters',
+              fr: 'Les paramètres offset et limit sont requis',
+            },
+            error: {
+              en: 'Bad Request',
+              fr: 'Requête Incorrecte',
+            },
+            statusCode: HttpStatus.BAD_REQUEST,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return this.productsService.getProductsImprovidence({
+        getProductForecastDto: getProductForecastDto,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Server Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  @Permissions('admin')
+  @Get('/stats/improvidence/count')
+  @ApiOkResponse({
+    type: ProductCountEntity,
+  })
+  async getProductsImprovidenceCount(): Promise<ProductCountEntity> {
+    try {
+      return this.productsService.getProductsImprovidenceCount();
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Get('/stats/improvidence/amount')
+  @ApiOkResponse({
+    type: ProductCountEntity,
+  })
+  async getProductsImprovidenceTotalAmount(): Promise<ProductCountEntity> {
+    try {
+      return this.productsService.getProductsImprovidenceTotalAmount();
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Serveur Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Get('/stats/improvidence/count/specific')
+  @ApiOkResponse({ type: ProductCountEntity })
+  async getSpecificProductsImprovidenceCount(
+    @Query() query: Record<string, string>,
+  ): Promise<ProductCountEntity> {
+    try {
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: 0,
+        limit: 10,
+      };
+
+      return this.productsService.getSpecificProductsImprovidenceCount({
+        getProductForecastDto: getProductForecastDto,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: {
+            en: `An error occurred on the server: ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur: ${error.message}`,
+          },
+          error: {
+            en: 'Internal Server Error',
+            fr: 'Erreur Interne du Serveur',
+          },
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Permissions('admin')
+  @Get('/stats/improvidence/specific/amount')
+  @ApiOkResponse({ type: ProductCountEntity })
+  async getSpecificProductsImprovidenceTotalAmount(
+    @Query() query: Record<string, string>,
+  ): Promise<ProductCountEntity> {
+    try {
+      const getProductForecastDto: GetProductForecastDto = {
+        productId: this.parseQueryParam(query.productId, 'number'),
+        customerId: this.parseQueryParam(query.customerId, 'number'),
+        collectorId: this.parseQueryParam(query.collectorId, 'number'),
+        cardId: this.parseQueryParam(query.cardId, 'number'),
+        typeId: this.parseQueryParam(query.typeId, 'number'),
+        totalSettlementNumber: this.parseQueryParam(
+          query.totalSettlementNumber,
+          'number',
+        ),
+        offset: 0,
+        limit: 10,
+      };
+
+      return await this.productsService.getSpecificProductsImprovidenceTotalAmount(
         {
           getProductForecastDto: getProductForecastDto,
         },
