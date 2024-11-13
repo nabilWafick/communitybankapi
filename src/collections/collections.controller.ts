@@ -1661,7 +1661,7 @@ export class CollectionsController {
   }
 
   @Permissions('admin')
-  @Get('profit')
+  @Get('profit/estimation')
   @ApiOkResponse({ type: CollectionCountEntity })
   async profit(): Promise<CollectionCountEntity> {
     try {

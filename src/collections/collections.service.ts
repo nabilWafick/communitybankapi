@@ -857,7 +857,6 @@ export class CollectionsService {
         },
       });
 
-      let collectionProfit = 0;
       let amountRepaid = 0;
 
       // calculate the amount repaid

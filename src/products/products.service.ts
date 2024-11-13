@@ -635,22 +635,6 @@ export class ProductsService {
 
       const results: any = await this.prisma.$queryRawUnsafe(query);
 
-      /*
-      console.log({
-        productId: getProductForecastDto.productId,
-        customerId: getProductForecastDto.customerId,
-        collectorId: getProductForecastDto.collectorId,
-        cardId: getProductForecastDto.cardId,
-        typeId: getProductForecastDto.typeId,
-        totalSettlementNumber: getProductForecastDto.totalSettlementNumber,
-        offset: getProductForecastDto.offset,
-        limit: getProductForecastDto.limit,
-      });
-
-      console.log({ resultsLength: results.length });
-
-      */
-
       const productsForecasts = results.map(
         (result: {
           product_id: number;
