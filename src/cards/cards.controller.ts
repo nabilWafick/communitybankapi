@@ -330,9 +330,11 @@ export class CardsController {
   @Permissions('read-card')
   @Get('count/all')
   @ApiOkResponse({ type: CardCountEntity })
-  async countAll(): Promise<CardCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.CardWhereInput,
+  ): Promise<CardCountEntity> {
     try {
-      return await this.cardsService.countAll();
+      return await this.cardsService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

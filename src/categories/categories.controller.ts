@@ -306,9 +306,11 @@ export class CategoriesController {
   @Permissions('read-category')
   @Get('count/all')
   @ApiOkResponse({ type: CategoryCountEntity })
-  async countAll(): Promise<CategoryCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.CategoryWhereInput,
+  ): Promise<CategoryCountEntity> {
     try {
-      return await this.categoriesService.countAll();
+      return await this.categoriesService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

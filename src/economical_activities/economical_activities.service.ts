@@ -116,11 +116,15 @@ export class EconomicalActivitiesService {
     }
   }
 
-  async countAll(): Promise<EconomicalActivityCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.EconomicalActivityWhereInput;
+  }): Promise<EconomicalActivityCountEntity> {
     try {
       // find all economicalActivities
       const economicalActivitiesCount =
-        await this.prisma.economicalActivity.count();
+        await this.prisma.economicalActivity.count({ where });
 
       // return economicalActivities count
       return { count: economicalActivitiesCount };
@@ -156,7 +160,7 @@ export class EconomicalActivitiesService {
       const specificEconomicalActivitiesCount =
         await this.prisma.economicalActivity.count({
           skip: 0,
-          take: (await this.countAll()).count,
+          take: (await this.countAll({})).count,
           cursor,
           where,
           orderBy,

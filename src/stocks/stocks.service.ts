@@ -1001,10 +1001,14 @@ export class StocksService {
     }
   }
 
-  async countAll(): Promise<StockCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.StockWhereInput;
+  }): Promise<StockCountEntity> {
     try {
       // find all stocks
-      const stocksCount = await this.prisma.stock.count();
+      const stocksCount = await this.prisma.stock.count({ where });
 
       // return stocks count
       return { count: stocksCount };
@@ -1039,7 +1043,7 @@ export class StocksService {
       // find specific stocks
       const specificStocksCount = await this.prisma.stock.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

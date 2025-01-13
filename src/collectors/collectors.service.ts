@@ -99,10 +99,14 @@ export class CollectorsService {
     }
   }
 
-  async countAll(): Promise<CollectorCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.CollectorWhereInput;
+  }): Promise<CollectorCountEntity> {
     try {
       // find all collectors
-      const collectorsCount = await this.prisma.collector.count();
+      const collectorsCount = await this.prisma.collector.count({ where });
 
       // return collectors count
       return { count: collectorsCount };
@@ -137,7 +141,7 @@ export class CollectorsService {
       // find specific collectors
       const specificCollectorsCount = await this.prisma.collector.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where,
         orderBy,
@@ -324,11 +328,11 @@ export class CollectorsService {
             collector.phoneNumber,
             collector._count.collections,
             collector.collections.reduce(
-              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              (sum, collection) => sum + collection.amount.toNumber(),
               0,
             ),
             collector.collections.reduce(
-              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
+              (sum, collection) => sum + collection.rest.toNumber(),
               0,
             ),
             collector.collections.length > 0
@@ -426,11 +430,11 @@ export class CollectorsService {
             collector.phoneNumber,
             collector._count.collections,
             collector.collections.reduce(
-              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              (sum, collection) => sum + collection.amount.toNumber(),
               0,
             ),
             collector.collections.reduce(
-              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
+              (sum, collection) => sum + collection.rest.toNumber(),
               0,
             ),
             collector.collections.length > 0
@@ -527,11 +531,11 @@ export class CollectorsService {
             collector.phoneNumber,
             collector._count.collections,
             collector.collections.reduce(
-              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              (sum, collection) => sum + collection.amount.toNumber(),
               0,
             ),
             collector.collections.reduce(
-              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
+              (sum, collection) => sum + collection.rest.toNumber(),
               0,
             ),
             collector.collections.length > 0
@@ -632,11 +636,11 @@ export class CollectorsService {
             collector.phoneNumber,
             collector._count.collections,
             collector.collections.reduce(
-              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              (sum, collection) => sum + collection.amount.toNumber(),
               0,
             ),
             collector.collections.reduce(
-              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
+              (sum, collection) => sum + collection.rest.toNumber(),
               0,
             ),
             collector.collections.length > 0
@@ -737,11 +741,11 @@ export class CollectorsService {
             collector.phoneNumber,
             collector._count.collections,
             collector.collections.reduce(
-              (sum, collection) => sum + collection.amount.toNumber() ?? 0,
+              (sum, collection) => sum + collection.amount.toNumber(),
               0,
             ),
             collector.collections.reduce(
-              (sum, collection) => sum + collection.rest.toNumber() ?? 0,
+              (sum, collection) => sum + collection.rest.toNumber(),
               0,
             ),
             collector.collections.length > 0

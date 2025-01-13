@@ -112,10 +112,14 @@ export class ProductsService {
     }
   }
 
-  async countAll(): Promise<ProductCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.ProductWhereInput;
+  }): Promise<ProductCountEntity> {
     try {
       // find all products
-      const productsCount = await this.prisma.product.count();
+      const productsCount = await this.prisma.product.count({ where });
 
       // return products count
       return { count: productsCount };
@@ -150,7 +154,7 @@ export class ProductsService {
       // find specific products
       const specificProductsCount = await this.prisma.product.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

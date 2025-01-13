@@ -306,9 +306,11 @@ export class LocalitiesController {
   @Permissions('read-locality')
   @Get('count/all')
   @ApiOkResponse({ type: LocalityCountEntity })
-  async countAll(): Promise<LocalityCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.LocalityWhereInput,
+  ): Promise<LocalityCountEntity> {
     try {
-      return await this.localitiesService.countAll();
+      return await this.localitiesService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

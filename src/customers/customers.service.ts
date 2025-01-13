@@ -206,10 +206,14 @@ export class CustomersService {
     }
   }
 
-  async countAll(): Promise<CustomerCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.CustomerWhereInput;
+  }): Promise<CustomerCountEntity> {
     try {
       // find all customers
-      const customersCount = await this.prisma.customer.count();
+      const customersCount = await this.prisma.customer.count({ where });
 
       // return customers count
       return { count: customersCount };
@@ -244,7 +248,7 @@ export class CustomersService {
       // find specific customers
       const specificCustomersCount = await this.prisma.customer.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
@@ -459,8 +463,40 @@ export class CustomersService {
         data: customer,
       });
 
+      // get all user cards which are usable
+      const userUsableCards = await this.prisma.card.findMany({
+        where: {
+          customerId: id,
+          satisfiedAt: null,
+          repaidAt: null,
+          transferredAt: null,
+        },
+      });
+
+      // check if a new card have a type of any of user usable cards
+      for (
+        let index = 0;
+        // get only new cards
+        index <
+        updateCustomerDto.cards.filter(
+          (card) => card.id === undefined || card.id === null,
+        ).length;
+        index++
+      ) {
+        const newCard = updateCustomerDto.cards[index];
+
+        if (
+          userUsableCards.find(
+            (usableCard) => usableCard.typeId === newCard.typeId,
+          )
+        ) {
+          throw Error(`New type in use`);
+        }
+      }
+
       // add new customer cards
       for (const cardDto of updateCustomerDto.cards) {
+        //    console.log(' ============> New Card Label', cardDto.label);
         if (cardDto.id == null || cardDto.id == undefined) {
           const newCard = await this.prisma.card.create({
             data: {

@@ -315,9 +315,11 @@ export class EconomicalActivitiesController {
   @Permissions('read-economical-activity')
   @Get('count/all')
   @ApiOkResponse({ type: EconomicalActivityCountEntity })
-  async countAll(): Promise<EconomicalActivityCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.EconomicalActivityWhereInput,
+  ): Promise<EconomicalActivityCountEntity> {
     try {
-      return await this.economicalActivitiesService.countAll();
+      return await this.economicalActivitiesService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

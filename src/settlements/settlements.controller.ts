@@ -757,9 +757,11 @@ export class SettlementsController {
   @Permissions('read-settlement')
   @Get('count/all')
   @ApiOkResponse({ type: SettlementCountEntity })
-  async countAll(): Promise<SettlementCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.SettlementWhereInput,
+  ): Promise<SettlementCountEntity> {
     try {
-      return await this.settlementsService.countAll();
+      return await this.settlementsService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

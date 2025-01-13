@@ -142,10 +142,14 @@ export class CardsService {
     }
   }
 
-  async countAll(): Promise<CardCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.CardWhereInput;
+  }): Promise<CardCountEntity> {
     try {
       // find all cards
-      const cardsCount = await this.prisma.card.count();
+      const cardsCount = await this.prisma.card.count({ where });
 
       // return cards count
       return { count: cardsCount };
@@ -180,7 +184,7 @@ export class CardsService {
       // find specific cards
       const specificCardsCount = await this.prisma.card.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

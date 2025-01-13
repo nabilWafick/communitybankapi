@@ -347,9 +347,11 @@ export class TypesController {
   @Permissions('read-type')
   @Get('count/all')
   @ApiOkResponse({ type: TypeCountEntity })
-  async countAll(): Promise<TypeCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.TypeWhereInput,
+  ): Promise<TypeCountEntity> {
     try {
-      return await this.typesService.countAll();
+      return await this.typesService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

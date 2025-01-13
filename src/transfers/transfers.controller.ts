@@ -129,7 +129,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -146,7 +146,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -162,7 +162,7 @@ export class TransfersController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est transfere sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -217,7 +217,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -234,7 +234,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -250,7 +250,7 @@ export class TransfersController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est transfere sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -315,7 +315,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -332,7 +332,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -348,7 +348,7 @@ export class TransfersController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est transfere sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -364,9 +364,11 @@ export class TransfersController {
   @Permissions('read-transfer')
   @Get('count/all')
   @ApiOkResponse({ type: TransferCountEntity })
-  async countAll(): Promise<TransferCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.TransferWhereInput,
+  ): Promise<TransferCountEntity> {
     try {
-      return await this.transfersService.countAll();
+      return await this.transfersService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
@@ -732,7 +734,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -749,7 +751,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -765,7 +767,7 @@ export class TransfersController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est transfere sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',
@@ -818,7 +820,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to a service',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à un service",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à un service",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -835,7 +837,7 @@ export class TransfersController {
           {
             message: {
               en: 'An error occurred on the server. Error related to the database connection',
-              fr: "Une erreur s'est transfere sur le serveur. Erreur liée à la connection avec la base de données",
+              fr: "Une erreur s'est produite sur le serveur. Erreur liée à la connection avec la base de données",
             },
             error: {
               en: 'Internal Serveur Error',
@@ -851,7 +853,7 @@ export class TransfersController {
         {
           message: {
             en: `An error occurred on the server. ${error.message}`,
-            fr: `Une erreur s'est transfere sur le serveur. ${error.message}`,
+            fr: `Une erreur s'est produite sur le serveur. ${error.message}`,
           },
           error: {
             en: 'Internal Serveur Error',

@@ -310,9 +310,11 @@ export class CollectorsController {
   @Permissions('read-collector')
   @Get('count/all')
   @ApiOkResponse({ type: CollectorCountEntity })
-  async countAll(): Promise<CollectorCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.CollectorWhereInput,
+  ): Promise<CollectorCountEntity> {
     try {
-      return await this.collectorsService.countAll();
+      return await this.collectorsService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

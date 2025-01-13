@@ -85,6 +85,8 @@ export function transformWhereInput(where: any): Object {
 
 /// * TEST THIRD
 function convertValueToCorrectType(value: any): any {
+  //  console.log(' ===========> Value: ', value);
+  //  console.log(' Type of Value: ', typeof value);
   if (typeof value === 'string') {
     const timestamptzRegex =
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+\-]\d{2}:\d{2})$/;
@@ -102,7 +104,7 @@ function convertValueToCorrectType(value: any): any {
       return true;
     } else if (value.toLowerCase() === 'false') {
       return false;
-    } else if (value.toLowerCase() === 'null') {
+    } else if (value.toLowerCase() === '{[%null%]}') {
       return null;
     } else if (
       typeof parseInt(value) === 'number' &&

@@ -105,10 +105,16 @@ export class PersonalStatusService {
     }
   }
 
-  async countAll(): Promise<PersonalStatusCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.PersonalStatusWhereInput;
+  }): Promise<PersonalStatusCountEntity> {
     try {
       // find all personalStatuss
-      const personalStatusCount = await this.prisma.personalStatus.count();
+      const personalStatusCount = await this.prisma.personalStatus.count({
+        where,
+      });
 
       // return personalStatuss count
       return { count: personalStatusCount };
@@ -144,7 +150,7 @@ export class PersonalStatusService {
       const specificPersonalStatusCount =
         await this.prisma.personalStatus.count({
           skip: 0,
-          take: (await this.countAll()).count,
+          take: (await this.countAll({ where })).count,
           cursor,
           where: transformWhereInput(where),
           orderBy,

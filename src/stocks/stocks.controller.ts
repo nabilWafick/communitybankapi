@@ -1012,9 +1012,11 @@ export class StocksController {
   @Permissions('read-stock')
   @Get('count/all')
   @ApiOkResponse({ type: StockCountEntity })
-  async countAll(): Promise<StockCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.StockWhereInput,
+  ): Promise<StockCountEntity> {
     try {
-      return await this.stocksService.countAll();
+      return await this.stocksService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

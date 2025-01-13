@@ -306,9 +306,11 @@ export class PersonalStatusController {
   @Permissions('read-personal-status')
   @Get('count/all')
   @ApiOkResponse({ type: PersonalStatusCountEntity })
-  async countAll(): Promise<PersonalStatusCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.PersonalStatusWhereInput,
+  ): Promise<PersonalStatusCountEntity> {
     try {
-      return await this.personalStatusService.countAll();
+      return await this.personalStatusService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

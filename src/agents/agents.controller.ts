@@ -315,9 +315,11 @@ export class AgentsController {
   @Permissions('read-agent')
   @Get('count/all')
   @ApiOkResponse({ type: AgentCountEntity })
-  async countAll(): Promise<AgentCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.AgentWhereInput,
+  ): Promise<AgentCountEntity> {
     try {
-      return await this.agentsService.countAll();
+      return await this.agentsService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

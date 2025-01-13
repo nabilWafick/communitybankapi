@@ -502,10 +502,14 @@ export class SettlementsService {
     }
   }
 
-  async countAll(): Promise<SettlementCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.SettlementWhereInput;
+  }): Promise<SettlementCountEntity> {
     try {
       // find all settlements
-      const settlementsCount = await this.prisma.settlement.count();
+      const settlementsCount = await this.prisma.settlement.count({ where });
 
       // return settlements count
       return { count: settlementsCount };
@@ -540,7 +544,7 @@ export class SettlementsService {
       // find specific settlements
       const specificSettlementsCount = await this.prisma.settlement.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
@@ -589,7 +593,7 @@ export class SettlementsService {
         },
       });
 
-      return { count: sum._sum.number || 0 };
+      return { count: sum._sum?.number ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');

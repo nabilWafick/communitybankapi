@@ -245,10 +245,14 @@ export class TransfersService {
     }
   }
 
-  async countAll(): Promise<TransferCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.TransferWhereInput;
+  }): Promise<TransferCountEntity> {
     try {
       // find all types
-      const typesCount = await this.prisma.transfer.count();
+      const typesCount = await this.prisma.transfer.count({ where });
 
       // return types count
       return { count: typesCount };
@@ -283,7 +287,7 @@ export class TransfersService {
       // find specific types
       const specificTypesCount = await this.prisma.transfer.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

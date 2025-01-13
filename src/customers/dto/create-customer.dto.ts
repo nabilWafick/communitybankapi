@@ -31,7 +31,6 @@ export class CreateCustomerDto {
   @ApiProperty()
   firstnames: string;
 
- 
   @Matches(/^(\+229|00229)[4569]\d{7}$/, {
     message:
       'Phone number must be like +229XXXXXXXX or 00229XXXXXXXX and must match r^/^(+229|00229)[4569]d{7}$/',
@@ -46,9 +45,9 @@ export class CreateCustomerDto {
   address: string;
 
   @IsOptional()
-  @IsString({ message: 'Occupation must be a text' })
-  @IsNotEmpty({ message: 'Occupation must not be empty' })
-  @MinLength(3, { message: 'Occupation must contain at least 3 characters' })
+  // @IsString({ message: 'Occupation must be a text' })
+  // @IsNotEmpty({ message: 'Occupation must not be empty' })
+  //  @MinLength(3, { message: 'Occupation must contain at least 3 characters' })
   @ApiProperty()
   occupation?: string | null;
 

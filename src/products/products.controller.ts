@@ -387,9 +387,11 @@ export class ProductsController {
   @Permissions('read-product')
   @Get('count/all')
   @ApiOkResponse({ type: ProductCountEntity })
-  async countAll(): Promise<ProductCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.ProductWhereInput,
+  ): Promise<ProductCountEntity> {
     try {
-      return await this.productsService.countAll();
+      return await this.productsService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(

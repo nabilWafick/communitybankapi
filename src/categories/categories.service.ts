@@ -103,10 +103,14 @@ export class CategoriesService {
     }
   }
 
-  async countAll(): Promise<CategoryCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.CategoryWhereInput;
+  }): Promise<CategoryCountEntity> {
     try {
       // find all categories
-      const categoriesCount = await this.prisma.category.count();
+      const categoriesCount = await this.prisma.category.count({ where });
 
       // return categories count
       return { count: categoriesCount };
@@ -141,7 +145,7 @@ export class CategoriesService {
       // find specific categories
       const specificCategoriesCount = await this.prisma.category.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({ where })).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

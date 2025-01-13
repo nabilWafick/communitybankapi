@@ -163,10 +163,14 @@ export class TypesService {
     }
   }
 
-  async countAll(): Promise<TypeCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.TypeWhereInput;
+  }): Promise<TypeCountEntity> {
     try {
       // find all types
-      const typesCount = await this.prisma.type.count();
+      const typesCount = await this.prisma.type.count({ where });
 
       // return types count
       return { count: typesCount };
@@ -201,7 +205,7 @@ export class TypesService {
       // find specific types
       const specificTypesCount = await this.prisma.type.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

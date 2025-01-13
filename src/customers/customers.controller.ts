@@ -378,9 +378,11 @@ export class CustomersController {
   @Permissions('read-customer')
   @Get('count/all')
   @ApiOkResponse({ type: CustomerCountEntity })
-  async countAll(): Promise<CustomerCountEntity> {
+  async countAll(
+    @Query('where') where?: Prisma.CustomerWhereInput,
+  ): Promise<CustomerCountEntity> {
     try {
-      return await this.customersService.countAll();
+      return await this.customersService.countAll({ where });
     } catch (error) {
       if (error.message === 'Invalid query or request') {
         throw new HttpException(
@@ -648,6 +650,20 @@ export class CustomersController {
             message: {
               en: 'The specified personal status is not found',
               fr: 'Le statut personnel spécifié est introuvable',
+            },
+            error: { en: 'Not Found', fr: 'Introuvable' },
+            statusCode: HttpStatus.NOT_FOUND,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (error.message === 'New type in use') {
+        throw new HttpException(
+          {
+            message: {
+              en: 'New type in use',
+              fr: `Nouveau type en cours d'utilisation`,
             },
             error: { en: 'Not Found', fr: 'Introuvable' },
             statusCode: HttpStatus.NOT_FOUND,

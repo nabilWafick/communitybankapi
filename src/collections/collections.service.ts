@@ -62,6 +62,10 @@ export class CollectionsService {
 
       const collectionDate = new Date(createCollectionDto.collectedAt);
 
+      if (collectionDate > new Date()) {
+        throw Error('Invalid collection date');
+      }
+
       for (const collectorCollection of collectorCollections) {
         if (
           collectorCollection.collectedAt.getFullYear() ===
@@ -145,10 +149,14 @@ export class CollectionsService {
     }
   }
 
-  async countAll(): Promise<CollectionCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.CollectionWhereInput;
+  }): Promise<CollectionCountEntity> {
     try {
       // find all collections
-      const collectionsCount = await this.prisma.collection.count();
+      const collectionsCount = await this.prisma.collection.count({ where });
 
       // return collections count
       return { count: collectionsCount };
@@ -166,17 +174,23 @@ export class CollectionsService {
     }
   }
 
-  async sumAll(): Promise<CollectionCountEntity> {
+  async sumAll({
+    where,
+  }: {
+    where?: Prisma.CollectionWhereInput;
+  }): Promise<CollectionCountEntity> {
     try {
       // find all collections
       const collectionsSum = await this.prisma.collection.aggregate({
+        where,
+
         _sum: {
           amount: true,
         },
       });
 
       // return collections count
-      return { count: collectionsSum._sum.amount.toNumber() ?? 0 };
+      return { count: collectionsSum._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -191,17 +205,22 @@ export class CollectionsService {
     }
   }
 
-  async sumAllRest(): Promise<CollectionCountEntity> {
+  async sumAllRest({
+    where,
+  }: {
+    where?: Prisma.CollectionWhereInput;
+  }): Promise<CollectionCountEntity> {
     try {
       // find all collections
       const collectionsRestSum = await this.prisma.collection.aggregate({
+        where,
         _sum: {
           rest: true,
         },
       });
 
       // return collections count
-      return { count: collectionsRestSum._sum.rest.toNumber() };
+      return { count: collectionsRestSum._sum.rest?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -233,7 +252,7 @@ export class CollectionsService {
       // find specific collections
       const specificCollectionsCount = await this.prisma.collection.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
@@ -272,7 +291,7 @@ export class CollectionsService {
       // find specific collections
       const specificCollectionsSum = await this.prisma.collection.aggregate({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
@@ -282,7 +301,7 @@ export class CollectionsService {
       });
 
       // return collections count
-      return { count: specificCollectionsSum._sum.amount.toNumber() ?? 0 };
+      return { count: specificCollectionsSum._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -315,7 +334,7 @@ export class CollectionsService {
       const specificCollectionsRestSum = await this.prisma.collection.aggregate(
         {
           skip: 0,
-          take: (await this.countAll()).count,
+          take: (await this.countAll({ where: null })).count,
           cursor,
           where: transformWhereInput(where),
           orderBy,
@@ -326,7 +345,7 @@ export class CollectionsService {
       );
 
       // return collections count
-      return { count: specificCollectionsRestSum._sum.rest.toNumber() };
+      return { count: specificCollectionsRestSum._sum.rest?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientUnknownRequestError) {
         throw new Error('Invalid query or request');
@@ -682,7 +701,7 @@ export class CollectionsService {
         },
       });
 
-      return { count: collectionSumDay._sum.amount.toNumber() ?? 0 };
+      return { count: collectionSumDay._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -724,7 +743,7 @@ export class CollectionsService {
         },
       });
 
-      return { count: collectionSumWeek._sum.amount.toNumber() ?? 0 };
+      return { count: collectionSumWeek._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -770,7 +789,7 @@ export class CollectionsService {
         },
       });
 
-      return { count: collectionSumMonth._sum.amount.toNumber() ?? 0 };
+      return { count: collectionSumMonth._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -815,7 +834,7 @@ export class CollectionsService {
         },
       });
 
-      return { count: collectionSumYear._sum.amount.toNumber() ?? 0 };
+      return { count: collectionSumYear._sum.amount?.toNumber() ?? 0 };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -835,6 +854,7 @@ export class CollectionsService {
     }
   }
 
+  /*
   async profit(): Promise<CollectionCountEntity> {
     try {
       // sum all collections
@@ -907,7 +927,216 @@ export class CollectionsService {
       // return collections count
       return {
         count:
-          collectionsSum._sum.amount.toNumber() -
+          (collectionsSum._sum.amount?.toNumber() ?? 0) -
+          (amountRepaid + stockProductsAmount),
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+  */
+
+  /// ***** Claude AI suggestion *****
+  async profit(): Promise<CollectionCountEntity> {
+    try {
+      // 1. Sum all collections
+      const collectionsSum = await this.prisma.collection.aggregate({
+        _sum: {
+          amount: true,
+        },
+      });
+
+      // 2. Get only satisfied and repaid cards that haven't been transferred
+      const satisfiedCards = await this.prisma.card.findMany({
+        where: {
+          AND: {
+            repaidAt: { not: null }, // Card has been repaid
+            satisfiedAt: { not: null }, // Card has received its products
+            transferredAt: null, // Card hasn't been transferred
+          },
+        },
+        include: {
+          type: true,
+          settlements: true,
+        },
+      });
+
+      let amountRepaid = 0;
+
+      // Calculate the amount repaid for each valid card
+      for (const satisfiedCard of satisfiedCards) {
+        // Get only validated settlements for this card
+        const validatedSettlements = satisfiedCard.settlements.filter(
+          (settlement) => settlement.isValidated,
+        );
+
+        // Sum up all validated settlements
+        const validatedSettlementsTotal = validatedSettlements.reduce(
+          (total, settlement) => total + settlement.number,
+          0,
+        );
+
+        // Calculate total repaid amount:
+        // typesNumber * stake * total settlements
+        amountRepaid +=
+          satisfiedCard.typesNumber *
+          satisfiedCard.type.stake.toNumber() *
+          validatedSettlementsTotal;
+
+        // Subtract card fee
+        amountRepaid -= 300;
+      }
+
+      // 3. Calculate stock costs
+      let stockProductsAmount = 0;
+      // Get all stock inputs (excluding retrocessions)
+      const stockEntries = await this.prisma.stock.findMany({
+        where: {
+          AND: {
+            inputQuantity: {
+              not: null,
+            },
+            cardId: null, // Exclude retrocessions
+          },
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      // Calculate total stock purchase cost
+      for (const stockEntry of stockEntries) {
+        stockProductsAmount +=
+          stockEntry.inputQuantity *
+          stockEntry.product.purchasePrice.toNumber();
+      }
+
+      // 4. Calculate final profit
+      return {
+        count:
+          (collectionsSum._sum.amount?.toNumber() ?? 0) -
+          (amountRepaid + stockProductsAmount),
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        throw new Error('Invalid query or request');
+      }
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        throw new Error('Internal Prisma client error');
+      }
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        throw new Error('Prisma client initialization error');
+      }
+      throw error;
+    }
+  }
+
+  async yearProfit(): Promise<CollectionCountEntity> {
+    try {
+      // Get start and end of current year
+      const currentYear = new Date().getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1); // January 1st
+      const endOfYear = new Date(currentYear + 1, 0, 1); // January 1st next year
+
+      // 1. Sum collections for current year
+      const collectionsSum = await this.prisma.collection.aggregate({
+        _sum: {
+          amount: true,
+        },
+        where: {
+          collectedAt: {
+            gte: startOfYear,
+            lt: endOfYear,
+          },
+        },
+      });
+
+      // 2. Get satisfied and repaid cards from current year
+      const satisfiedCards = await this.prisma.card.findMany({
+        where: {
+          AND: {
+            repaidAt: {
+              not: null,
+              gte: startOfYear,
+              lt: endOfYear,
+            },
+            satisfiedAt: { not: null },
+            transferredAt: null,
+          },
+        },
+        include: {
+          type: true,
+          settlements: {
+            where: {
+              createdAt: {
+                gte: startOfYear,
+                lt: endOfYear,
+              },
+            },
+          },
+        },
+      });
+
+      let amountRepaid = 0;
+
+      // Calculate the amount repaid for each valid card
+      for (const satisfiedCard of satisfiedCards) {
+        const validatedSettlements = satisfiedCard.settlements.filter(
+          (settlement) => settlement.isValidated,
+        );
+
+        const validatedSettlementsTotal = validatedSettlements.reduce(
+          (total, settlement) => total + settlement.number,
+          0,
+        );
+
+        amountRepaid +=
+          satisfiedCard.typesNumber *
+          satisfiedCard.type.stake.toNumber() *
+          validatedSettlementsTotal;
+
+        amountRepaid -= 300;
+      }
+
+      // 3. Calculate stock costs for current year
+      let stockProductsAmount = 0;
+      const stockEntries = await this.prisma.stock.findMany({
+        where: {
+          AND: {
+            inputQuantity: {
+              not: null,
+            },
+            cardId: null,
+            createdAt: {
+              gte: startOfYear,
+              lt: endOfYear,
+            },
+          },
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      for (const stockEntry of stockEntries) {
+        stockProductsAmount +=
+          stockEntry.inputQuantity *
+          stockEntry.product.purchasePrice.toNumber();
+      }
+
+      // 4. Calculate final profit
+      return {
+        count:
+          (collectionsSum._sum.amount?.toNumber() ?? 0) -
           (amountRepaid + stockProductsAmount),
       };
     } catch (error) {

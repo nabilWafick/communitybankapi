@@ -103,10 +103,14 @@ export class LocalitiesService {
     }
   }
 
-  async countAll(): Promise<LocalityCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.LocalityWhereInput;
+  }): Promise<LocalityCountEntity> {
     try {
       // find all localities
-      const localitiesCount = await this.prisma.locality.count();
+      const localitiesCount = await this.prisma.locality.count({ where });
 
       // return localities count
       return { count: localitiesCount };
@@ -141,7 +145,7 @@ export class LocalitiesService {
       // find specific localities
       const specificLocalitiesCount = await this.prisma.locality.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({ where })).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,

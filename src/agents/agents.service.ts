@@ -108,10 +108,14 @@ export class AgentsService {
     }
   }
 
-  async countAll(): Promise<AgentCountEntity> {
+  async countAll({
+    where,
+  }: {
+    where?: Prisma.AgentWhereInput;
+  }): Promise<AgentCountEntity> {
     try {
       // find all agents
-      const agentsCount = await this.prisma.agent.count();
+      const agentsCount = await this.prisma.agent.count({ where });
 
       // return agents count
       return { count: agentsCount };
@@ -146,7 +150,7 @@ export class AgentsService {
       // find specific agents
       const specificAgentsCount = await this.prisma.agent.count({
         skip: 0,
-        take: (await this.countAll()).count,
+        take: (await this.countAll({})).count,
         cursor,
         where: transformWhereInput(where),
         orderBy,
